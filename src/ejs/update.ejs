@@ -1,0 +1,23 @@
+<%- include("partials/static-header.ejs", {title:"Update", css:"update"}) %>
+<%- include("partials/nav.ejs", {current: ""}) %>
+    <div id="page" class="static">
+      <h1>Crossfoam Update</h1>
+
+      <p id="versionControl" class="center"></p>
+
+      <div id="updateMessage">
+        <ul></ul>
+      </div>
+
+      <hr class="divider spacing" />
+
+      <p id="githubPromote" class="center"></p>
+      <a class="github-badge" href="https://github.com/ULTRAPOP-de/crossfoam">
+        <span>
+          <span><img src="../assets/images/GitHub-Mark-64px.png" alt="GitHub" /></span>
+          <span>GitHub: ULTRAPOP-de/Crossfoam</span>
+        </span>
+      </a>
+
+    </div>
+<%- include("partials/static-footer.ejs", {js:"update"}) %>

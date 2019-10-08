@@ -1,0 +1,70 @@
+@import 'mixins';
+@import 'fonts';
+@import 'basics';
+@import 'navbar';
+@import 'modal';
+@import 'static';
+
+#page.static.install{
+  max-width:960px;
+  font-size:18px;
+}
+
+h2{
+  text-align: center;
+  font-size:1.5em;
+}
+
+p{
+  font-weight:300;
+  line-height:1.4em;
+}
+
+img.full{
+  width:100%;
+  height:auto;
+}
+
+#specialHeadline1{
+  text-align:center;
+  margin: -100px 0 100px 0;
+}
+
+#specialImage1{
+  margin-top:50px;
+}
+
+#specialImage2{
+  margin-bottom:20px;
+}
+
+.middleBlock{
+  max-width:550px;
+  padding:25px;
+  margin: 0 auto 50px auto;
+}
+
+@media (min-width: 768px) {
+
+  .table{
+    display: table;
+  }
+
+  .table-row{
+    display: table-row;
+  }
+  .table-cell{
+    width:50%;
+    display: table-cell;
+    vertical-align: middle;
+  }
+}
+
+.table img{
+  max-width:100%;
+  height:auto;
+}
+
+.table p{
+  padding:0 25px;
+}

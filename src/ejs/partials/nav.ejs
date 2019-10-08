@@ -1,0 +1,33 @@
+<div id="navbar">
+  <div id="logo-container">
+    <span>Crossfoam</span>
+  </div>
+  <nav>
+    <ul>
+      <li>
+        <a href="vis.html" id="icon-analyse"<%if (current == "vis") { %> class="active"<% } %>>
+          <span>
+            <img src="../assets/images/navbar--icon-analyse.png" srcset="../assets/images/navbar--icon-analyse.png 1x, ../assets/images/navbar--icon-analyse@2x.png 2x" > 
+          </span>
+          <span id="label-analyse">Analyse</span>
+        </a>
+      </li>
+      <li>
+        <a href="help.html" id="icon-help"<%if (current == "help") { %> class="active"<% } %>>
+          <span>
+            <img src="../assets/images/navbar--icon-help.png" srcset="../assets/images/navbar--icon-help.png 1x, ../assets/images/navbar--icon-help@2x.png 2x" > 
+          </span>
+          <span id="label-help">Help</span>
+        </a>
+      </li>
+      <li>
+        <a href="options.html" id="icon-options"<%if (current == "options") { %> class="active"<% } %>>
+          <span>
+            <img src="../assets/images/navbar--icon-settings.png" srcset="../assets/images/navbar--icon-settings.png 1x, ../assets/images/navbar--icon-settings@2x.png 2x" >
+          </span>
+          <span id="label-options">Options</span>
+        </a>
+      </li>
+    </ul>
+  </nav>
+</div>

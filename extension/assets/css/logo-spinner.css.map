@@ -1,0 +1,9 @@
+{
+	"version": 3,
+	"file": "logo-spinner.css",
+	"sources": [
+		"../../../src/scss/logo-spinner.scss"
+	],
+	"names": [],
+	"mappings": "AAAA,AAAA,GAAG,AAAA,YAAY,CAAA;EACb,QAAQ,EAAC,OAAO,GACjB;;AAED,AAAA,YAAY,CAAC,MAAM,CAAA;EACjB,IAAI,EAAE,WAAW,GAClB"
+}

@@ -1,0 +1,85 @@
+<%- include("partials/static-header.ejs", {title:"How-To", css:"howto"}) %>
+<%- include("partials/nav.ejs", {current: ""}) %>
+    <div id="page" class="static install">
+      <h1 id="installTitle"></h1>
+
+      <p id="installIntro"></p>
+
+      This is a quick manual for how to use Crossfoam. In its current state, Crossfoam requires a browser based on either Firefox or Chromium and a user account from Twitter.
+
+      <div class="table responsive">
+        <div class="table-row">
+          <div class="table-cell"><img src="../assets/images/story/intro-1@2x.png" alt="" /></div>
+          <div class="table-cell"><p><span>(1)</span> Choose an account which might be interesting to you. (This might be your own account.)</p></div>
+        </div>
+      </div>
+      
+      <div class="table responsive">
+        <div class="table-row">
+          <div class="table-cell"><img src="../assets/images/story/intro-2@2x.png" alt="" /></div>
+          <div class="table-cell"><p><span>(2)</span> Right click on the account and choose "Analyse user network".</p></div>
+        </div>
+      </div>
+      <div class="table responsive">
+        <div class="table-row">
+          <div class="table-cell"><img src="../assets/images/story/intro-3@2x.png" alt="" /></div>
+          <div class="table-cell"><p><span>(3)</span> Click on the Crossfoam icon in the upper right of your browser window.</p></div>
+        </div>
+      </div>
+      <div class="table responsive">
+        <div class="table-row">
+          <div class="table-cell"><img src="../assets/images/story/intro-4@2x.png" alt="" /></div>
+          <div class="table-cell"><p><span>(4)</span> Crossfoam gives you information on its progress in collecting data. Collecting and analysing large networks can take up to several hours. Choose "explore data" for insights.</p></div>
+        </div>
+      </div>
+      <div class="table responsive">
+        <div class="table-row">
+          <div class="table-cell"><img src="../assets/images/story/intro-5-de@2x.png" alt="" /></div>
+          <div class="table-cell"><p><span>(5)</span> Please keep in mind Crossfoam can not analyse live data. Once requested, Crossfoam downloads a snapshot of the state of the network and analyses this. Snapshots may become outdated over time.</p></div>
+        </div>
+      </div>
+      <div class="table responsive">
+        <div class="table-row">
+          <div class="table-cell"><img src="../assets/images/story/intro-6-de@2x.png" alt="" /></div>
+          <div class="table-cell"><p><span>(6)</span> This screen gives you an overview of which accounts Crossfoam has analysed already. You can delete or export analysed data, or click on the username to explore the visualisation.</p></div>
+        </div>
+      </div>
+      <div class="table responsive">
+        <div class="table-row">
+          <div class="table-cell"><img src="../assets/images/story/intro-7-de@2x.png" alt="" /></div>
+          <div class="table-cell"><p><span>(7)</span> This window visualises the social network of the chosen account. Scroll around and click for details, or choose a different visualisation option.</p></div>
+        </div>
+      </div>
+      <div class="table responsive">
+        <div class="table-row">
+          <div class="table-cell"><img src="../assets/images/story/intro-8@2x.png" alt="" /></div>
+          <div class="table-cell"><p><span>(8)</span> Crossfoam finds bubbles in the analysed networks by comparing the connections within a cluster with those across clusters. Account clusters with many internal, but very few external connections, are identified as bubbles and color-coded for your convenience.</p></div>
+        </div>
+      </div>
+      <div class="table responsive">
+        <div class="table-row">
+          <div class="table-cell"><img src="../assets/images/story/intro-9@2x.png" alt="" /></div>
+          <div class="table-cell"><p><span>(9)</span> These bubbles can be relabeled with a more descriptive name. You can further choose whether bubble membership is displayed on the social network site.</p></div>
+        </div>
+      </div>
+      <div class="table responsive">
+        <div class="table-row">
+          <div class="table-cell"><img src="../assets/images/story/intro-cluster@2x.png" alt="" /></div>
+          <div class="table-cell"><p><span>(10)</span> An account, which is identified as belonging to a bubble, can be marked as such in the social network interface.</p></div>
+        </div>
+      </div>
+
+      All of the analysed information will only be accessible via the single device Crossfoam is running on and nothing will ever be shared with Twitter or anyone else for that matter.
+
+      <hr class="divider spacing" />
+
+      <p id="githubPromote" class="center"></p>
+      <a class="github-badge" href="https://github.com/ULTRAPOP-de/crossfoam">
+        <span>
+          <span><img src="../assets/images/GitHub-Mark-64px.png" alt="GitHub" /></span>
+          <span>GitHub: ULTRAPOP-de/Crossfoam</span>
+        </span>
+      </a>
+
+    </div>
+<%- include("partials/static-footer.ejs", {js:"howto"}) %>

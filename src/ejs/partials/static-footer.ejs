@@ -1,0 +1,14 @@
+    <div id="version"></div>
+
+    <!-- Browser Polyfill -->  
+    <script src="../assets/js/browser-polyfill.js"></script>
+    <!-- Promise Polyfill -->
+    <script src="../assets/js/q.js"></script>
+    <%if (!!locals.extraJs) { %>
+    <% for (var i in extraJs){ %>
+      <script src="<%- extraJs[i] %>"></script>
+    <% } %>
+    <% } %>
+    <script src="../assets/js/<%- js %>.js"></script>
+  </body>
+</html>

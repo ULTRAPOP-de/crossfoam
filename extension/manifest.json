@@ -1,0 +1,71 @@
+{
+
+  "description": "CROSSFOAM",
+  "manifest_version": 2,
+  "name": "crossfoam",
+  "version": "0.3",
+  "default_locale": "en",
+  "description": "__MSG_extensionDescription__",
+  "options_ui": {
+    "page": "html/options.html"
+  },
+
+  "permissions": [
+    "tabs",
+    "webRequest",
+    "unlimitedStorage",
+    "notifications",
+    "contextMenus",
+    "activeTab",
+    "downloads",
+    "storage",
+    "http://*/*",
+    "https://*/*",
+    "<all_urls>"
+  ],
+ 
+  "background": {
+    "scripts": [
+      "assets/js/browser-polyfill.js",
+      "assets/js/q.js",
+      "assets/js/codebird.js",
+      "assets/js/background.js"
+    ],
+    "persistent": true
+  },
+
+  "browser_action": {
+    "browser_style": true,
+    "default_popup": "html/popup.html",
+    "default_title": "Crossfoam",
+    "default_icon": {
+      "16": "assets/icons/browser-bar-16.png",
+      "32": "assets/icons/browser-bar-32.png"
+    },
+    "theme_icons": [{
+      "light": "assets/icons/browser-bar-16.png",
+      "dark": "assets/icons/browser-bar-dark-16.png",
+      "size": 16
+    }, {
+      "light": "assets/icons/browser-bar-32.png",
+      "dark": "assets/icons/browser-bar-dark-32.png",
+      "size": 32
+    }]
+  },
+
+  "icons": {
+    "8": "assets/icons/icon-8.png",
+    "16": "assets/icons/icon-16.png", 
+    "32": "assets/icons/icon-32.png",
+    "48": "assets/icons/icon-48.png",
+    "96": "assets/icons/icon-96.png",
+    "128": "assets/icons/icon-128.png"
+  },
+
+  "web_accessible_resources": [
+    "assets/images/modal-header.png",
+    "assets/images/modal-header@2x.png",
+    "assets/fonts/Inter/Inter/*.woff",
+    "assets/fonts/Inter/Inter/*.woff2"
+  ]
+}

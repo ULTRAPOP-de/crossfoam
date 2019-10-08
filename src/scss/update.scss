@@ -1,0 +1,13 @@
+@import 'mixins';
+@import 'fonts';
+@import 'basics';
+@import 'navbar';
+@import 'modal';
+@import 'static';
+
+#versionControl{
+  padding-bottom:30px;
+  span{
+    font-style: italic;
+  }
+}

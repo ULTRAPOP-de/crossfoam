@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+        "target": "es5",
+        "module": "esnext",
+        "sourceMap": true,
+        "lib": [ "dom", "es6"],
+        "moduleResolution": "node",
+        "typeRoots": ["node_modules/@types", "node_modules/web-ext-types"],
+    },
+    "include": ["src/typescript"],
+    "exclude": [
+        "webpack.config.js",
+        "webpack",
+    	"node_modules",
+        "assets"
+	]
+}

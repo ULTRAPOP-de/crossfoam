@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="8px" height="8px" viewBox="0 0 8 8" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 51.3 (57544) - http://www.bohemiancoding.com/sketch -->
+    <title>icon-8</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <path d="M0,0 L8,0 L8,7.55555556 L0,7.55555556 L0,0 Z M4,6.77677203 C5.27949266,6.77677203 6.3167264,5.73730287 6.3167264,4.45505268 C6.3167264,3.17280249 5.27949266,2.13333333 4,2.13333333 C2.72050734,2.13333333 1.6832736,3.17280249 1.6832736,4.45505268 C1.6832736,5.73730287 2.72050734,6.77677203 4,6.77677203 Z" id="path-1"></path>
+    </defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="action-icons" transform="translate(-108.000000, -152.000000)">
+            <g id="Icon-Small" transform="translate(108.000000, 152.000000)">
+                <g id="Group">
+                    <mask id="mask-2" fill="white">
+                        <use xlink:href="#path-1"></use>
+                    </mask>
+                    <g id="Mask"></g>
+                    <g mask="url(#mask-2)" stroke="#338498" stroke-width="0.555555556">
+                        <g transform="translate(0.444444, 0.444444)">
+                            <ellipse id="Oval-2-Copy-12" cx="5.50537634" cy="5.05747126" rx="1.60573477" ry="1.6091954"></ellipse>
+                            <ellipse id="Oval-2-Copy-13" cx="1.60573477" cy="5.05747126" rx="1.60573477" ry="1.6091954"></ellipse>
+                            <ellipse id="Oval-2-Copy-14" cx="3.55555556" cy="1.6091954" rx="1.60573477" ry="1.6091954"></ellipse>
+                        </g>
+                    </g>
+                </g>
+                <g id="Group-2" transform="translate(2.222222, 2.666667)">
+                    <ellipse id="Oval-3-Copy-5" stroke="#338498" stroke-width="0.555555556" cx="1.77777778" cy="1.68582375" rx="1.49103943" ry="1.49425287"></ellipse>
+                    <ellipse id="Oval-3-Copy-5" fill="#338498" cx="1.77777778" cy="1.68582375" rx="1" ry="1"></ellipse>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

@@ -1,0 +1,238 @@
+{
+  "installTitle":{
+    "message": "Welcome to Crossfoam"
+  },
+  "installSubTitle":{
+    "message": "Crossfoam turns filter bubbles into lenses on the public."
+  },
+  "installIntro":{
+    "message": "Crossfoam is a browser extension to visualise and utilise your filter bubbles on Twitter.<br /><br /><i>Other social networks will follow soon.</i>"
+  },
+  "installSpecialHeadline":{
+    "message": "We live our lives in bubbles."
+  },
+  "installParagraph1":{
+    "message": "Our friends, our sources, and our conversations are not randomly selected. Instead we are much more likely to hear information which tilts towards our own opinions, likes and interests."
+  },
+  "installParagraph2":{
+    "message": "While there are bubbles everywhere, they take on a special character in our electronic lives. Self-selection, curation by algorithms, and economic incentives often shape online communities into echo chambers, where everyone agrees, and everyone repeats the same opinions."
+  },
+  "installParagraph3":{
+    "message": "Other communities with other backgrounds, other ideas and other opinions exist, but we are actively cut off from them. The result is repetition and sameness on the one hand and misunderstanding on the other."
+  },
+  "installParagraph4":{
+    "message": "Crossfoam analyses and visualises your filter bubbles on social media, so you can discover the extent to which your online community is an echo chamber or a place of diverse opinions."
+  },
+  "installParagraph5":{
+    "message": "Fine-grained analysis allows you to explore your social network, diversify it, or - if you prefer - dig deeper into your bubble. Crossfoam thus becomes a tool for electronic self-determination."
+  },
+  "visMenuOverview":{
+    "message": "Overview"
+  },
+  "visMenuNetwork":{
+    "message": "Network"
+  },
+  "visMenuCluster":{
+    "message": "Cluster"
+  },
+  "visMenuList":{
+    "message": "List"
+  },
+  "visListLegend":{
+    "message": "Connections within the bubble;Many;Few;Highlight bubble on service;or hide"
+  },
+  "friends":{
+    "message": "Friends"
+  },
+  "sharedFiendsOfFriends":{
+    "message": "Shared friends of friends"
+  },
+  "noCluster":{
+    "message": "Without Cluster"
+  },
+  "clusterModifyTitle":{
+    "message": "Modify Cluster"
+  },
+  "clusterModifyName":{
+    "message": "Name of the cluster"
+  },
+  "updateVersion": {
+    "message": "Crossfoam was updated from <span id=\"prevVersion\">$V1$</span> to <span id=\"newVersion\">$V2$</span>.",
+    "placeholders":{
+      "V1": {
+        "content": "$1",
+        "example": "0.1"
+      },
+      "V2": {
+        "content": "$2",
+        "example": "0.2"
+      }
+    }
+  },
+  "updateMessage": {
+    "message": "Improved performance.;Removing unused objects from local storage to free disk space.;A new visualisation for cluster exploration."
+  },
+  "selectionIntro":{
+    "message": "Select one of the accounts below to explore the account's network and edit the bubble-labels and colors, $IMG1$ export the network data or $IMG2$ delete all data connected to that account.",
+    "placeholders":{
+      "IMG1": {
+        "content": "$1",
+        "example": "<img src='URL' />"
+      },
+      "IMG2": {
+        "content": "$2",
+        "example": "<img src='URL' />"
+      }
+    }
+  },
+  "githubPromote": {
+    "message": "If you want to know more about the changes, take a look at our Repository on GitHub. The whole Crossfoam web extension is open source:"
+  },
+  "extensionDescription": {
+    "message": "Crossfoam is a tool for analyzing social networks."
+  },
+  "popupExploreLink": {
+    "message": "Explore the data"
+  },
+  "popupScrapeTitle": {
+    "message": "Running data collection"
+  },
+  "settings": {
+    "message": "Settings"
+  },
+  "secondsShort": {
+    "message": "sec."
+  },
+  "minutesShort": {
+    "message": "min."
+  },
+  "hoursShort": {
+    "message": "hours"
+  },
+  "daysShort": {
+    "message": "days"
+  },
+  "continue": {
+    "message": "Continue"
+  },
+  "invalidLinkMessage": {
+    "message": "The link you clicked is not a valid user-url this extension supports. Please right-click on a user-link. A full tutorial can be found on our website: LINK."
+  },
+  "requestLinkTitle": {
+    "message": "Analysis Request"
+  },
+  "duplicateLinkMessage": {
+    "message": "`It looks like an analysis for username <strong>$1</strong> was already requested. Do you wish to request another analysis?`"
+  },
+  "yes": {
+    "message": "Yes"
+  },
+  "no": {
+    "message": "No"
+  },
+  "contextMenu": {
+    "message": "Analyse user's network"
+  },
+  "authRequiredMessage": {
+    "message": "Sorry, you need to first authorise the service $1 on the options page."
+  },
+  "openSettings":{
+    "message": "Open settings"
+  },
+  "close": {
+    "message": "Close"
+  },
+  "cancel": {
+    "message": "Cancel"
+  },
+  "save": {
+    "message": "Save"
+  },
+  "popupCancelLink":{
+    "message": "Cancel Process"
+  },
+  "navAnalysis":{
+    "message": "Analysis"
+  },
+  "navHelp":{
+    "message": "Help"
+  },
+  "exportCsvLabel":{
+    "message": "CSV (2 files)"
+  },
+  "exportJson2Label": {
+    "message": "JSON (2 files)"
+  },
+  "exportGexfDesc": {
+    "message": "Graph Exchange XML Format (full attributes)"
+  },
+  "exportGdfDesc": {
+    "message": "Database table with definitions, used by GUESS (all attributes)"
+  },
+  "exportGmlDesc": {
+    "message": "Graph Modeling Language (all attributes)"
+  },
+  "exportGraphMlDesc": {
+    "message": "XML based fromat (all attributes)"
+  },
+  "exportPajekNetDesc": {
+    "message": "NET file (only weights, no attributes)"
+  },
+  "exportDotDesc": {
+    "message": "DOT file used by GraphViz (all attributes)"
+  },
+  "exportTlpDesc": {
+    "message": "TLP format used by Tulip (only topology, no weights)"
+  },
+  "exportNetdrawDesc": {
+    "message": "VNA format used by Netdraw (all attributes)"
+  },
+  "exportCsvDesc": {
+    "message": "comma-separated values, one file each for nodes & edges (all attributes)"
+  },
+  "exportJson2Desc": {
+    "message": "JSON files, one file each for nodes & edges (all attributes)"
+  },
+  "exportJsonDesc": {
+    "message": "JSON file {nodes:[],edges:[]} (all attributes)"
+  },
+  "exportMessage": {
+    "message": "Please select an export format"
+  },
+  "back": {
+    "message": "back"
+  },
+  "next": {
+    "message": "next"
+  },
+  "helpList_1": {
+    "message": "This is the List Vis #1"
+  },
+  "helpList_2": {
+    "message": "This is the List Vis #2"
+  },
+  "helpOverview_1": {
+    "message": "This is the overview visualiation. Here we show you all the friends of the selected user. <strong>But why is this of interest?</strong>"
+  },
+  "helpOverview_2": {
+    "message": "The content that is shown to you on a social media platform, is not only influenced by the content you previously interacted with, but also strongly through the people you mark as friends."
+  },
+  "helpOverview_3": {
+    "message": "Let's take twitter as an example. The content in your Twitter timeline is mostly influenced by the people who are your friends. When your freinds tweet, retweet or like something, it is more likely to show up in your timeline."
+  },
+  "helpOverview_4": {
+    "message": "If more of your friends interact with a tweet, the more likely it is to be shown prominently in your timeline."
+  },
+  "helpOverview_5": {
+    "message": "In the middle of the visualisation we you see the user's direct friends. The bigger the circle is, the more connected this person is to the rest of your friends and, thereby, the more likely it is that their content shows up in the user's timeline."
+  },
+  "helpOverview_6": {
+    "message": "The second area are the user's friends' friends who are not direct friends. The bigger their circle is, the more of the user's friends they know and, thereby the more likely it is that the user themselves will see content from them."
+  },
+  "helpOverview_7": {
+    "message": "The most outer area shows the user's friends' friends who only know one of the user's friends."
+  },
+  "helpOverview_8": {
+    "message": "While this might seam obvious, it is important to remember, that the people we mark as friends, have a strong influence on what we see on our social media outlets and, thereby, influence our view on the world."
+  }
+}

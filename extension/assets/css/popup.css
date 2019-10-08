@@ -1,0 +1,363 @@
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100;
+  src: url("../fonts/Inter/Inter/Inter-Thin-BETA.woff2") format("woff2"), url("../fonts/Inter/Inter/Inter-Thin-BETA.woff") format("woff"); }
+
+@font-face {
+  font-family: 'Inter';
+  font-style: italic;
+  font-weight: 100;
+  src: url("../fonts/Inter/Inter/Inter-ThinItalic-BETA.woff2") format("woff2"), url("../fonts/Inter/Inter/Inter-ThinItalic-BETA.woff") format("woff"); }
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 200;
+  src: url("../fonts/Inter/Inter/Inter-ExtraLight-BETA.woff2") format("woff2"), url("../fonts/Inter/Inter/Inter-ExtraLight-BETA.woff") format("woff"); }
+
+@font-face {
+  font-family: 'Inter';
+  font-style: italic;
+  font-weight: 200;
+  src: url("../fonts/Inter/Inter/Inter-ExtraLightItalic-BETA.woff2") format("woff2"), url("../fonts/Inter/Inter/Inter-ExtraLightItalic-BETA.woff") format("woff"); }
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 300;
+  src: url("../fonts/Inter/Inter/Inter-Light-BETA.woff2") format("woff2"), url("../fonts/Inter/Inter/Inter-Light-BETA.woff") format("woff"); }
+
+@font-face {
+  font-family: 'Inter';
+  font-style: italic;
+  font-weight: 300;
+  src: url("../fonts/Inter/Inter/Inter-LightItalic-BETA.woff2") format("woff2"), url("../fonts/Inter/Inter/Inter-LightItalic-BETA.woff") format("woff"); }
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  src: url("../fonts/Inter/Inter/Inter-Regular.woff2") format("woff2"), url("../fonts/Inter/Inter/Inter-Regular.woff") format("woff"); }
+
+@font-face {
+  font-family: 'Inter';
+  font-style: italic;
+  font-weight: 400;
+  src: url("../fonts/Inter/Inter/Inter-Italic.woff2") format("woff2"), url("../fonts/Inter/Inter/Inter-Italic.woff") format("woff"); }
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  src: url("../fonts/Inter/Inter/Inter-Medium.woff2") format("woff2"), url("../fonts/Inter/Inter/Inter-Medium.woff") format("woff"); }
+
+@font-face {
+  font-family: 'Inter';
+  font-style: italic;
+  font-weight: 500;
+  src: url("../fonts/Inter/Inter/Inter-MediumItalic.woff2") format("woff2"), url("../fonts/Inter/Inter/Inter-MediumItalic.woff") format("woff"); }
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 600;
+  src: url("../fonts/Inter/Inter/Inter-SemiBold.woff2") format("woff2"), url("../fonts/Inter/Inter/Inter-SemiBold.woff") format("woff"); }
+
+@font-face {
+  font-family: 'Inter';
+  font-style: italic;
+  font-weight: 600;
+  src: url("../fonts/Inter/Inter/Inter-SemiBoldItalic.woff2") format("woff2"), url("../fonts/Inter/Inter/Inter-SemiBoldItalic.woff") format("woff"); }
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 700;
+  src: url("../fonts/Inter/Inter/Inter-Bold.woff2") format("woff2"), url("../fonts/Inter/Inter/Inter-Bold.woff") format("woff"); }
+
+@font-face {
+  font-family: 'Inter';
+  font-style: italic;
+  font-weight: 700;
+  src: url("../fonts/Inter/Inter/Inter-BoldItalic.woff2") format("woff2"), url("../fonts/Inter/Inter/Inter-BoldItalic.woff") format("woff"); }
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 800;
+  src: url("../fonts/Inter/Inter/Inter-ExtraBold.woff2") format("woff2"), url("../fonts/Inter/Inter/Inter-ExtraBold.woff") format("woff"); }
+
+@font-face {
+  font-family: 'Inter';
+  font-style: italic;
+  font-weight: 800;
+  src: url("../fonts/Inter/Inter/Inter-ExtraBoldItalic.woff2") format("woff2"), url("../fonts/Inter/Inter/Inter-ExtraBoldItalic.woff") format("woff"); }
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 900;
+  src: url("../fonts/Inter/Inter/Inter-Black.woff2") format("woff2"), url("../fonts/Inter/Inter/Inter-Black.woff") format("woff"); }
+
+@font-face {
+  font-family: 'Inter';
+  font-style: italic;
+  font-weight: 900;
+  src: url("../fonts/Inter/Inter/Inter-BlackItalic.woff2") format("woff2"), url("../fonts/Inter/Inter/Inter-BlackItalic.woff") format("woff"); }
+
+/*---------- MODAL ----------*/
+.cf--modal-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  font-family: "Inter", Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  z-index: 999999; }
+
+.cf--modal-box {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 400px;
+  background-color: #fff;
+  -webkit-box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.75);
+  -moz-box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.75);
+  box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.75); }
+  .cf--modal-box.cf--modal-box-transparent {
+    background: none;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
+    color: white;
+    font-weight: 700;
+    text-align: center;
+    font-size: 18px; }
+
+.cf--modal-spinner {
+  padding-bottom: 40px; }
+
+.cf--modal-header {
+  color: white;
+  background-color: #338498;
+  background-size: 103px 20px;
+  background-repeat: no-repeat;
+  background-position: 14px 7px;
+  height: 37px;
+  background-image: url("../images/modal-header.png"); }
+
+@media screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi), screen and (min-resolution: 2dppx) {
+  .cf--modal-header {
+    background-image: url("../images/modal-header@2x.png"); } }
+
+.cf--modal-title {
+  font-weight: bold;
+  padding: 10px 15px 0px; }
+
+.cf--modal-message {
+  padding: 6px 15px 3px 15px; }
+
+.cf--modal-buttons {
+  padding: 10px 15px; }
+
+.cf--modal-buttons button {
+  padding: 5px 10px;
+  background: white;
+  border: 1px solid #338498;
+  border-radius: 3px;
+  margin-right: 10px;
+  color: #338498;
+  cursor: pointer;
+  font-size: 13px; }
+  .cf--modal-buttons button:hover {
+    color: white;
+    background-color: #338498; }
+
+/*---------- GENERAL ----------*/
+* {
+  box-sizing: border-box; }
+
+body, html {
+  margin: 0;
+  padding: 0;
+  border: none;
+  min-width: 200px;
+  font-family: 'Inter', Helvetica, Arial, sans-serif;
+  background-color: white; }
+
+body {
+  padding: 2px; }
+
+/*---------- TOP ----------*/
+#top {
+  background: #5BD1D7;
+  background: -moz-linear-gradient(top, #338498 0%, #5BD1D7 100%);
+  background: -webkit-linear-gradient(top, #338498 0%, #5BD1D7 100%);
+  background: linear-gradient(to bottom, #338498 0%, #5BD1D7 100%); }
+
+#header {
+  text-align: center;
+  padding: 20px 0; }
+
+/*---------- SCRAPE LIST ----------*/
+#scrape-title {
+  color: rgba(255, 255, 255, 0.75);
+  padding: 5px 7px; }
+
+ul, li {
+  list-style: none;
+  padding: 0;
+  margin: 0; }
+
+.scrape {
+  border-top: 1px solid white;
+  color: white;
+  padding: 5px 0 7px;
+  display: block; }
+
+.scrape--title {
+  padding: 5px 7px; }
+
+.scrape--table {
+  display: table;
+  width: 100%;
+  color: rgba(255, 255, 255, 0.75); }
+
+.scrape--row {
+  display: table-row; }
+
+.scrape--left,
+.scrape--middle,
+.scrape--right {
+  display: table-cell;
+  white-space: nowrap;
+  font-size: 10px;
+  padding: 0 7px; }
+
+.scrape--rigth > span {
+  margin: 0 3px; }
+
+.outer-progress {
+  display: block;
+  margin: 4px 5px;
+  background-color: rgba(255, 255, 255, 0.8);
+  border: 1px solid #004D61;
+  border-radius: 3px; }
+
+.inner-progress {
+  display: block;
+  height: 8px;
+  background-color: #FF2E63;
+  border-radius: 2px; }
+
+#overlay {
+  background-color: rgba(0, 0, 0, 0.75);
+  text-align: center;
+  color: white;
+  position: absolute;
+  top: 0;
+  left: 0;
+  margin: 0 2px;
+  vertical-align: middle;
+  display: none;
+  cursor: pointer; }
+  #overlay > span {
+    display: table-row; }
+    #overlay > span > span {
+      font-size: 16px;
+      font-weight: bold;
+      display: table-cell;
+      vertical-align: middle;
+      height: 100%;
+      text-align: center;
+      white-space: nowrap; }
+      #overlay > span > span:first-child {
+        padding-left: 9px; }
+      #overlay > span > span:last-child {
+        padding-right: 9px; }
+
+/*---------- ACTION LINK ----------*/
+#action {
+  height: 78px;
+  background-color: #5BD1D7;
+  border-top: 1px solid white;
+  background-image: url("../images/popup-action-bg.png");
+  background-repeat: no-repeat;
+  background-position: top left;
+  background-size: 147px 78px;
+  display: table;
+  width: 100%; }
+
+@media screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi), screen and (min-resolution: 2dppx) {
+  #action {
+    background-image: url("../images/popup-action-bg@2x.png"); } }
+
+#action a {
+  height: 78px;
+  color: white;
+  font-weight: bold;
+  display: table-row;
+  font-size: 16px;
+  cursor: pointer; }
+  #action a:hover {
+    color: #004D61; }
+    #action a:hover #action--icon {
+      background-image: url("../images/popup-action-link-hover.png"); }
+
+#action--icon {
+  display: table-cell;
+  background-image: url("../images/popup-action-link.png");
+  background-repeat: no-repeat;
+  background-position: 15px 29px;
+  background-size: 18px 18px;
+  width: 40px; }
+
+@media screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi), screen and (min-resolution: 2dppx) {
+  #action--icon {
+    background-image: url("../images/popup-action-link@2x.png"); }
+  #action a:hover #action--icon {
+    background-image: url("../images/popup-action-link-hover@2x.png"); } }
+
+#action--text {
+  white-space: nowrap;
+  display: table-cell;
+  vertical-align: middle;
+  text-shadow: 0px 0px 4px rgba(0, 0, 0, 0.1); }
+  #action--text:hover {
+    text-shadow: 0px 0px 4px rgba(0, 0, 0, 0); }
+
+#action--text span {
+  display: inline-block;
+  margin-top: -2px;
+  float: left; }
+
+/*---------- FOOTER ----------*/
+#footer {
+  display: table;
+  background-color: #004D61;
+  color: white;
+  width: 100%;
+  font-size: 10px; }
+
+#footer > div {
+  display: table-row; }
+
+#footer > div div {
+  padding: 5px;
+  display: table-cell; }
+
+#footer .left {
+  text-align: left; }
+  #footer .left span:hover {
+    cursor: pointer;
+    color: #5BD1D7; }
+
+#footer .right {
+  text-align: right; }
+
+/*# sourceMappingURL=popup.css.map */

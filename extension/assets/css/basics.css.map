@@ -1,0 +1,9 @@
+{
+	"version": 3,
+	"file": "basics.css",
+	"sources": [
+		"../../../src/scss/basics.scss"
+	],
+	"names": [],
+	"mappings": "AAAA,AAAA,CAAC,CAAA;EACC,UAAU,EAAE,UAAU,GACvB;;AAED,AAAA,IAAI,EAAE,IAAI,CAAA;EACR,MAAM,EAAC,CAAC;EACR,OAAO,EAAC,CAAC;EACT,MAAM,EAAC,IAAI;EACX,SAAS,EAAE,KAAK;EAChB,WAAW,EAAE,qCAAqC;EAClD,gBAAgB,EAAC,KAAK,GACvB"
+}

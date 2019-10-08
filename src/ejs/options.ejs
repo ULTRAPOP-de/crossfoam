@@ -1,0 +1,11 @@
+<%- include("partials/static-header.ejs", {title:"Options", css:"options"}) %>
+<%- include("partials/nav.ejs", {current: "options"}) %>
+    <div id="page" class="static">
+      <h1>Options</h1>
+
+      <h2>Services</h2>
+
+      <div id="options--services"></div>
+
+    </div>
+<%- include("partials/static-footer.ejs", {js:"options", extraJs:["../assets/js/codebird.js"]}) %>

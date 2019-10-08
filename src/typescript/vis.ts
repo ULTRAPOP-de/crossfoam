@@ -1,0 +1,398 @@
+import * as cfData from "@crossfoam/data";
+import { exportFormats, exportNetwork } from "@crossfoam/export";
+import { analyseNetwork, buildNetwork, visualizeNetwork } from "@crossfoam/network";
+import { getScrapes } from "@crossfoam/services";
+import { debounce, formatDate } from "@crossfoam/utils";
+import { ClusterVis, ListVis, NetworkVis, OverviewVis } from "@crossfoam/vis";
+import * as d3 from "d3";
+import { setupNav, setupVersion, StateManager } from "./nav";
+
+// let user = ["twitter", "prototypefund", "1e118f9e"];
+// let user = ["twitter", "seb_meier", "f431be7b"];
+// let user = ["twitter", "tillnm", "c0597226"];
+
+// visualizeNetwork(user[0], user[1], user[2]).then(()=> {
+//   console.log("visualized");
+// });
+
+// buildNetwork(user[0], user[1], user[2])
+//   .then((data) => {
+//     console.log("build done");
+//     return analyseNetwork(user[0], user[1], user[2]);
+//    })
+//   .then((data) => {
+//     console.log("analyse done");
+//     return visualizeNetwork(user[0], user[1], user[2]);
+//   })
+//   .then((data) => {
+//     console.log("vis done");
+//   })
+//   .catch((err) => {
+//     throw err;
+//   });
+
+// Master nav and extension version
+setupNav();
+setupVersion();
+
+const updateView = () => {
+  if (cache.vis !== null) {
+    cache.vis.destroy();
+    cache.vis = null;
+  }
+
+  if (stateManager.urlState.view === "selection" ||
+      !("nUuid" in stateManager.urlState)
+  ) {
+
+    cache.vis = null;
+    selectionView();
+
+  } else if (stateManager.urlState.view === "export") {
+
+    cache.vis = null;
+    setupExport();
+
+  } else {
+
+    setupVis();
+
+    let loadState: Promise<any>;
+
+    if (!(stateManager.urlState.nUuid in cache.networks)) {
+
+      const scrape = cache.scrapes[cache.scrapeKeys[stateManager.urlState.nUuid]];
+
+      loadState = cfData.get(`s--${scrape.service}--a--${scrape.screenName}-${scrape.nUuid}--nw`)
+        .then((data) => {
+
+          cache.networks[stateManager.urlState.nUuid] = data;
+          return Promise.resolve();
+
+        });
+
+    } else {
+      loadState = Promise.resolve();
+    }
+
+    loadState.then(() => {
+
+      switch (stateManager.urlState.view) {
+        case "list":
+          cache.vis = new ListVis();
+          break;
+        case "network":
+          cache.vis = new NetworkVis();
+          break;
+        case "overview":
+          cache.vis = new OverviewVis();
+          break;
+        case "cluster":
+          cache.vis = new ClusterVis();
+          break;
+      }
+
+      d3.select("#visContainer").attr("class", stateManager.urlState.view);
+
+      cache.vis.build(cache.networks[stateManager.urlState.nUuid],
+                      cache.scrapes[cache.scrapeKeys[stateManager.urlState.nUuid]]);
+    });
+  }
+};
+
+const stateManager = new StateManager(updateView);
+
+const selectionView = () => {
+
+  d3.selectAll("#page *").remove();
+
+  const container = d3.select("#page").append("div").attr("id", "scrape-container");
+
+  container.append("h1")
+    .html(`Datensammlung`);
+
+  // TODO: No scrapes, yet
+
+  container.append("p")
+    .classed("intro", true)
+    .html(browser.i18n.getMessage("selectionIntro", [
+      `<img src="../assets/images/navbar--icon-vis-download-inline.png" \
+      srcset="../assets/images/navbar--icon-vis-download-inline.png 1x, \
+      ../assets/images/navbar--icon-vis-download-inline@2x.png 2x">`,
+      `<img src="../assets/images/navbar--icon-vis-delete-inline.png" \
+      srcset="../assets/images/navbar--icon-vis-delete-inline.png 1x, \
+      ../assets/images/navbar--icon-vis-delete-inline@2x.png 2x">`,
+    ]));
+
+  const list = container.append("ul");
+
+  let lastService = "";
+
+  cache.scrapes.forEach((scrape) => {
+
+    if (scrape.service !== lastService) {
+      list.append("li")
+        .classed("scrapeTitle", true)
+        .text(scrape.service);
+
+      lastService = scrape.service;
+    }
+
+    const li = list.append("li")
+      .classed("scrapeItem", true)
+      .on("click", () => {
+        stateManager.urlState.nUuid = scrape.nUuid;
+        stateManager.urlState.view = "overview";
+        stateManager.update();
+      });
+
+    li.append("span")
+      .classed("scrapeImage", true)
+      .append("img")
+        .attr("src", cache.userImages[scrape.screenName]);
+
+    li.append("span")
+      .text(scrape.screenName)
+      .classed("scrapeName", true);
+
+    li.append("a")
+      .classed("scrapeDelete", true)
+      .html(`<img src="../assets/images/navbar--icon-vis-delete.png" \
+  srcset="../assets/images/navbar--icon-vis-delete.png 1x, \
+  ../assets/images/navbar--icon-vis-delete@2x.png 2x" >`)
+      .on("click", () => {
+        d3.event.stopPropagation();
+        // TODO: DELETE
+      });
+
+    li.append("a")
+      .classed("scrapeExport", true)
+      .html(`<img src="../assets/images/navbar--icon-vis-download.png" \
+  srcset="../assets/images/navbar--icon-vis-download.png 1x, \
+  ../assets/images/navbar--icon-vis-download@2x.png 2x" >`)
+      .on("click", () => {
+        d3.event.stopPropagation();
+
+        stateManager.urlState.nUuid = scrape.nUuid;
+        stateManager.urlState.view = "export";
+        stateManager.update();
+      });
+
+    const scrapeRight = li.append("span")
+      .classed("scrapeMeta", true);
+
+    if (!scrape.completed) {
+      scrapeRight.append("span")
+        .text("Data collection is still in progress.")
+        .classed("scrapeState", true);
+    }
+
+    const date = new Date(scrape.date);
+
+    scrapeRight.append("span")
+      .html(`&nbsp;${formatDate(date, true)}&nbsp;(${scrape.nUuid})`)
+      .classed("scrapeDate", true);
+
+    scrapeRight.append("br");
+
+    scrapeRight.append("span")
+      .text(scrape.completeCount + " Nodes")
+      .classed("scrapeCount", true);
+
+    li.append("hr");
+
+  });
+};
+
+const setupBackButton = () => {
+  d3.select("#page").append("a")
+      .attr("id", "backButton")
+      .html(`&larr;&nbsp;${browser.i18n.getMessage("back")}`)
+      .on("click", () => {
+          delete stateManager.urlState.nUuid;
+          stateManager.urlState.view = "selection";
+          stateManager.update();
+      });
+};
+
+const setupExport = () => {
+
+  const scrape = cache.scrapes[cache.scrapeKeys[stateManager.urlState.nUuid]];
+
+  d3.selectAll("#page *").remove();
+
+  setupBackButton();
+
+  const exportContainer = d3.select("#page").append("div")
+    .attr("id", "exportContainer");
+
+  exportContainer.append("h1")
+    .html(`<span>${scrape.service}</span>: ${scrape.screenName} (${formatDate(new Date(scrape.date), true)})`);
+
+  exportContainer.append("p")
+    .classed("intro", true)
+    .html(`${browser.i18n.getMessage("exportMessage")}:`);
+
+  const li = exportContainer.append("ul")
+    .selectAll("li").data(exportFormats.sort((a, b) => {
+      if (a.label > b.label) {
+        return 1;
+      }
+      if (a.label < b.label) {
+        return -1;
+      }
+      return 0;
+    })).enter().append("li")
+      .classed("scrapeItem", true)
+      .on("click", (d) => {
+        exportNetwork(scrape.service, scrape.screenName, scrape.nUuid, d.id);
+      });
+
+  li.append("span")
+    .classed("scrapeImage", true)
+    .append("img")
+      .attr("src", (d) => `../assets/images/navbar--icon-vis-file-${d.icon}@2x.png`);
+
+  li.append("span")
+    .text((d) => d.label)
+    .style("float", "none")
+    .classed("scrapeName", true);
+
+  li.append("br");
+
+  li.append("span")
+    .text((d) => d.description)
+    .classed("scrapeSub", true);
+
+  li.append("hr");
+};
+
+const setupVis = () => {
+  d3.selectAll("#page *").remove();
+
+  const visContainer = d3.select("#page").append("div")
+    .attr("id", "visContainer");
+
+  const visNav = d3.select("#page").append("div")
+    .attr("id", "visNav")
+    .html(`<ul>
+    <li class="${(stateManager.urlState.view === "overview") ? "active" : ""}">
+        <span class="icon">
+        <img src="../assets/images/navbar--icon-vis-overview.png" \
+        srcset="../assets/images/navbar--icon-vis-overview.png 1x, \
+        ../assets/images/navbar--icon-vis-overview@2x.png 2x" >
+        </span>
+        <span>${browser.i18n.getMessage("visMenuOverview")}</span>
+    </li>
+    <li class="${(stateManager.urlState.view === "network") ? "active" : ""}">
+        <span class="icon">
+        <img src="../assets/images/navbar--icon-vis-network.png" \
+        srcset="../assets/images/navbar--icon-vis-network.png 1x, \
+        ../assets/images/navbar--icon-vis-network@2x.png 2x" >
+        </span>
+        <span>${browser.i18n.getMessage("visMenuNetwork")}</span>
+    </li>
+    <li class="${(stateManager.urlState.view === "cluster") ? "active" : ""}">
+        <span class="icon">
+        <img src="../assets/images/navbar--icon-vis-cluster.png" \
+        srcset="../assets/images/navbar--icon-vis-cluster.png 1x, \
+        ../assets/images/navbar--icon-vis-cluster@2x.png 2x" >
+        </span>
+        <span>${browser.i18n.getMessage("visMenuCluster")}</span>
+    </li>
+    <li class="${(stateManager.urlState.view === "list") ? "active" : ""}">
+        <span class="icon">
+        <img src="../assets/images/navbar--icon-vis-list.png" \
+        srcset="../assets/images/navbar--icon-vis-list.png 1x, \
+        ../assets/images/navbar--icon-vis-list@2x.png 2x" >
+        </span>
+        <span>${browser.i18n.getMessage("visMenuList")}</span>
+    </li>
+    </ul>`);
+
+  d3.selectAll("#visNav li").on("click", (d, i) => {
+    const views = ["overview", "network", "cluster", "list"];
+    stateManager.urlState.view = views[i];
+    stateManager.update();
+  });
+
+  const visHelp = d3.select("#page").append("div")
+    .attr("id", "visHelp")
+    .html(`<span><span class="icon">
+    <img src="../assets/images/navbar--icon-chatbot.png" \
+    srcset="../assets/images/navbar--icon-chatbot.png 1x, \
+    ../assets/images/navbar--icon-chatbot@2x.png 2x" >
+    </span>
+    <span>${browser.i18n.getMessage("navHelp")}</span></span>`);
+
+  setupBackButton();
+
+  // TODO: Loading indicator
+};
+
+const cache = {
+  networks: {},
+  scrapeKeys: {},
+  scrapes: [],
+  userImages: {},
+  vis: null,
+};
+
+const update = () => {
+  if (stateManager.urlState.view === "selection") {
+    updatedScrapes()
+      .then(() => {
+        selectionView();
+      });
+  }
+};
+
+const updatedScrapes = (): Promise<any> => {
+  return getScrapes()
+    .then((scrapes) => {
+
+      return Promise.all(scrapes.map(
+        (scrape) => cfData.get(`s--${scrape.service}--a--${scrape.screenName}-${scrape.nUuid}--c`, {}),
+      )).then((userDatas) => {
+
+        cache.userImages = {};
+
+        userDatas.forEach((userData: {handle: string, image: string}) => {
+          cache.userImages[userData.handle] = userData.image;
+        });
+
+        // Sort list by service and names
+        scrapes.sort((a, b) => {
+          if (a.service === b.service) {
+            if (a.screenName < b.screenName) {
+              return -1;
+            } else if (a.screenName > b.screenName) {
+              return 1;
+            }
+            return 0;
+          } else if (a.service < b.service) {
+            return -1;
+          } else if (a.service > b.service) {
+            return 1;
+          }
+        });
+
+        cache.scrapes = scrapes;
+
+        cache.scrapes.forEach((_scrape, si) => {
+          cache.scrapeKeys[_scrape.nUuid] = si;
+          _scrape.image = cache.userImages[_scrape.screenName];
+        });
+
+        return Promise.resolve();
+      });
+    });
+};
+
+let selectionInterval;
+
+updatedScrapes()
+  .then(() => {
+    stateManager.retrieveUrl();
+    selectionInterval = setInterval(update, 15000);
+  });

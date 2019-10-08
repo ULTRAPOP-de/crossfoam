@@ -1,0 +1,74 @@
+{
+  "name": "crossfoam",
+  "version": "1.0.0",
+  "description": "Crossfoam main component for the (cross-)browser extension",
+  "main": "index.js",
+  "devDependencies": {
+    "awesome-typescript-loader": "^3.2.2",
+    "babel-core": "^6.25.0",
+    "babel-loader": "^7.1.1",
+    "copy-webpack-plugin": "^4.0.1",
+    "ejs": "^2.6.2",
+    "ejs-cli": "^2.1.0",
+    "fs": "0.0.1-security",
+    "node-sass": "^4.12.0",
+    "nodemon": "^1.19.1",
+    "path": "^0.12.7",
+    "source-map-loader": "^0.2.1",
+    "web-ext": "^3.1.1",
+    "web-ext-types": "git+https://6f1cdd33c7cd4e4487e3dee6b0636999c408d83d:x-oauth-basic@github.com/sebastian-meier/web-ext-types.git",
+    "webpack": "^4.39.3",
+    "webpack-cli": "^3.3.7",
+    "xhr2": "^0.1.4"
+  },
+  "dependencies": {
+    "codebird": "git+https://git@github.com/jublo/codebird-js.git",
+    "@crossfoam/data": "^1.0.1",
+    "@crossfoam/export": "^1.0.2",
+    "@crossfoam/network": "^1.0.0",
+    "@crossfoam/queue": "^1.0.0",
+    "@crossfoam/services": "^1.0.0",
+    "@crossfoam/ui-helpers": "^1.0.2",
+    "@crossfoam/utils": "^1.0.1",
+    "@crossfoam/vis": "^1.0.1",
+    "d3": "^5.11.0",
+    "d3-history": "^2.0.1",
+    "q": "^1.5.1",
+    "tslint": "^5.19.0",
+    "typescript": "^3.6.2",
+    "webextension-polyfill": "^0.4.0"
+  },
+  "scripts": {
+    "lint": "tslint -p tslint.json --force",
+    "typescript": "tsc",
+    "ejs": "ejs-cli \"*.ejs\" --base-dir src/ejs/ --out extension/html/",
+    "scss": "node-sass src/scss --include-path src/scss --outputStyle compressed --output extension/assets/css --sourceMap true",
+    "build": "npm run lint && npm run scss && npm run ejs && webpack --display-error-details --progress --colors",
+    "watch": "nodemon ",
+    "start": "web-ext run -s extension",
+    "deploy": "web-ext lint -s extension && web-ext build -s extension"
+  },
+  "nodemonConfig": {
+    "ignore": [
+      "node_modules/*",
+      "extension/*"
+    ],
+    "watch": [
+      "src/typescript",
+      "src/scss",
+      "src/ejs"
+    ],
+    "exec": "npm run build",
+    "ext": "ts,scss,ejs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ultrapop-de/crossfoam.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ultrapop-de/crossfoam/issues"
+  },
+  "homepage": "https://github.com/ultrapop-de/crossfoam#readme"
+}

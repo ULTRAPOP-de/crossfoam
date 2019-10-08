@@ -1,0 +1,238 @@
+{
+  "installTitle":{
+    "message": "Willkommen bei Crossfoam"
+  },
+  "installSubTitle":{
+    "message": "Durch Crossfoam eröffnen Filterblasen neue Perspektiven."
+  },
+  "installIntro":{
+    "message": "Crossfoam ist eine Browser-Erweiterung, welche hilft Filterblasen zu visualisieren und so verständlich und nutzbar zu machen.<br /><br /><i>Andere soziale Netzwerke folgen bald.</i>"
+  },
+  "installSpecialHeadline":{
+    "message": "Wir leben unser Leben in Blasen."
+  },
+  "installParagraph1":{
+    "message": "Wir wählen unsere Freunde, unsere Quellen und unsere Diskussionen nicht zufällig aus. Statt dessen, ist es sehr viel wahrscheinlicher, dass wir Informationen konsumieren, welche unsere eigenen Meinungen, Geschmäcker und Interessen wiederspiegeln."
+  },
+  "installParagraph2":{
+    "message": "Während Blasen in unserem Leben allgegenwärtig sind, nehmen diese im Digitalen eine spezielle Rolle ein. Unsere Entscheidungen, die Kuration durch Algorithmen und wirtschaftliche Anreize transformieren unsere Online Communities in sogeannte Echokammern. Kammern in denen alle sich verstehen und jeder die selben Meinungen hat."
+  },
+  "installParagraph3":{
+    "message": "Andere Gemeinschaften, mit anderen Hintergründen, anderen Ideen und anderen Meinungen existieren, wir werden aber aktiv von diesen abgeschottet. Das Resultat sind Wiederholung und Ähnlichkeit auf der einen Seite sowie Mißverständnisse und Abgrenzung auf der anderen."
+  },
+  "installParagraph4":{
+    "message": "Crossfoam analysiert und visualisiert deine Filterblasen in deinen sozialen Netzwerken. Hierdurch bekommst du die Chance zu erkennen, ob deine online Community eine Echokammer ist oder unterschiedliche Meinungen zusammenbringt."
+  },
+  "installParagraph5":{
+    "message": "Detaillierte Analysen erlauben dir dein soziales Netzwerk zu explorieren, es diverser zu gestalten, oder — wenn gewünscht - noch spezifischer auszugestalten. Hierdurch wird Crossfoam zu einem Werkzeug zur digitalen Selbstbestimmung und Selbstermächtigung."
+  },
+  "visMenuOverview":{
+    "message": "Übersicht"
+  },
+  "visMenuNetwork":{
+    "message": "Netzwerk"
+  },
+  "visMenuCluster":{
+    "message": "Cluster"
+  },
+  "visMenuList":{
+    "message": "Liste"
+  },
+  "visListLegend":{
+    "message": "Vernetzung innerhalb der Blase;Groß;Gering;Blase im Service anzeigen;oder ausblenden"
+  },
+  "friends":{
+    "message": "Freunde"
+  },
+  "sharedFiendsOfFriends":{
+    "message": "Gemeinsame Freunde von Freunden"
+  },
+  "noCluster":{
+    "message": "Ohne Cluster"
+  },
+  "clusterModifyTitle":{
+    "message": "Cluster bearbeiten"
+  },
+  "clusterModifyName":{
+    "message": "Name des Clusters"
+  },
+  "updateVersion": {
+    "message": "Crossfoam wurde von Version <span id=\"prevVersion\">$V1$</span> auf <span id=\"newVersion\">$V2$</span> aktualisiert.",
+    "placeholders":{
+      "V1": {
+        "content": "$1",
+        "example": "0.1"
+      },
+      "V2": {
+        "content": "$2",
+        "example": "0.2"
+      }
+    }
+  },
+  "updateMessage": {
+    "message": "Bessere Gesamtperformance.;Nicht benötigte Objekte wurden aus dem local-storage entfernt um Speicherplatz freizugeben.;Eine neue Visualisierung für die Exploration von Clustern."
+  },
+  "selectionIntro":{
+    "message": "Wähle einen der Datensätze aus, um das Netzwerk zu erforschen oder die Namen und Farben der Blasen zu bearbeiten, $IMG1$ die Netzwerkdaten zu exportieren oder $IMG2$ alle zugehörigen Daten zu löschen.",
+    "placeholders":{
+      "IMG1": {
+        "content": "$1",
+        "example": "<img src='URL' />"
+      },
+      "IMG2": {
+        "content": "$2",
+        "example": "<img src='URL' />"
+      }
+    }
+  },
+  "githubPromote": {
+    "message": "Wenn du mehr über die Änderungen erfahren möchtest, dann schau dir doch mal unser Repository auf GitHub an. Die gesamte Web-Extension ist open source:"
+  },
+  "extensionDescription": {
+    "message": "Crossfoam ist ein Werkzeug zur Analyse sozialer Netzwerke."
+  },
+  "popupExploreLink": {
+    "message": "Daten explorieren"
+  },
+  "popupScrapeTitle": {
+    "message": "Laufende Datensammlungen"
+  },
+  "settings": {
+    "message": "Einstellungen"
+  },
+  "secondsShort": {
+    "message": "Sek."
+  },
+  "minutesShort": {
+    "message": "Min."
+  },
+  "hoursShort": {
+    "message": "Std."
+  },
+  "daysShort": {
+    "message": "Tage"
+  },
+  "continue": {
+    "message": "Weiter"
+  },
+  "invalidLinkMessage": {
+    "message": "Der angeklickte Link wird nicht unterstützt. Bitte klicken Sie einen korrekten User-Link an. Eine umfassende Erklärung finden Sie auf LINK."
+  },
+  "requestLinkTitle": {
+    "message": "Analyse Anfrage"
+  },
+  "duplicateLinkMessage": {
+    "message": "Es sieht so aus, als wurde der Nutzername <strong>$1</strong> schon einmal untersucht. Möchtest du eine weitere Analyse durchführen?"
+  },
+  "yes": {
+    "message": "Ja"
+  },
+  "no": {
+    "message": "Nein"
+  },
+  "contextMenu": {
+    "message": "Netzwerk der Nutzer*in analysieren"
+  },
+  "authRequiredMessage": {
+    "message": "Sorry, du musst den Service '$1' erst autorisieren."
+  },
+  "openSettings":{
+    "message": "Einstellungen öffnen"
+  },
+  "close": {
+    "message": "Schließen"
+  },
+  "cancel": {
+    "message": "Abbrechen"
+  },
+  "save": {
+    "message": "Speichern"
+  },
+  "popupCancelLink":{
+    "message": "Prozess abbrechen"
+  },
+  "navAnalysis":{
+    "message": "Analyse"
+  },
+  "navHelp":{
+    "message": "Hilfe"
+  },
+  "exportCsvLabel":{
+    "message": "CSV (2 Dateien)"
+  },
+  "exportJson2Label": {
+    "message": "JSON (2 Dateien)"
+  },
+  "exportGexfDesc": {
+    "message": "Graph Exchange XML Format (alle Attribute)"
+  },
+  "exportGdfDesc": {
+    "message": "Datenbank-Tabelle mit Definitionen, genutzt von GUESS (alle Attribute)"
+  },
+  "exportGmlDesc": {
+    "message": "Graph Modeling Language (alle Attribute)"
+  },
+  "exportGraphMlDesc": {
+    "message": "XML basiertes Fromat (alle Attribute)"
+  },
+  "exportPajekNetDesc": {
+    "message": "NET Datei (nur Gewichtungen, keine Attribute)"
+  },
+  "exportDotDesc": {
+    "message": "DOT Datei genutzt von GraphViz (alle Attribute)"
+  },
+  "exportTlpDesc": {
+    "message": "TLP Format genutzt von Tulip (nur Topologie, keine Gewichtung)"
+  },
+  "exportNetdrawDesc": {
+    "message": "VNA Format genutzt von Netdraw (alle Attribute)"
+  },
+  "exportCsvDesc": {
+    "message": "Komma-separierte Werte, je eine Datei für Knoten & Kanten (alle Attribute)"
+  },
+  "exportJson2Desc": {
+    "message": "JSON Dateien, je eine Datei für Knoten & Kanten (alle Attribute)"
+  },
+  "exportJsonDesc": {
+    "message": "JSON Datei {nodes:[],edges:[]} (alle Attribute)"
+  },
+  "exportMessage": {
+    "message": "Bitte wähle ein Dateiformat für den Export aus"
+  },
+  "back": {
+    "message": "zurück"
+  },
+  "next": {
+    "message": "weiter"
+  },
+  "helpList_1": {
+    "message": "Das ist die List Vis #1"
+  },
+  "helpList_2": {
+    "message": "Das ist die List Vis #2"
+  },
+  "helpOverview_1": {
+    "message": "Dies ist die Übersichts-Visualisierung. Hier werden alle Freund*innen der ausgewählten Nutzer*in angezeigt. <strong>Aber warum ist dies interessant?</strong>"
+  },
+  "helpOverview_2": {
+    "message": "Die Inhalte die uns auf Social Media Plattformen angezeigt werden, werden nicht nur von den Inhalten mit den wir interagieren beeinflusst, sondern auch von den Menschen die wir als unsere Freund*innen markieren."
+  },
+  "helpOverview_3": {
+    "message": "Nehmen wir Twitter als Beispiel. Die Inhalte die wir als Nutzer*innen in unserer Timeline angezeigt bekommen, sind hauptsächlich davon beeinflusst wen wir als Freunde habe. Wenn unsere Freund*innen twittern, retweeten oder etwas liken, steigt die Wahrscheinlichkeit, dass dieser Tweet in unserer Timeline auftaucht."
+  }, 
+  "helpOverview_4": {
+    "message": "Wenn mehr deiner Freund*innen mit einem bestimmten Inhalt interagieren, steigt die Wahrscheinlichkeit, dass dieser Inhalt dir empfohlen wird."
+  },
+  "helpOverview_5": {
+    "message": "In der Mitte der Visualisierung, sehen wir die direkten Freund*innen der Nutzer*in. Umso größer der Kreis eines Freundes ist, umso besser ist er mit den restlichen Freunden vernetzt und entsprechend größer die Wahrscheinlichkeit, dass der Nutzer Inhalte dieser Nutzer*in angezeigt bekommt."
+  },
+  "helpOverview_6": {
+    "message": "Der zweite Bereich zeigt die Freund*innen der Freund*innen der Nutzer*in. Umso größer der jeweilige Kreis ist, umso mehr Freund*innen der Nutzer*in folgen dieser Person und entsprechend höher die Wahrscheinlichkeit, dass deren Inhalte der Nutzer*in angezeigt werden."
+  },
+  "helpOverview_7": {
+    "message": "Der äußerste Bereich zeigt Freund*innen der Freund*inne, welche nur eine Freund*in der Nutzer*in kennen."
+  },
+  "helpOverview_8": {
+    "message": "Vielen werden nun sagen, dass dies doch alles relativ offensichtlich ist. Es ist aber wichtig sich in Erinnerung zu rufen, dass die Menschen die von uns als Freunde markiert werden, einen starken Einfluss auf die Inhalte haben, welche uns angezeigt werden und damit auch auf unseren Blick auf die Welt."
+  }
+}

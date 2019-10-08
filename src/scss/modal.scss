@@ -1,0 +1,86 @@
+@import 'mixins';
+
+/*---------- MODAL ----------*/
+
+.cf--modal-container{
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.6);
+  font-family:"Inter", Helvetica, Arial, sans-serif;
+  font-size:14px;
+  z-index: 999999;
+}
+
+.cf--modal-box{
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width:90%;
+  max-width:400px;
+  background-color:#fff;
+  -webkit-box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.75);
+  -moz-box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.75);
+  box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.75);
+  &.cf--modal-box-transparent{
+    background:none;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
+    color: white;
+    font-weight: 700;
+    text-align: center;
+    font-size: 18px;
+  }
+}
+
+.cf--modal-spinner{
+  padding-bottom:40px;
+}
+
+.cf--modal-header{
+  color:white;
+  background-color:#338498;
+  background-size:103px 20px;
+  background-repeat: no-repeat;
+  background-position: 14px 7px;
+  height:37px;
+  background-image: url("../images/modal-header.png");
+}
+
+@include retina {
+  .cf--modal-header{
+    background-image: url("../images/modal-header@2x.png");
+  }
+}
+
+.cf--modal-title{
+  font-weight:bold;
+  padding:10px 15px 0px;
+}
+
+.cf--modal-message{
+  padding: 6px 15px 3px 15px;
+}
+
+.cf--modal-buttons{
+  padding: 10px 15px;
+}
+
+.cf--modal-buttons button{
+  padding: 5px 10px;
+  background: white;
+  border: 1px solid #338498;
+  border-radius: 3px;
+  margin-right: 10px;
+  color:#338498;
+  cursor: pointer;
+  font-size:13px;
+  &:hover{
+    color:white;
+    background-color:#338498;
+  }
+}

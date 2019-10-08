@@ -1,0 +1,47 @@
+#page.static {
+  max-width: 500px;
+  margin: 0 auto;
+  padding-top: 50px; }
+  #page.static h1, #page.static p.center {
+    text-align: center; }
+  #page.static li {
+    padding-bottom: 10px;
+    font-size: 14px; }
+
+.github-badge {
+  margin-top: 40px;
+  display: table;
+  margin: 0 auto;
+  max-width: 500px;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.5); }
+  .github-badge > span {
+    display: table-row; }
+    .github-badge > span > span {
+      display: table-cell;
+      vertical-align: middle; }
+  .github-badge img {
+    height: 32px;
+    width: auto;
+    margin-right: 15px;
+    opacity: 0.5; }
+  .github-badge:hover {
+    color: black; }
+    .github-badge:hover img {
+      opacity: 1; }
+
+hr.divider {
+  margin: 0;
+  padding: 0;
+  clear: both;
+  height: 1px;
+  visibility: hidden; }
+  hr.divider.spacing {
+    margin-bottom: 30px; }
+
+#footer {
+  padding: 50px 0 100px 0; }
+
+/*# sourceMappingURL=static.css.map */

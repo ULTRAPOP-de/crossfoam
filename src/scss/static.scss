@@ -1,0 +1,59 @@
+#page.static{
+  max-width: 500px;
+  margin: 0 auto;
+  padding-top: 50px;
+
+  h1, p.center{
+    text-align: center;
+  }
+
+  li{
+    padding-bottom:10px;
+    font-size:14px;
+  }
+}
+
+.github-badge{
+  margin-top: 40px;
+  display:table;
+  margin:0 auto;
+  max-width:500px;
+  &>span{
+    display:table-row;
+    &>span{
+      display:table-cell;
+      vertical-align: middle;
+    }
+  }
+  img{
+    height: 32px;
+    width: auto;
+    margin-right:15px;
+    opacity:0.5;
+  }
+  text-decoration: none;
+  font-weight:bold;
+  font-size:14px;
+  color: rgba(0,0,0,0.5);
+  &:hover{
+    img{
+      opacity: 1;
+    }
+    color:rgba(0,0,0,1);
+  }
+}
+
+hr.divider{
+  margin:0;
+  padding:0;
+  clear:both;
+  height:1px;
+  visibility: hidden;
+  &.spacing{
+    margin-bottom:30px;
+  }
+}
+
+#footer{
+  padding: 50px 0 100px 0;
+}

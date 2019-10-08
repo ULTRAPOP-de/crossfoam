@@ -1,0 +1,107 @@
+@import 'mixins';
+
+$height: 40px;
+
+#navbar {
+  z-index: 5;
+  position: fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height: $height;
+  background-color:#338498;
+  color:white;
+  -webkit-box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.5);
+  -moz-box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.5);
+  box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.5); 
+}
+
+#logo-container{
+  padding:11px 0 0 43px;
+  background-image:url("../images/navbar--logo.png");
+  background-size:21px 20px;
+  background-repeat: no-repeat;
+  background-position: 13px 9px;
+  height: $height;
+  font-weight: 600;
+  float:left;
+  font-size:13px;
+}
+
+@include retina {
+  #logo-container{
+    background-image: url("../images/navbar--logo@2x.png");
+  }
+}
+
+nav{
+  float:right;
+}
+
+nav ul, nav ul li{
+  list-style: none;
+  margin:0;
+  padding:0;
+}
+
+nav ul li{
+  float:left;
+  display: table;
+  height:$height;
+  padding: 0 0 0 1px;
+  background: white;
+  background: -moz-linear-gradient(top, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.45) 100%);
+  background: -webkit-linear-gradient(top, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.45) 100%);
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.45) 100%);
+  a{
+    color:white;
+    text-decoration: none;
+    background-color:#338498;
+    &:hover, &.active{
+      background-color:#004D61;
+      cursor: pointer;
+    }
+    display: table-row;
+    span:first-child{
+      padding:0 5px 0 20px;
+    }
+    span:last-child{
+      padding:0 20px 2px 0;
+    }
+    span{
+      display: table-cell;
+      vertical-align: middle;
+    }
+  }
+}
+
+#version{
+  z-index: 1;
+  position: absolute;
+  bottom:0;
+  right:0;
+  font-size:8px;
+  padding:0 20px 12px;
+  color:rgba(0,0,0,0.2);
+}
+
+#backButton{
+  position: absolute;
+  top: 55px;
+  left: 15px;
+
+  -webkit-box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.25);
+  -moz-box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.25);
+  box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.25); 
+
+  border-radius: 5px;
+  background-color: #338498;
+  color: white;
+  white-space: nowrap;
+  padding:10px;
+
+  &:hover{
+    background-color:#004D61;
+    cursor: pointer;
+  }
+}

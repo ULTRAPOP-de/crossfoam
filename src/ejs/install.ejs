@@ -1,0 +1,47 @@
+<%- include("partials/static-header.ejs", {title:"Install", css:"install"}) %>
+<%- include("partials/nav.ejs", {current: ""}) %>
+    <div id="page" class="static install">
+      <h1 id="installTitle">Welcome to Crossfoam</h1>
+      <h3 id="installSubTitle" class="center">Crossfoam turns filter bubbles into lenses on the public.</h3>
+
+      <p id="installIntro" class="center">Crossfoam is a browser plugin to visualise and utilise your filter bubbles on Twitter.<br /><i>Other social networks will follow soon.</i></p>
+
+      <img id="specialImage1" class="full" src="../assets/images/story/story-01@2x.png" alt="" />
+      <h3 id="installSpecialHeadline">We live our lives in bubbles.</h3>
+
+      <div class="table responsive">
+        <div class="table-row">
+          <div class="table-cell"><img src="../assets/images/story/story-02@2x.png" alt="" /></div>
+          <div class="table-cell"><p id="installParagraph1">Our friends, our sources, and our conversations are not randomly selected. Instead we are much more likely to hear information which tilts towards our own opinions, likes and interests.</p></div>
+        </div>
+      </div>
+      
+      <div class="table responsive">
+        <div class="table-row">
+          <div class="table-cell"><p id="installParagraph2">While there are bubbles everywhere, they take on a special character in our electronic lives. Self-selection, curation by algorithms, and economic incentives often shape online communities into echo chambers, where everyone agrees, and everyone repeats the same opinions.</p></div>
+          <div class="table-cell"><img src="../assets/images/story/story-03@2x.png" alt="" /></div>
+        </div>
+      </div>
+
+      <div class="table responsive">
+        <div class="table-row">
+          <div class="table-cell"><img src="../assets/images/story/story-04@2x.png" alt="" /></div>
+          <div class="table-cell"><p id="installParagraph3">Other communities with other backgrounds, other ideas and other opinions exist, but we are actively cut off from them. The result is repetition and sameness on the one hand and misunderstanding on the other.</p></div>
+        </div>
+      </div>
+      
+      <hr class="divider spacing" />
+
+      <img id="specialImage2" class="full" src="../assets/images/story/story-05@2x.png" alt="" />
+      <p class="middleBlock" id="installParagraph4">Crossfoam analyses and visualises your filter bubbles on social media, so you can discover the extent to which your online community is an echo chamber or a place of diverse opinions.</p>
+
+      <img class="full" src="../assets/images/story/story-06@2x.png" alt="" />
+      <p class="middleBlock" id="installParagraph5">Fine-grained analysis allows you to explore your social network, diversify it, or - if you prefer - dig deeper into your bubble. Crossfoam thus becomes a tool for electronic self-determination.</p>
+
+
+      <hr class="divider spacing" />
+      <div id="footer">
+<%- include("partials/github.ejs") %>
+      </div>
+    </div>
+<%- include("partials/static-footer.ejs", {js:"install"}) %>
