@@ -183,11 +183,7 @@ const setupBackButton = () => {
   d3.select("#page").append("a")
       .attr("id", "backButton")
       .html(`&larr;&nbsp;${browser.i18n.getMessage("back")}`)
-      .on("click", () => {
-          delete stateManager.urlState.nUuid;
-          stateManager.urlState.view = "selection";
-          stateManager.update();
-      });
+      .attr("href", "vis.html");
 };
 
 const setupExport = () => {
@@ -252,44 +248,46 @@ const setupVis = () => {
     .attr("id", "visNav")
     .html(`<ul>
     <li class="${(stateManager.urlState.view === "overview") ? "active" : ""}">
+      <a href="vis.html?view=overview&nUuid=${stateManager.urlState.nUuid}">
         <span class="icon">
         <img src="../assets/images/navbar--icon-vis-overview.png" \
         srcset="../assets/images/navbar--icon-vis-overview.png 1x, \
         ../assets/images/navbar--icon-vis-overview@2x.png 2x" >
         </span>
         <span>${browser.i18n.getMessage("visMenuOverview")}</span>
+      </a>
     </li>
     <li class="${(stateManager.urlState.view === "network") ? "active" : ""}">
+      <a href="vis.html?view=network&nUuid=${stateManager.urlState.nUuid}">
         <span class="icon">
         <img src="../assets/images/navbar--icon-vis-network.png" \
         srcset="../assets/images/navbar--icon-vis-network.png 1x, \
         ../assets/images/navbar--icon-vis-network@2x.png 2x" >
         </span>
         <span>${browser.i18n.getMessage("visMenuNetwork")}</span>
+      </a>
     </li>
     <li class="${(stateManager.urlState.view === "cluster") ? "active" : ""}">
+      <a href="vis.html?view=cluster&nUuid=${stateManager.urlState.nUuid}">
         <span class="icon">
         <img src="../assets/images/navbar--icon-vis-cluster.png" \
         srcset="../assets/images/navbar--icon-vis-cluster.png 1x, \
         ../assets/images/navbar--icon-vis-cluster@2x.png 2x" >
         </span>
         <span>${browser.i18n.getMessage("visMenuCluster")}</span>
+      </a>
     </li>
     <li class="${(stateManager.urlState.view === "list") ? "active" : ""}">
+      <a href="vis.html?view=list&nUuid=${stateManager.urlState.nUuid}">
         <span class="icon">
         <img src="../assets/images/navbar--icon-vis-list.png" \
         srcset="../assets/images/navbar--icon-vis-list.png 1x, \
         ../assets/images/navbar--icon-vis-list@2x.png 2x" >
         </span>
         <span>${browser.i18n.getMessage("visMenuList")}</span>
+      </a>
     </li>
     </ul>`);
-
-  d3.selectAll("#visNav li").on("click", (d, i) => {
-    const views = ["overview", "network", "cluster", "list"];
-    stateManager.urlState.view = views[i];
-    stateManager.update();
-  });
 
   const visHelp = d3.select("#page").append("div")
     .attr("id", "visHelp")
