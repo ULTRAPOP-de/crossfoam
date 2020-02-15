@@ -71,6 +71,8 @@ const updateView = () => {
 
       cache.vis.build(cache.networks[stateManager.urlState.nUuid],
                       cache.scrapes[cache.scrapeKeys[stateManager.urlState.nUuid]]);
+      
+      d3.selectAll("#spinnerOverlay").remove();
     });
   }
 };
@@ -243,6 +245,11 @@ const setupVis = () => {
 
   const visContainer = d3.select("#page").append("div")
     .attr("id", "visContainer");
+  
+  d3.select("#page").append("div")
+    .attr("id", "spinnerOverlay")
+    .append("img")
+      .attr("src", "../assets/images/logo-animation.gif");
 
   const visNav = d3.select("#page").append("div")
     .attr("id", "visNav")

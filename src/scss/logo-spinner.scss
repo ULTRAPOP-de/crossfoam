@@ -5,3 +5,16 @@ svg.logoSpinner{
 .logoSpinner circle{
   fill: transparent;
 }
+
+#spinnerOverlay{
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  margin-top: -75px;
+  margin-left: -75px;
+  z-index: 4;
+  img {
+    width: 150px;
+    height: 150px;
+  }
+}
