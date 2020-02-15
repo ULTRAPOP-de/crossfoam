@@ -3,7 +3,7 @@ document.querySelector("#versionControl").innerHTML = browser.i18n.getMessage(
   [
     window.location.href.split("=")[1],
     browser.runtime.getManifest().version,
-  ]
+  ],
 );
 
 document.querySelector("#githubPromote").innerHTML = browser.i18n.getMessage("githubPromote");

@@ -1,35 +1,10 @@
 import * as cfData from "@crossfoam/data";
 import { exportFormats, exportNetwork } from "@crossfoam/export";
-import { analyseNetwork, buildNetwork, visualizeNetwork } from "@crossfoam/network";
 import { getScrapes } from "@crossfoam/services";
-import { debounce, formatDate } from "@crossfoam/utils";
+import { formatDate } from "@crossfoam/utils";
 import { ClusterVis, ListVis, NetworkVis, OverviewVis } from "@crossfoam/vis";
 import * as d3 from "d3";
 import { setupNav, setupVersion, StateManager } from "./nav";
-
-// let user = ["twitter", "prototypefund", "1e118f9e"];
-// let user = ["twitter", "seb_meier", "f431be7b"];
-// let user = ["twitter", "tillnm", "c0597226"];
-
-// visualizeNetwork(user[0], user[1], user[2]).then(()=> {
-//   console.log("visualized");
-// });
-
-// buildNetwork(user[0], user[1], user[2])
-//   .then((data) => {
-//     console.log("build done");
-//     return analyseNetwork(user[0], user[1], user[2]);
-//    })
-//   .then((data) => {
-//     console.log("analyse done");
-//     return visualizeNetwork(user[0], user[1], user[2]);
-//   })
-//   .then((data) => {
-//     console.log("vis done");
-//   })
-//   .catch((err) => {
-//     throw err;
-//   });
 
 // Master nav and extension version
 setupNav();

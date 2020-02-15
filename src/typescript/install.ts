@@ -1,4 +1,4 @@
-const translate_install = [
+const translateInstall = [
   "installTitle",
   "installSubTitle",
   "installIntro",
@@ -10,6 +10,6 @@ const translate_install = [
   "installParagraph5",
 ];
 
-translate_install.forEach((t) => {
+translateInstall.forEach((t) => {
   document.querySelector("#" + t).innerHTML = browser.i18n.getMessage(t);
 });

@@ -93,11 +93,11 @@
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-var translate_howto = [
+var translateHowTo = [
     "installTitle",
     "installIntro",
 ];
-translate_howto.forEach(function (t) {
+translateHowTo.forEach(function (t) {
     document.querySelector("#" + t).innerHTML = browser.i18n.getMessage(t);
 });
 

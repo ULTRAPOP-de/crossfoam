@@ -93,7 +93,7 @@
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-var translate_install = [
+var translateInstall = [
     "installTitle",
     "installSubTitle",
     "installIntro",
@@ -104,7 +104,7 @@ var translate_install = [
     "installParagraph4",
     "installParagraph5",
 ];
-translate_install.forEach(function (t) {
+translateInstall.forEach(function (t) {
     document.querySelector("#" + t).innerHTML = browser.i18n.getMessage(t);
 });
 

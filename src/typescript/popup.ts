@@ -1,6 +1,6 @@
 import { getScrapes } from "@crossfoam/services";
-import { formatDate, formatDuration } from "@crossfoam/utils";
 import { logoSpinner } from "@crossfoam/ui-helpers";
+import { formatDate, formatDuration } from "@crossfoam/utils";
 import * as d3 from "d3";
 
 let scrapes = [];
@@ -158,9 +158,9 @@ d3.select("#footer .left")
       });
     });
 
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener("DOMContentLoaded", () => {
   destroySpinner = logoSpinner("#scrape-loader", 50);
   spinnerDestroyed = false;
-  loadUpdate();  
+  loadUpdate();
   setInterval(loadUpdate, 15000);
-}, false);    
+}, false);

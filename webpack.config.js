@@ -37,7 +37,9 @@ module.exports = {
         exclude: /node_modules/,
         test: /\.js$/,
         // Babel options are in .babelrc
-        loaders: ['babel'],
+        use: {
+          loader: 'babel-loader'
+        }
       },
       // All files with a '.ts' or '.tsx' extension will be handled by 'awesome-typescript-loader'.
       { test: /\.ts$/, loader: "awesome-typescript-loader" },

@@ -23,7 +23,7 @@ declare var FontFace: any;
   const updateSite = () => {
     const identifiedElements = [];
 
-    document.body.querySelectorAll("a:not(.cf--modified)").forEach((item: HTMLLinkElement) => {
+    Array.from(document.body.querySelectorAll("a:not(.cf--modified)")).forEach((item: HTMLLinkElement) => {
       item.className = item.className + " cf--modified";
 
       const username = identifyService(item.href);

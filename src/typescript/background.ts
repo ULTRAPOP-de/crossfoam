@@ -131,7 +131,7 @@ queue.register(visualizeNetwork,
 
 queue.register(updateNetworkDictionary,
        "network-updateNetworkDictionary",
-       [3,3], true, false, 1);
+       [3, 3], true, false, 1);
 
 // Pick up where we left of...
 
