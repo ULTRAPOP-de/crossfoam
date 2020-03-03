@@ -44,6 +44,9 @@
   "friends":{
     "message": "Friends"
   },
+  "otherFriends": {
+    "message": "Other friends of friends"
+  },
   "sharedFiendsOfFriends":{
     "message": "Shared friends of friends"
   },
