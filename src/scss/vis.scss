@@ -333,6 +333,31 @@ circle.overview-navigation-indicator{
 
 /* ----- NETWORK VIS ----- */
 
+circle.network-nav-circle{
+  stroke:none;
+}
+
+.network-nav-circle-1{ fill:#C9C9C9; }
+.network-nav-circle-2{ fill:#A6A6A6; }
+.network-nav-circle-3{ fill:#D8D8D8; }
+.network-nav-circle-4{ fill:white; }
+.network-nav-circle-5{ fill:black; }
+
+#network-nav line{
+  stroke: black;
+}
+
+#network-nav:hover, 
+#network-nav.active{
+  cursor: pointer;
+  .network-nav-circle-1{ fill:#B2C3C7; }
+  .network-nav-circle-2{ fill:#7698A1; }
+  .network-nav-circle-3{ fill:#BCD2D7; }
+  .network-nav-circle-4{ fill:white; }
+  .network-nav-circle-5{ fill:#338498; }
+  line { stroke:#338498; }
+}
+
 /* ----- CLUSTER VIS ----- */
 
 /* ----- LIST VIS ----- */

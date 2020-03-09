@@ -41,6 +41,12 @@
   "visListLegend":{
     "message": "Vernetzung innerhalb der Blase;Groß;Gering;Blase im Service anzeigen;oder ausblenden"
   },
+  "visNetworkToggleOn":{
+    "message": "Verbindungen in andere Cluster ausblenden"
+  },
+  "visNetworkToggleOff":{
+    "message": "Verbindungen in andere Cluster anzeigen"
+  },
   "friends":{
     "message": "Freunde"
   },
