@@ -226,29 +226,24 @@ p.intro{
   z-index:4;
   max-width:320px;
   position:absolute;
-  background-size:10px 10px;
-  background-repeat: no-repeat;
-  padding-top: 9px;
-  &.rightSide{
-    background-image:url("../images/tooltip--connector--left@2x.png");
-    background-position: top left;
-    padding-left:9px;
-  }
-  &.leftSide{
-    background-image:url("../images/tooltip--connector--right@2x.png");
-    background-position: top right;
-    padding-right:9px;
+  padding: 20px;
+  &>svg{
+    z-index: 5;
+    position: absolute;
   }
   &>div{
     border: 1px solid #555555;
     background-color:white;
     padding:10px;
+    z-index: 6;
+    position: relative;
   }
   img{
     width:24px;
     height:24px;
     border-radius:12px;
     margin-right:5px;
+    border: 1px solid #555555;
   }
 }
 
@@ -359,6 +354,37 @@ circle.network-nav-circle{
 }
 
 /* ----- CLUSTER VIS ----- */
+
+#cluster-vis-showEdges-toggle,
+#cluster-vis-showProxies-toggle{
+  cursor: pointer;
+}
+
+#cluster-vis-showEdges-toggle.invisible,
+#cluster-vis-showProxies-toggle.invisible{
+  opacity:0;
+  pointer-events: none;
+  cursor: default;
+}
+
+#cluster-vis-showProxies-toggle .cluster-vis-showProxies-active,
+#cluster-vis-showEdges-toggle .cluster-vis-showEdges-active{
+  opacity:0;
+}
+
+#cluster-vis-showProxies-toggle.active,
+#cluster-vis-showProxies-toggle:hover,
+#cluster-vis-showEdges-toggle.active,
+#cluster-vis-showEdges-toggle:hover{
+  .cluster-vis-showEdges-active,
+  .cluster-vis-showProxies-active{
+    opacity:1;
+  }
+  .cluster-vis-showProxies-normal,
+  .cluster-vis-showEdges-normal{
+    opacity:0;
+  }
+}
 
 /* ----- LIST VIS ----- */
 

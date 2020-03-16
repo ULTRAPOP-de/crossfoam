@@ -119,124 +119,429 @@ var vis_1 = __webpack_require__(/*! ./vis */ "../crossfoam-vis/dst/vis.js");
 var ClusterVis = /** @class */function (_super) {
     __extends(ClusterVis, _super);
     function ClusterVis() {
-        var _this = _super !== null && _super.apply(this, arguments) || this;
-        _this.visType = "cluster";
-        _this.edges = [];
-        _this.labels = [];
-        _this.helpData = [];
-        return _this;
+        var _this_1 = _super !== null && _super.apply(this, arguments) || this;
+        _this_1.visType = "cluster";
+        _this_1.imageSize = 48;
+        _this_1.showEdges = false;
+        _this_1.showProxies = false;
+        _this_1.level = 0;
+        _this_1.graph = {
+            links: [],
+            nodeMap: {},
+            nodes: [],
+            proxieLinks: []
+        };
+        _this_1.helpData = [];
+        return _this_1;
     }
+    ClusterVis.prototype.zoom = function (_this) {
+        this.container.selectAll("#tooltip").remove();
+        _this.canvasTransform = d3.event.transform;
+        this.paint();
+    };
+    ClusterVis.prototype.hitTest = function (x, y) {
+        for (var _i = 0, _a = this.graph.nodes; _i < _a.length; _i++) {
+            var node = _a[_i];
+            var dist = Math.sqrt(Math.pow(x - (node.x * this.canvasTransform.k + this.canvasTransform.x), 2) + Math.pow(y - (node.y * this.canvasTransform.k + this.canvasTransform.y), 2));
+            if (dist <= node.r * this.canvasTransform.k) {
+                return node;
+            }
+        }
+        return false;
+    };
     ClusterVis.prototype.build = function (data, centralNode) {
-        var _this = this;
-        this.svg = this.container.append("svg");
-        this.update(null);
-        var maxEdge = 0;
-        var maxNodeSize = 0;
-        this.nodes = Object.keys(data.cluster[this.clusterId].clusters).map(function (cluster) {
-            var clusterData = data.cluster[_this.clusterId].clusters[cluster];
-            console.log(clusterData);
-            var nodeSize = 0;
-            Object.keys(clusterData.edges).forEach(function (edgeId) {
-                var edge = clusterData.edges[edgeId];
-                if (edgeId === cluster) {
-                    if (nodeSize > maxNodeSize) {
-                        maxNodeSize = nodeSize;
+        var _this_1 = this;
+        this.paintCluster = data.cluster;
+        this.paintNodes = data.nodes;
+        this.paintEdges = data.edges;
+        this.paintCentralNode = centralNode;
+        this.canvas = this.container.append("canvas");
+        this.ctx = this.canvas.node().getContext("2d");
+        this.zoomObj = d3.zoom().scaleExtent([0.1, 8]).on("zoom", function () {
+            _this_1.zoom(_this_1);
+        });
+        this.outerSvg = this.container.append("svg").call(this.zoomObj);
+        var defs = this.outerSvg.append("defs");
+        defs.append("clipPath").attr("id", "userClip").append("circle").attr("cx", this.imageSize / 2).attr("cy", this.imageSize / 2).attr("r", (this.imageSize - 4) / 2).style("fill", "black");
+        this.svg = this.outerSvg.append("g");
+        this.edgeToggle = this.outerSvg.append("g").attr("id", "cluster-vis-showEdges-toggle").on("click", function () {
+            if (_this_1.showEdges) {
+                edgeToggleG.select("text").html(browser.i18n.getMessage("visClusterToggleOff"));
+            } else {
+                edgeToggleG.select("text").html(browser.i18n.getMessage("visClusterToggleOn"));
+            }
+            _this_1.showEdges = !_this_1.showEdges;
+            _this_1.edgeToggle.classed("active", _this_1.showEdges);
+            _this_1.paint();
+        });
+        var edgeToggleG = this.edgeToggle.append("g");
+        edgeToggleG.append("image").attr("class", "cluster-vis-showEdges-normal").attr("width", 51).attr("height", 33).attr("xlink:href", "../assets/images/vis--cluster--showEdges-normal@2x.png");
+        edgeToggleG.append("image").attr("class", "cluster-vis-showEdges-active").attr("width", 51).attr("height", 33).attr("xlink:href", "../assets/images/vis--cluster--showEdges-active@2x.png");
+        edgeToggleG.append("text").attr("text-anchor", "end").attr("transform", "translate(-4, 20)").html(browser.i18n.getMessage("visClusterToggleOff"));
+        this.proxyToggle = this.outerSvg.append("g").attr("id", "cluster-vis-showProxies-toggle").on("click", function () {
+            if (_this_1.showProxies) {
+                proxyToggleG.select("text").html(browser.i18n.getMessage("visProxiesToggleOff"));
+            } else {
+                edgeToggleG.select("text").html(browser.i18n.getMessage("visProxiesToggleOn"));
+            }
+            _this_1.showProxies = !_this_1.showProxies;
+            _this_1.proxyToggle.classed("active", _this_1.showProxies);
+            _this_1.paint();
+        });
+        var proxyToggleG = this.proxyToggle.append("g");
+        proxyToggleG.append("image").attr("class", "cluster-vis-showProxies-normal").attr("width", 51).attr("height", 33).attr("xlink:href", "../assets/images/vis--cluster--showProxies-normal@2x.png");
+        proxyToggleG.append("image").attr("class", "cluster-vis-showProxies-active").attr("width", 51).attr("height", 33).attr("xlink:href", "../assets/images/vis--cluster--showProxies-active@2x.png");
+        proxyToggleG.append("text").attr("text-anchor", "end").attr("transform", "translate(-4, 23)").html(browser.i18n.getMessage("visProxiesToggleOff"));
+        this.resize(true);
+        this.buildLevel0();
+    };
+    ClusterVis.prototype.buildLevel0 = function () {
+        var _this_1 = this;
+        this.svg.selectAll("*").remove();
+        this.edgeToggle.classed("invisible", true);
+        this.proxyToggle.classed("invisible", true);
+        this.outerSvg.on("click", null);
+        // generate first level data
+        var clusterCounts = {};
+        this.paintNodes.forEach(function (node) {
+            var clusterGroupId = node[6][_this_1.clusterId];
+            if (!(clusterGroupId in clusterCounts)) {
+                clusterCounts[clusterGroupId] = 0;
+            }
+            clusterCounts[clusterGroupId] += 1;
+        });
+        // centroid user icon
+        var centerGroup = this.svg.append("g").attr("class", "centerGroup").attr("transform", "translate(" + this.width / 2 + ", " + this.height / 2 + ")");
+        centerGroup.append("image").attr("transform", "translate(-" + this.imageSize / 2 + ", -" + this.imageSize / 2 + ")").attr("xlink:href", this.paintCentralNode.image).style("width", this.imageSize).style("height", this.imageSize).attr("clip-path", "url(#userClip)");
+        centerGroup.append("circle").attr("cx", 0).attr("cy", 0).attr("r", this.imageSize / 2 + 2).style("fill", "transparent").style("stroke", "rgba(0,0,0,0.2)");
+        var clusters = Object.keys(this.paintCluster[this.clusterId].clusters);
+        // position the cluster evenly in a circle around the centroid
+        var radius = this.height / 4;
+        var theta = 2 * Math.PI / clusters.length;
+        // calc cluster positions
+        var clusterPos = {};
+        // get min and max number of nodes in cluster
+        var max = 0;
+        var min = Number.MAX_VALUE;
+        // get min and max number of edges between cluster
+        var eMax = 0;
+        var eMin = Number.MAX_VALUE;
+        var edgeList = [];
+        clusters.forEach(function (cluster, i) {
+            if (clusterCounts[cluster] > max) {
+                max = clusterCounts[cluster];
+            }
+            if (clusterCounts[cluster] < min) {
+                min = clusterCounts[cluster];
+            }
+            clusterPos[cluster] = [radius * Math.cos(i * theta), radius * Math.sin(i * theta)];
+            clusters.forEach(function (eCluster) {
+                var eCount = _this_1.paintCluster[_this_1.clusterId].clusters[cluster].edges[eCluster][0];
+                if (eCount > eMax) {
+                    eMax = eCount;
+                }
+                if (eCount < eMin) {
+                    eMin = eCount;
+                }
+                if (cluster !== eCluster && cluster < eCluster) {
+                    edgeList.push([cluster, eCluster, eCount]);
+                }
+            });
+        });
+        var clusterScale = d3.scaleLinear().domain([min, max]).range([20, 40]);
+        var edgeScale = d3.scaleLinear().domain([eMin, eMax]).range([1, 20]);
+        // draw edges
+        centerGroup.selectAll("line").data(edgeList).enter().append("line").attr("x1", function (d) {
+            return clusterPos[d[0]][0];
+        }).attr("x2", function (d) {
+            return clusterPos[d[1]][0];
+        }).attr("y1", function (d) {
+            return clusterPos[d[0]][1];
+        }).attr("y2", function (d) {
+            return clusterPos[d[1]][1];
+        }).style("stroke", "rgba(0,0,0,0.3)").style("stroke-width", function (d) {
+            return edgeScale(d[2]);
+        });
+        // draw cluster circles
+        var clusterGroups = centerGroup.selectAll("g").data(clusters).enter().append("g").attr("transform", function (d) {
+            return "translate(" + clusterPos[d].join(",") + ")";
+        });
+        clusterGroups.append("circle").style("fill", function (d) {
+            return _this_1.paintCluster[_this_1.clusterId].clusters[d].color;
+        }).style("stroke", "none").attr("r", function (d) {
+            return clusterScale(clusterCounts[d]);
+        });
+        clusterGroups.append("text").attr("transform", function (d) {
+            return "translate(0," + (clusterScale(clusterCounts[d]) + 15) + ")";
+        }).attr("text-anchor", "middle").text(function (d) {
+            return _this_1.paintCluster[_this_1.clusterId].clusters[d].name;
+        });
+        clusterGroups.on("click", function (d) {
+            _this_1.buildLevel1(d);
+        });
+        // Create the legend
+        // TODO: Move legend to lower right
+        var legendWidth = clusterScale(max) * 2;
+        var legend = this.svg.append("g").attr("transform", "translate(20,20)");
+        var legendY = 20;
+        legend.append("text").text("Number of connections:").attr("transform", "translate(0,0)");
+        legend.append("line").style("stroke", "black").style("stroke-width", edgeScale(eMin)).attr("x1", 0).attr("x2", legendWidth).attr("y1", legendY).attr("y2", legendY);
+        legend.append("text").attr("dy", 5).style("font-size", 10).text(eMin).attr("transform", "translate(" + (legendWidth + 5) + ", " + legendY + ")");
+        legendY += 20;
+        legend.append("line").style("stroke", "black").style("stroke-width", edgeScale(eMax)).attr("x1", 0).attr("x2", legendWidth).attr("y1", legendY).attr("y2", legendY);
+        legend.append("text").text(eMax).attr("dy", 5).style("font-size", 10).attr("transform", "translate(" + (legendWidth + 5) + ", " + legendY + ")");
+        legendY += 40;
+        legend.append("text").text("Number of Users:").attr("transform", "translate(0," + legendY + ")");
+        legend.append("circle").attr("transform", "translate(0," + legendY + ")").style("fill", "black").attr("r", clusterScale(min)).attr("cx", legendWidth / 2).attr("cy", legendWidth / 2);
+        legend.append("text").attr("dy", legendWidth / 2 + 5).style("font-size", 10).text(min).attr("transform", "translate(" + (legendWidth + 5) + ", " + legendY + ")");
+        legendY += 25 + clusterScale(min) * 2;
+        legend.append("circle").attr("transform", "translate(0," + legendY + ")").style("fill", "black").attr("r", clusterScale(max)).attr("cx", legendWidth / 2).attr("cy", legendWidth / 2);
+        legend.append("text").text(max).attr("dy", legendWidth / 2 + 5).style("font-size", 10).attr("transform", "translate(" + (legendWidth + 5) + ", " + legendY + ")");
+    };
+    ClusterVis.prototype.buildLevel1 = function (detailId) {
+        var _this_1 = this;
+        this.svg.selectAll("*").remove();
+        this.edgeToggle.classed("invisible", false);
+        this.edgeToggle.classed("active", false);
+        this.showEdges = false;
+        this.proxyToggle.classed("invisible", false);
+        this.proxyToggle.classed("active", false);
+        this.showProxies = false;
+        this.outerSvg.on("click", function () {
+            if (_this_1.level > 0) {
+                var x = d3.event.pageX;
+                var y = d3.event.pageY;
+                var hit = _this_1.hitTest(x, y);
+                if (hit && hit[1] !== "cluster") {
+                    var color = "#555555";
+                    if ("color" in hit) {
+                        color = hit.color;
                     }
-                    nodeSize = edge[1];
+                    _this_1.tooltip(hit, hit.x * _this_1.canvasTransform.k + _this_1.canvasTransform.x, hit.y * _this_1.canvasTransform.k + _this_1.canvasTransform.y, color, []);
                 } else {
-                    if (edge[1] > maxEdge) {
-                        maxEdge = edge[1];
-                    }
-                    _this.edges.push({
-                        source: cluster,
-                        target: edgeId,
-                        value: edge[1]
+                    _this_1.container.selectAll("#tooltip").remove();
+                }
+            }
+        });
+        // Reset zoom
+        this.outerSvg.call(this.zoomObj.transform, d3.zoomIdentity);
+        this.level = 1;
+        this.graph = {
+            links: [],
+            nodeMap: {},
+            nodes: [],
+            proxieLinks: []
+        };
+        var clusterMap = {};
+        var emptyCluster = 0;
+        var clusters = Object.keys(this.paintCluster[this.clusterId].clusters);
+        clusters.forEach(function (cluster) {
+            if (cluster.toString() === detailId.toString() || _this_1.paintCluster[_this_1.clusterId].clusters[cluster].edges[cluster][0] === 0) {
+                emptyCluster += 1;
+            }
+        });
+        var theta = 2 * Math.PI / (clusters.length - emptyCluster);
+        var radius = this.height;
+        if (radius > this.width) {
+            radius = this.width;
+        }
+        radius = radius / 2 - 70;
+        var rScaleMax = 0;
+        this.paintNodes.forEach(function (node) {
+            if (node[6][_this_1.clusterId][0].toString() === detailId.toString()) {
+                if (node[13][_this_1.clusterId][detailId] > rScaleMax) {
+                    rScaleMax = node[13][_this_1.clusterId][detailId];
+                }
+                if (node[14] !== undefined && node[14] !== null) {
+                    var img = document.createElement("img");
+                    img.onerror = function (event) {
+                        event.path[0].src = "../assets/images/twitter_default_profile_normal.png";
+                    };
+                    img.onload = function (event) {
+                        node.imageLoad = true;
+                    };
+                    img.width = _this_1.imageSize;
+                    img.height = _this_1.imageSize;
+                    node.imageLoad = false;
+                    node.image = img;
+                    img.src = node[14];
+                }
+                _this_1.graph.nodes.push(node);
+                _this_1.graph.nodeMap[node[0]] = _this_1.graph.nodes.length - 1;
+            }
+        });
+        var idOffset = 1000000000;
+        var ci = 0;
+        clusters.forEach(function (cluster) {
+            if (cluster.toString() !== detailId.toString() && _this_1.paintCluster[_this_1.clusterId].clusters[cluster].edges[cluster][0] > 0) {
+                var clusterTempId = idOffset + parseInt(cluster.toString(), 10);
+                _this_1.graph.nodes.push({
+                    0: clusterTempId,
+                    1: "cluster",
+                    2: _this_1.paintCluster[_this_1.clusterId].clusters[cluster].name,
+                    color: _this_1.paintCluster[_this_1.clusterId].clusters[cluster].color,
+                    fixed: true,
+                    fx: radius * Math.cos(ci * theta) + _this_1.width / 2,
+                    fy: radius * Math.sin(ci * theta) + _this_1.height / 2,
+                    r: 20
+                });
+                clusterMap[cluster] = clusterTempId;
+                _this_1.graph.nodeMap[clusterTempId] = _this_1.graph.nodes.length - 1;
+                ci += 1;
+            }
+        });
+        var clusterEdgeMap = {};
+        this.paintEdges.forEach(function (edge) {
+            var sourceCluster = _this_1.paintNodes[edge[0]][6][_this_1.clusterId][0];
+            var targetCluster = _this_1.paintNodes[edge[1]][6][_this_1.clusterId][0];
+            // The radi in this vis are also taken from the wrong numbers !!!!
+            // TODO: The numbers in the cluster links are likely calculated including the proxies,
+            // turn into array one number for proxie one for not!!!
+            if (sourceCluster.toString() === detailId.toString() && targetCluster.toString() === detailId.toString()) {
+                if (edge[2] >= 1) {
+                    _this_1.graph.links.push({
+                        source: edge[0],
+                        target: edge[1]
+                    });
+                } else {
+                    _this_1.graph.proxieLinks.push({
+                        source: _this_1.graph.nodeMap[edge[0]],
+                        target: _this_1.graph.nodeMap[edge[1]]
                     });
                 }
-            });
-            return {
-                color: clusterData.color,
-                id: cluster,
-                name: clusterData.name,
-                size: nodeSize
-            };
-        });
-        var labels = {
-            links: [],
-            nodes: []
-        };
-        this.nodes.forEach(function (d, i) {
-            labels.nodes.push({ node: d });
-            labels.nodes.push({ node: d });
-            labels.links.push({
-                source: i * 2,
-                target: i * 2 + 1
-            });
-        });
-        var rScale = d3.scaleLinear().range([0, 50]).domain([0, maxNodeSize]);
-        var sScale = d3.scaleLinear().range([0, 10]).domain([0, maxEdge]);
-        var simulation = d3.forceSimulation(this.nodes).force("charge", d3.forceManyBody()).force("link", d3.forceLink(this.edges).id(function (d) {
-            return d.id;
-        }).distance(200)).force("center", d3.forceCenter(this.width / 2, this.height / 2)).force("charge", d3.forceCollide().radius(function (d) {
-            return rScale(d.size);
-        }));
-        var labelSimulation = d3.forceSimulation(labels.nodes).force("charge", d3.forceManyBody().strength(-50)).force("link", d3.forceLink(labels.links).distance(55).strength(2));
-        this.edge = this.svg.append("g").attr("class", "links").selectAll("line").data(this.edges).enter().append("line").attr("stroke", "#aaa").attr("stroke-width", function (d) {
-            return sScale(d.value);
-        });
-        this.node = this.svg.append("g").attr("class", "nodes").selectAll("g").data(this.nodes).enter().append("circle").attr("r", function (d) {
-            return rScale(d.size);
-        }).attr("fill", function (d) {
-            return d.color;
-        });
-        this.label = this.svg.append("g").attr("class", "labelNodes").selectAll("text").data(labels.nodes).enter().append("text").text(function (d, i) {
-            return i % 2 === 0 ? "" : d.node.name;
-        }).style("fill", "#555").style("font-family", "Arial").style("font-size", 12).style("pointer-events", "none");
-        simulation.on("tick", function () {
-            _this.edge.attr("x1", function (d) {
-                return d.source.x;
-            }).attr("y1", function (d) {
-                return d.source.y;
-            }).attr("x2", function (d) {
-                return d.target.x;
-            }).attr("y2", function (d) {
-                return d.target.y;
-            });
-            _this.node.attr("cx", function (d) {
-                return d.x;
-            }).attr("cy", function (d) {
-                return d.y;
-            });
-            labelSimulation.alphaTarget(0.3).restart();
-            _this.label.each(function (d, i, a) {
-                if (i % 2 === 0) {
-                    d.x = d.node.x;
-                    d.y = d.node.y;
+            } else if (sourceCluster.toString() === detailId.toString() || targetCluster.toString() === detailId.toString()) {
+                var foreignId = edge[1];
+                var nodeId = edge[0];
+                if (targetCluster.toString() === detailId.toString()) {
+                    foreignId = edge[0];
+                    nodeId = edge[1];
+                }
+                var foreignMappedIndex = clusterMap[_this_1.paintNodes[foreignId][6][_this_1.clusterId][0]];
+                var edgeIndex = nodeId + "-" + foreignMappedIndex;
+                if (edge[2] >= 1) {
+                    if (!(edgeIndex in clusterEdgeMap)) {
+                        clusterEdgeMap[edgeIndex] = 1;
+                        _this_1.graph.links.push({
+                            source: nodeId,
+                            target: foreignMappedIndex
+                        });
+                    } else {
+                        clusterEdgeMap[edgeIndex] += 1;
+                    }
                 } else {
-                    var b = d3.select(a[i]).node().getBBox();
-                    var diffX = d.x - d.node.x;
-                    var diffY = d.y - d.node.y;
-                    var dist = Math.sqrt(diffX * diffX + diffY * diffY);
-                    var shiftX = b.width * (diffX - dist) / (dist * 2);
-                    shiftX = Math.max(-b.width, Math.min(0, shiftX));
-                    var shiftY = 16;
-                    d3.select(a[i]).attr("transform", "translate(" + shiftX + "," + shiftY + ")");
+                    if (!(edgeIndex in clusterEdgeMap)) {
+                        clusterEdgeMap[edgeIndex] = 1;
+                        _this_1.graph.proxieLinks.push({
+                            source: _this_1.graph.nodeMap[nodeId],
+                            target: _this_1.graph.nodeMap[foreignMappedIndex]
+                        });
+                    } else {
+                        clusterEdgeMap[edgeIndex] += 1;
+                    }
+                }
+            }
+        });
+        var simulation = d3.forceSimulation().force("link", d3.forceLink().id(function (d) {
+            return d[0];
+        })).force("charge", d3.forceManyBody().strength(-250)).force("collide", d3.forceCollide().radius(function (d) {
+            return d.r + 20;
+        }).iterations(2)).force("center", d3.forceCenter(this.width / 2, this.height / 2 + 20));
+        var rScale = d3.scaleLinear().range([5, this.imageSize / 4]).domain([1, rScaleMax]);
+        this.graph.nodes.forEach(function (node) {
+            var r = 20;
+            if (13 in node) {
+                r = rScale(node[13][_this_1.clusterId][detailId]);
+            }
+            node.r = r;
+        });
+        var ticked = function () {
+            _this_1.paint();
+        };
+        simulation.nodes(this.graph.nodes).on("tick", ticked);
+        simulation.force("link").links(this.graph.links);
+    };
+    // TODO: Add debouncer
+    ClusterVis.prototype.paint = function () {
+        var _this_1 = this;
+        if (this.level === 1) {
+            this.ctx.save();
+            this.ctx.clearRect(0, 0, this.width * 2, this.height * 2);
+            this.ctx.translate(this.canvasTransform.x * 2, this.canvasTransform.y * 2);
+            this.ctx.scale(this.canvasTransform.k, this.canvasTransform.k);
+            if (this.showEdges) {
+                this.ctx.strokeStyle = "rgba(0,0,0,0.2)";
+                this.graph.links.forEach(function (link) {
+                    _this_1.positionLink(link, true);
+                });
+                if (this.showProxies) {
+                    this.graph.proxieLinks.forEach(function (link) {
+                        _this_1.positionLink({
+                            source: _this_1.graph.nodes[link.source],
+                            target: _this_1.graph.nodes[link.target]
+                        }, true);
+                    });
+                }
+            }
+            this.graph.nodes.forEach(function (node) {
+                _this_1.ctx.fillStyle = "#000000";
+                if ("image" in node && node.imageLoad && node.image.complete) {
+                    _this_1.ctx.beginPath();
+                    _this_1.ctx.arc(node.x * 2, node.y * 2, node.r * 2 + 1, 0, 2 * Math.PI);
+                    _this_1.ctx.closePath();
+                    _this_1.ctx.fill();
+                    _this_1.ctx.save();
+                    _this_1.ctx.beginPath();
+                    _this_1.ctx.arc(node.x * 2, node.y * 2, node.r * 2, 0, 2 * Math.PI);
+                    _this_1.ctx.closePath();
+                    _this_1.ctx.clip();
+                    _this_1.ctx.drawImage(node.image, node.x * 2 - node.r * 2, node.y * 2 - node.r * 2, node.r * 4, node.r * 4);
+                    _this_1.ctx.restore();
+                } else {
+                    if ("color" in node) {
+                        _this_1.ctx.fillStyle = node.color;
+                    }
+                    _this_1.ctx.beginPath();
+                    _this_1.ctx.arc(node.x * 2, node.y * 2, node.r * 2, 0, 2 * Math.PI);
+                    _this_1.ctx.closePath();
+                    _this_1.ctx.fill();
                 }
             });
-            _this.label.attr("transform", function (d) {
-                return "translate(" + d.x + "," + d.y + ")";
-            });
-        });
-    };
-    ClusterVis.prototype.fixna = function (x) {
-        if (isFinite(x)) {
-            return x;
-        } else {
-            return 0;
+            this.ctx.restore();
+        } else if (this.level === 2) {
+            // Draw an individual user's network
         }
     };
     ClusterVis.prototype.update = function (data) {
-        this.svg.attr("width", this.width).attr("height", this.height);
+        this.outerSvg.attr("width", this.width).attr("height", this.height);
+        this.edgeToggle.attr("transform", "translate(" + (this.width - 73) + ", 67)");
+        this.proxyToggle.attr("transform", "translate(" + (this.width - 73) + ", 127)");
+        this.canvas.style("width", this.width + "px").style("height", this.height + "px").attr("width", this.width * 2).attr("height", this.height * 2);
+        this.svg.selectAll(".centerGroup").attr("transform", "translate(" + this.width / 2 + ", " + this.height / 2 + ")");
+    };
+    // TODO: Move to utils
+    ClusterVis.prototype.circlePath = function (x, y, r, direction) {
+        return "M" + x + "," + y + "      m" + -r + ", 0      a" + r + "," + r + " 0 " + (direction ? "0" : "1") + "," + (direction ? "1" : "0") + " " + r * 2 + ",0      a" + r + "," + r + " 0 " + (direction ? "0" : "1") + "," + (direction ? "1" : "0") + " " + -r * 2 + ",0Z";
+    };
+    ClusterVis.prototype.positionLink = function (d, draw) {
+        if (draw === void 0) {
+            draw = false;
+        }
+        var offset = Math.sqrt(Math.pow(d.source.x - d.target.x, 2) + Math.pow(d.source.y - d.target.y, 2)) / 10;
+        var midpointX = (d.source.x + d.target.x) / 2;
+        var midpointY = (d.source.y + d.target.y) / 2;
+        var dx = d.target.x - d.source.x;
+        var dy = d.target.y - d.source.y;
+        var normalise = Math.sqrt(dx * dx + dy * dy);
+        var offSetX = midpointX + offset * (dy / normalise);
+        var offSetY = midpointY - offset * (dx / normalise);
+        if (draw) {
+            this.ctx.beginPath();
+            this.ctx.moveTo(d.source.x * 2, d.source.y * 2);
+            this.ctx.bezierCurveTo(offSetX * 2, offSetY * 2, offSetX * 2, offSetY * 2, d.target.x * 2, d.target.y * 2);
+            this.ctx.stroke();
+        } else {
+            return "M" + d.source.x + ", " + d.source.y + "S" + offSetX + ", " + offSetY + " " + d.target.x + ", " + d.target.y;
+        }
     };
     return ClusterVis;
 }(vis_1.Vis);
@@ -504,7 +809,12 @@ var NetworkVis = /** @class */function (_super) {
             pointPositions.forEach(function (node, ni) {
                 var dist = Math.sqrt(Math.pow(x - (node[0] * _this_1.canvasTransform.k + _this_1.canvasTransform.x), 2) + Math.pow(y - (node[1] * _this_1.canvasTransform.k + _this_1.canvasTransform.y), 2));
                 if (dist <= pointSizes[ni] / 4 * _this_1.canvasTransform.k) {
-                    _this_1.tooltip(data.nodes[ni], node[0] * _this_1.canvasTransform.k + _this_1.canvasTransform.x, node[1] * _this_1.canvasTransform.k + _this_1.canvasTransform.y);
+                    var color = "#555555";
+                    if (data.nodes[ni][6][_this_1.clusterId].length > 0 && data.nodes[ni][6][_this_1.clusterId][0] in _this_1.paintCluster[_this_1.clusterId].clusters) {
+                        var rgb = d3.color(_this_1.paintCluster[_this_1.clusterId].clusters[data.nodes[ni][6][_this_1.clusterId]].color).rgb();
+                        color = "rgb(" + rgb.r + ", " + rgb.g + ", " + rgb.b + ")";
+                    }
+                    _this_1.tooltip(data.nodes[ni], node[0] * _this_1.canvasTransform.k + _this_1.canvasTransform.x, node[1] * _this_1.canvasTransform.k + _this_1.canvasTransform.y, color, []);
                     hit = true;
                 }
             });
@@ -760,7 +1070,12 @@ var OverviewVis = /** @class */function (_super) {
             _this_1.clickNodes.forEach(function (node) {
                 var dist = Math.sqrt(Math.pow(x - (node[8] * _this_1.scaleTarget + _this_1.width / 2), 2) + Math.pow(y - (node[9] * _this_1.scaleTarget + _this_1.height / 2), 2));
                 if (dist <= node[7] * _this_1.scaleTarget) {
-                    _this_1.tooltip(node, node[8] * _this_1.scaleTarget + _this_1.width / 2, node[9] * _this_1.scaleTarget + _this_1.height / 2);
+                    var color = "#555555";
+                    if (node[6][_this_1.clusterId].length > 0 && node[6][_this_1.clusterId][0] in _this_1.paintCluster[_this_1.clusterId].clusters) {
+                        var rgb = d3.color(_this_1.paintCluster[_this_1.clusterId].clusters[node[6][_this_1.clusterId]].color).rgb();
+                        color = "rgb(" + rgb.r + ", " + rgb.g + ", " + rgb.b + ")";
+                    }
+                    _this_1.tooltip(node, node[8] * _this_1.scaleTarget + _this_1.width / 2, node[9] * _this_1.scaleTarget + _this_1.height / 2, color, []);
                     hit = true;
                 }
             });
@@ -1016,17 +1331,24 @@ var Vis = /** @class */function () {
     Vis.prototype.update = function (data) {
         // destroy function
     };
-    Vis.prototype.tooltip = function (data, _x, _y) {
+    Vis.prototype.tooltip = function (data, _x, _y, color, actionLinks) {
+        var _this = this;
         this.container.selectAll("#tooltip").remove();
-        var x = _x; // (this.width / 2 + _x) * this.canvasTransform.k + this.canvasTransform.x;
-        var y = _y; // (this.height / 2 + _y) * this.canvasTransform.k + this.canvasTransform.y;
-        var wrapper = this.container.append("div").attr("id", "tooltip").style("top", y + "px");
-        if (x < this.width / 2) {
-            wrapper.style("left", x + "px").attr("class", "rightSide");
-        } else {
-            wrapper.style("right", this.width - x + "px").attr("class", "leftSide");
-        }
-        var contentHolder = wrapper.append("div");
+        var x = _x;
+        var y = _y;
+        var linkPath = {
+            x1: 0,
+            x2: 0,
+            y1: 0,
+            y2: 0
+        };
+        var linkSize = 12;
+        var linkPadding = 10;
+        var wrapper = this.container.append("div").attr("id", "tooltip").on("mouseleave", function () {
+            _this.container.selectAll("#tooltip").remove();
+        });
+        var linkImg = wrapper.append("svg").style("height", linkSize + 2 + "px").style("width", linkSize + 2 + "px");
+        var contentHolder = wrapper.append("div").style("border-color", color).attr("id", "tooltip--contentHolder");
         var url = "https://www.twitter.com/" + (Number.isInteger(parseInt(data[1], 10)) ? data[1] : "i/user/" + data[1]);
         contentHolder.append("span").attr("class", "tooltip--skyLine").html(data[4] ? "Friend of a friend" : "Direct friend");
         var link = contentHolder.append("div").attr("class", "tooltip--link").append("a").attr("href", url);
@@ -1035,6 +1357,36 @@ var Vis = /** @class */function () {
         }).attr("src", data[14]);
         link.append("span").html(data[15] === null ? "Sorry, we have the real username of this person." : data[15]);
         contentHolder.append("span").attr("class", "tooltip--bottomLine").html((data[3] !== 0 || data[2] !== 0 ? "Friends:" + ui_helpers_1.formatNumber(data[3], browser.i18n.getUILanguage()) + " | Followers:" + ui_helpers_1.formatNumber(data[2], browser.i18n.getUILanguage()) + " | " : "") + ("Connections:" + ui_helpers_1.formatNumber(data[5], browser.i18n.getUILanguage())));
+        if (actionLinks && actionLinks.length > 0) {
+            contentHolder.append("p").attr("id", "tooltip--actionLinks").selectAll("span").data(actionLinks).enter().append("a").html(function (d) {
+                return d.label;
+            }).attr("href", function (d) {
+                return d.href;
+            });
+        }
+        if (x < this.width / 2) {
+            wrapper.style("left", x - linkPadding + "px").classed("rightSide", true);
+            linkImg.style("left", linkPadding + "px");
+            linkPath.x1 = linkSize + 2;
+            linkPath.x2 = -2;
+        } else {
+            wrapper.style("right", this.width - x - linkPadding + "px").classed("leftSide", true);
+            linkImg.style("left", contentHolder.node().offsetWidth + linkPadding * 2 - 2 + "px");
+            linkPath.x1 = -2;
+            linkPath.x2 = linkSize + 2;
+        }
+        if (y > this.height / 2) {
+            wrapper.style("bottom", this.height - y - linkPadding + "px").classed("upSide", true);
+            linkImg.style("top", contentHolder.node().offsetHeight + linkPadding * 2 - 2 + "px");
+            linkPath.y1 = -2;
+            linkPath.y2 = linkSize + 2;
+        } else {
+            wrapper.style("top", y - linkPadding + "px").classed("downSide", true);
+            linkImg.style("top", linkPadding + "px");
+            linkPath.y1 = linkSize + 2;
+            linkPath.y2 = -2;
+        }
+        linkImg.append("path").style("stroke", color).style("stroke-width", 2).attr("d", "M" + linkPath.x1 + "," + linkPath.y1 + "L" + linkPath.x2 + "," + linkPath.y2);
     };
     Vis.prototype.help = function () {
         var _this = this;

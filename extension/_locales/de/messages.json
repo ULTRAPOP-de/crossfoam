@@ -47,6 +47,18 @@
   "visNetworkToggleOff":{
     "message": "Verbindungen in andere Cluster anzeigen"
   },
+  "visClusterToggleOn":{
+    "message": "Verbindungen ausblenden"
+  },
+  "visClusterToggleOff":{
+    "message": "Verbindungen über dritte anzeigen"
+  },
+  "visProxiesToggleOn":{
+    "message": "Verbindungen über dritte ausblenden"
+  },
+  "visProxiesToggleOff":{
+    "message": "Show links from proxies"
+  },
   "friends":{
     "message": "Freunde"
   },
