@@ -782,8 +782,12 @@ var isRetinaDisplay = function () {
 };
 exports.isRetinaDisplay = isRetinaDisplay;
 var modal = function (content) {
+    if ("uuid" in content && document.querySelector("#cf--modal-container-" + content.uuid) !== null) {
+        var el = document.querySelector("#cf--modal-container-" + content.uuid);
+        el.parentNode.removeChild(el);
+    }
     var modalContainer = document.createElement("div");
-    var modalUUID = utils_1.uuid();
+    var modalUUID = content.uuid || utils_1.uuid();
     modalContainer
         .setAttribute("class", "cf--modal-container");
     modalContainer

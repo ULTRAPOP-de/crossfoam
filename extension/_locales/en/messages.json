@@ -93,6 +93,12 @@
   "updateMessage": {
     "message": "Improved performance.;Removing unused objects from local storage to free disk space.;A new visualisation for cluster exploration."
   },
+  "selectionTitle":{
+    "message": "Data Collection"
+  },
+  "selectionInProgress":{
+    "message": "Data collection is still in progress."
+  },
   "selectionIntro":{
     "message": "Select one of the accounts below to explore the account's network and edit the bubble-labels and colors, $IMG1$ export the network data or $IMG2$ delete all data connected to that account.",
     "placeholders":{
@@ -136,6 +142,9 @@
   "continue": {
     "message": "Continue"
   },
+  "confirmDelete": {
+    "message": "Proceed with deleting?"
+  },
   "invalidLinkMessage": {
     "message": "The link you clicked is not a valid user-url this extension supports. Please right-click on a user-link. A full tutorial can be found on our website: LINK."
   },
@@ -143,7 +152,7 @@
     "message": "Analysis Request"
   },
   "duplicateLinkMessage": {
-    "message": "`It looks like an analysis for username <strong>$1</strong> was already requested. Do you wish to request another analysis?`"
+    "message": "It looks like an analysis for username <strong>$1</strong> was already requested. Do you wish to request another analysis?"
   },
   "yes": {
     "message": "Yes"
@@ -171,6 +180,9 @@
   },
   "popupCancelLink":{
     "message": "Cancel Process"
+  },
+  "popupPending":{
+    "message": "waiting"
   },
   "navAnalysis":{
     "message": "Analysis"

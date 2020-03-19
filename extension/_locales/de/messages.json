@@ -93,6 +93,12 @@
   "updateMessage": {
     "message": "Bessere Gesamtperformance.;Nicht benötigte Objekte wurden aus dem local-storage entfernt um Speicherplatz freizugeben.;Eine neue Visualisierung für die Exploration von Clustern."
   },
+  "selectionTitle":{
+    "message": "Datensammlung"
+  },
+  "selectionInProgress":{
+    "message": "Die Datensammlung läuft noch."
+  },
   "selectionIntro":{
     "message": "Wähle einen der Datensätze aus, um das Netzwerk zu erforschen oder die Namen und Farben der Blasen zu bearbeiten, $IMG1$ die Netzwerkdaten zu exportieren oder $IMG2$ alle zugehörigen Daten zu löschen.",
     "placeholders":{
@@ -136,6 +142,9 @@
   "continue": {
     "message": "Weiter"
   },
+  "confirmDelete": {
+    "message": "Mit dem Löschen fortfahren?"
+  },
   "invalidLinkMessage": {
     "message": "Der angeklickte Link wird nicht unterstützt. Bitte klicken Sie einen korrekten User-Link an. Eine umfassende Erklärung finden Sie auf LINK."
   },
@@ -171,6 +180,9 @@
   },
   "popupCancelLink":{
     "message": "Prozess abbrechen"
+  },
+  "popupPending":{
+    "message": "Warteschlange"
   },
   "navAnalysis":{
     "message": "Analyse"

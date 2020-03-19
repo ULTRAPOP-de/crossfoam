@@ -782,8 +782,12 @@ var isRetinaDisplay = function () {
 };
 exports.isRetinaDisplay = isRetinaDisplay;
 var modal = function (content) {
+    if ("uuid" in content && document.querySelector("#cf--modal-container-" + content.uuid) !== null) {
+        var el = document.querySelector("#cf--modal-container-" + content.uuid);
+        el.parentNode.removeChild(el);
+    }
     var modalContainer = document.createElement("div");
-    var modalUUID = utils_1.uuid();
+    var modalUUID = content.uuid || utils_1.uuid();
     modalContainer
         .setAttribute("class", "cf--modal-container");
     modalContainer
@@ -30620,10 +30624,20 @@ var updateList = function () {
             .text(function (d) { return Object(_crossfoam_utils__WEBPACK_IMPORTED_MODULE_2__["formatDate"])(new Date(d.date), true); });
         scrapeRow.append("span")
             .classed("scrape--middle", true)
-            .text(function (d) { return Object(_crossfoam_utils__WEBPACK_IMPORTED_MODULE_2__["formatDuration"])((((d.callCount === null) ? 0 : d.callCount) - d.completeCount) * 60000); });
+            .text(function (d) {
+            if (d.callCount === null) {
+                return "";
+            }
+            return Object(_crossfoam_utils__WEBPACK_IMPORTED_MODULE_2__["formatDuration"])((((d.callCount === null) ? 0 : d.callCount) - d.completeCount) * 60000);
+        });
         scrapeRow.append("span")
             .classed("scrape--right", true)
-            .html(function (d) { return ((d.callCount === null) ? 0 : d.callCount) + "<span>/</span>" + d.completeCount; });
+            .html(function (d) {
+            if (d.callCount === null) {
+                return browser.i18n.getMessage("popupPending");
+            }
+            return ((d.callCount === null) ? 0 : d.callCount) + "<span>/</span>" + d.completeCount;
+        });
     }
     else {
         d3__WEBPACK_IMPORTED_MODULE_3__["select"]("#scrape-title").text("");
@@ -30652,7 +30666,6 @@ d3__WEBPACK_IMPORTED_MODULE_3__["select"]("body").append("div")
         .style("display", "none");
 })
     .on("click", function () {
-    console.log(scrapes[cancelID].nUuid);
     browser.runtime.sendMessage({
         centralNode: scrapes[cancelID].screenName,
         id: scrapes[cancelID].nUuid,

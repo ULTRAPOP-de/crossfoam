@@ -152,6 +152,7 @@ browser.contextMenus.removeAll()
   });
 
 browser.contextMenus.onClicked.addListener((info, tab) => {
+  // TODO: Why does this sometimes generate multiple overlays
   if (info.menuItemId === "cf--linkMenu") {
     const found = identifyService(info.linkUrl);
 
@@ -162,6 +163,7 @@ browser.contextMenus.onClicked.addListener((info, tab) => {
         .then((exists) => {
           if (exists !== null && !objEmpty(exists)) {
 
+            const nUuid = uuid();
             browser.tabs.sendMessage(tab.id, {
               modal: {
                 buttons: [
@@ -170,6 +172,7 @@ browser.contextMenus.onClicked.addListener((info, tab) => {
                 ],
                 message: browser.i18n.getMessage("duplicateLinkMessage", found[1]),
                 title: browser.i18n.getMessage("requestLinkTitle"),
+                uuid: nUuid,
               },
               type: "modal",
             })
@@ -196,6 +199,7 @@ browser.contextMenus.onClicked.addListener((info, tab) => {
 
     } else {
 
+      const nUuid = uuid();
       browser.tabs.sendMessage(tab.id, {
           modal: {
             buttons: [
@@ -203,6 +207,7 @@ browser.contextMenus.onClicked.addListener((info, tab) => {
             ],
             message: browser.i18n.getMessage("invalidLinkMessage"),
             title: browser.i18n.getMessage("requestLinkTitle"),
+            uuid: nUuid,
           },
           type: "modal",
         })
@@ -222,6 +227,7 @@ const startScrape = (found: [string, string], tab: any) => {
     services[found[0]].authRequired()
       .then((required) => {
         if (required) {
+          const nUuid = uuid();
           browser.tabs.sendMessage(tab.id, {
             modal: {
               buttons: [
@@ -230,6 +236,7 @@ const startScrape = (found: [string, string], tab: any) => {
               ],
               message: browser.i18n.getMessage("authRequiredMessage", found[0]),
               title: browser.i18n.getMessage("requestLinkTitle"),
+              uuid: nUuid,
             },
             type: "modal",
           })

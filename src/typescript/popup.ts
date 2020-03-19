@@ -51,11 +51,21 @@ const updateList = () => {
 
     scrapeRow.append("span")
       .classed("scrape--middle", true)
-      .text((d) => formatDuration((((d.callCount === null) ? 0 : d.callCount) - d.completeCount) * 60000));
+      .text((d) => {
+        if (d.callCount === null) {
+          return "";
+        }
+        return formatDuration((((d.callCount === null) ? 0 : d.callCount) - d.completeCount) * 60000);
+      });
 
     scrapeRow.append("span")
       .classed("scrape--right", true)
-      .html((d) => ((d.callCount === null) ? 0 : d.callCount) + "<span>/</span>" + d.completeCount);
+      .html((d) => {
+        if (d.callCount === null) {
+          return browser.i18n.getMessage("popupPending");
+        }
+        return ((d.callCount === null) ? 0 : d.callCount) + "<span>/</span>" + d.completeCount;
+      });
 
   } else {
     d3.select("#scrape-title").text("");
@@ -89,8 +99,6 @@ d3.select("body").append("div")
       .style("display", "none");
   })
   .on("click", () => {
-
-    console.log(scrapes[cancelID].nUuid);
 
     browser.runtime.sendMessage({
       centralNode: scrapes[cancelID].screenName,

@@ -71,7 +71,7 @@ const updateView = () => {
 
       cache.vis.build(cache.networks[stateManager.urlState.nUuid],
                       cache.scrapes[cache.scrapeKeys[stateManager.urlState.nUuid]]);
-      
+
       d3.selectAll("#spinnerOverlay").remove();
     });
   }
@@ -86,7 +86,7 @@ const selectionView = () => {
   const container = d3.select("#page").append("div").attr("id", "scrape-container");
 
   container.append("h1")
-    .html(`Datensammlung`);
+    .html(`${browser.i18n.getMessage("selectionTitle")}`);
 
   // TODO: No scrapes, yet
 
@@ -133,13 +133,45 @@ const selectionView = () => {
       .classed("scrapeName", true);
 
     li.append("a")
+      .datum(scrape)
       .classed("scrapeDelete", true)
       .html(`<img src="../assets/images/navbar--icon-vis-delete.png" \
   srcset="../assets/images/navbar--icon-vis-delete.png 1x, \
   ../assets/images/navbar--icon-vis-delete@2x.png 2x" >`)
-      .on("click", () => {
+      .on("click", (d) => {
         d3.event.stopPropagation();
-        // TODO: DELETE
+
+        const confirmation = confirm(browser.i18n.getMessage("confirmDelete"));
+
+        if (confirmation === true) {
+          li
+            .style("opacity", 0.5)
+            .style("pointer-events", "none");
+
+          browser.runtime.sendMessage({
+            centralNode: d.screenName,
+            id: d.nUuid,
+            service: d.service,
+            type: "removeFromQueue",
+          })
+          .then(() => {
+            return Promise.all([
+              cfData.remove(`s--${d.service}--a--${d.screenName}-${d.nUuid}--c`),
+              cfData.remove(`s--${d.service}--a--${d.screenName}-${d.nUuid}--n`),
+              cfData.remove(`s--${d.service}--a--${d.screenName}-${d.nUuid}--nw`),
+            ]);
+          })
+          .then(() => {
+            return cfData.get(`s--${d.service}--nw--${d.screenName}`);
+          })
+          .then((data) => {
+            delete data[d.nUuid];
+            return cfData.set(`s--${d.service}--nw--${d.screenName}`, data);
+          })
+          .then(() => {
+            update();
+          });
+        }
       });
 
     li.append("a")
@@ -160,7 +192,7 @@ const selectionView = () => {
 
     if (!scrape.completed) {
       scrapeRight.append("span")
-        .text("Data collection is still in progress.")
+        .text(browser.i18n.getMessage("selectionInProgress"))
         .classed("scrapeState", true);
     }
 
@@ -245,7 +277,7 @@ const setupVis = () => {
 
   const visContainer = d3.select("#page").append("div")
     .attr("id", "visContainer");
-  
+
   d3.select("#page").append("div")
     .attr("id", "spinnerOverlay")
     .append("img")
