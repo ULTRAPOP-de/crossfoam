@@ -377,9 +377,9 @@ const updatedScrapes = (): Promise<any> => {
         scrapes.sort((a, b) => {
           if (a.service === b.service) {
             if (a.screenName < b.screenName) {
-              return -1;
-            } else if (a.screenName > b.screenName) {
               return 1;
+            } else if (a.screenName > b.screenName) {
+              return -1;
             } else {
               if (a.date < b.date) {
                 return -1;
