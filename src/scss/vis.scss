@@ -129,6 +129,8 @@ p.intro{
   a{
     text-decoration: none;
     color: white;
+    padding:10px;
+    display:inline-block;
   }
 
   ul{
@@ -145,7 +147,7 @@ p.intro{
     color: white;
     display:block;
     white-space: nowrap;
-    padding:10px;
+    padding:0;
     border-bottom: 1px solid rgba(255,255,255,0.3);
     &:first-child{
       border-top-right-radius: 5px;
