@@ -72508,7 +72508,7 @@ var updatedScrapes = function () {
             userDatas.forEach(function (userData) {
                 cache.userImages[userData.handle] = userData.image;
             });
-            // Sort list by service and names
+            // Sort list by service, screenName and date
             scrapes.sort(function (a, b) {
                 if (a.service === b.service) {
                     if (a.screenName < b.screenName) {
@@ -72517,7 +72517,15 @@ var updatedScrapes = function () {
                     else if (a.screenName > b.screenName) {
                         return 1;
                     }
-                    return 0;
+                    else {
+                        if (a.date < b.date) {
+                            return -1;
+                        }
+                        else if (a.date > b.date) {
+                            return 1;
+                        }
+                        return 0;
+                    }
                 }
                 else if (a.service < b.service) {
                     return -1;
