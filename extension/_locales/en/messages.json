@@ -26,6 +26,21 @@
   "installParagraph5":{
     "message": "Fine-grained analysis allows you to explore your social network, diversify it, or - if you prefer - dig deeper into your bubble. Crossfoam thus becomes a tool for electronic self-determination."
   },
+  "servicesTwitterAuthorizeNote":{
+    "message": "If you want to collect data from Twitter, you need to authorize yourself. Authorization is free. ULTRAPOP will not know how you use the widget, data is coming directly from Twitter to you.<br /><br /><i>When you click on the button below a new window or tab will open. Please follow the instructions. In the end you will receive a code. Return to this page and enter the code below.</i>"
+  },
+  "servicesTwitterAuthorize":{
+    "message": "Enable Twitter"
+  },
+  "servicesTwitterAuthorized":{
+    "message": "Twitter is enabled and ready to go."
+  },
+  "servicesTwitterAuthorizeFinish":{
+    "message": "Finish Authorization"
+  },
+  "servicesTwitterAuthAlert":{
+    "message": "Please input a valid 7-digit Twitter-Auth-Pin."
+  },
   "visMenuOverview":{
     "message": "Overview"
   },
