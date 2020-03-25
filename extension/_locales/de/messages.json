@@ -41,6 +41,12 @@
   "servicesTwitterAuthAlert":{
     "message": "Bitte gib einen gültigen Twitter Autorisierungs-Code ein."
   },
+  "visTooltipFriendOfFriend":{
+    "message": "Freund eines Freundes"
+  },
+  "visTooltipDirectFriend":{
+    "message": "Direkter Freund"
+  },
   "visMenuOverview":{
     "message": "Übersicht"
   },
@@ -74,11 +80,26 @@
   "visProxiesToggleOff":{
     "message": "Show links from proxies"
   },
+  "visOverviewIntro":{
+    "message": "Die Freunde einer Nutzer*in und deren andere Freunde, haben den größten Einfluss auf die Inhalte die ihr/ihm angezeigt werden. Doch wer sind diese Nutzer*innen eigentlich?"
+  },
+  "visNetworkIntro":{
+    "message": "Wenn Gruppen viele Querverbindungen untereinander haben, kann dies bedeuten, dass es sich um einen sehr homogenen Freundeskreis handel. Schalte die Verbindungen ein- und aus um die Querverbindungen zu sehen."
+  },
+  "nameNotAvailable":{
+    "message": "Es tut uns leid, der Name dieses Nutzers ist nicht bekannt."
+  },
   "friends":{
     "message": "Freunde"
   },
   "otherFriends": {
     "message": "Weitere Freunde von Freunden"
+  },
+  "followers":{
+    "message": "Follower"
+  },
+  "connections":{
+    "message": "Verbindungen"
   },
   "sharedFiendsOfFriends":{
     "message": "Gemeinsame Freunde von Freunden"
@@ -282,5 +303,26 @@
   },
   "helpOverview_8": {
     "message": "Vielen werden nun sagen, dass dies doch alles relativ offensichtlich ist. Es ist aber wichtig sich in Erinnerung zu rufen, dass die Menschen die von uns als Freunde markiert werden, einen starken Einfluss auf die Inhalte haben, welche uns angezeigt werden und damit auch auf unseren Blick auf die Welt."
+  },
+  "helpNetwork_1": {
+    "message": "Dies ist die Netzwerk-Ansicht. Hier werden alle Freunde des ausgewählten Accounts und ihre Verbindungen untereinander angezeigt."
+  },
+  "helpNetwork_2": {
+    "message": "In vielen Fällen wird man aus den Verbindungen nicht viel Details erkennen können. Dies nennt man auch den 'hairball' Effekt."
+  },
+  "helpNetwork_3": {
+    "message": "Wenn du die Verbindung genauer untersuchen möchtest, nutze am besten die Cluster-Ansicht."
+  },
+  "helpNetwork_4": {
+    "message": "In dieser Netzwerk-Ansicht, kann man sehr gut Ausreißer erkennen, z.B. Personen die mit niemandem, oder so gut wie niemandem, im Netzwerk verbunden sind."
+  },
+  "helpNetwork_5": {
+    "message": "Man kann erkennen wie stark die einzelnen Cluster miteinander verbunden sind und welche Personen besonders zentral in bestimmten Clustern oder zwischen Clustern sind."
+  },
+  "helpNetwork_6": {
+    "message": "Wenn es so aussieht, als wären alle mit allen verbunden, dann ist die Wahrscheinlichkeit hoch, dass das Gesamtnetzwerk sehr homogen ist. Dies kann dazu führen das z.B. Meinungen in diesem Netzwerk auch sehr ähnlich sind."
+  },
+  "helpNetwork_7": {
+    "message": "Wir versuchen jedem Nutzer ein Cluster zuzuweisen. Diese Zuweisung ist aber nicht absolut. Nutz den Knopf oben links um zu sehen, mit welchen anderen Clustern die Nutzer auch Verbindungen haben."
   }
 }

@@ -500,6 +500,45 @@ p.intro {
     top: 0;
     left: 0; }
 
+/* ----- ixMessage ----- */
+#ixMessage {
+  z-index: 4;
+  opacity: 0.9;
+  position: absolute;
+  cursor: pointer;
+  left: 25%;
+  top: 30%;
+  width: 50%;
+  text-align: center;
+  color: white; }
+  #ixMessage p {
+    font-weight: 600;
+    font-style: italic;
+    font-size: 40px;
+    display: inline;
+    background: #004D61;
+    box-shadow: 10px 0 0 #004D61, -10px 0 0 #004D61; }
+  #ixMessage a {
+    background: #004D61;
+    box-shadow: 10px 0 0 #004D61, -10px 0 0 #004D61;
+    padding-top: 29px; }
+    #ixMessage a img {
+      width: 33px;
+      height: 33px; }
+  #ixMessage:hover {
+    color: rgba(255, 255, 255, 0.7); }
+    #ixMessage:hover img {
+      opacity: 0.7; }
+
+/* ----- ixTOOLTIP ----- */
+#ixTooltip {
+  z-index: 4;
+  position: absolute;
+  pointer-events: none; }
+  #ixTooltip img {
+    width: 39px;
+    height: 46px; }
+
 /* ----- TOOLTIP ----- */
 #tooltip {
   z-index: 4;

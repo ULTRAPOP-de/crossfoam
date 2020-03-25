@@ -861,7 +861,7 @@ var get = function (key, defaultValue) {
     return browser.storage.local.get(key)
         .then(function (data) {
         if (data && data !== null && data !== undefined && !utils_1.objEmpty(data)) {
-            if (key in data) {
+            if (typeof data === "object" && key in data) {
                 return data[key];
             }
             return data;
@@ -879,7 +879,7 @@ var set = function (key, value) {
     var _a;
     return browser.storage.local.set((_a = {}, _a[key] = value, _a))
         .then(function () {
-        if (key in value) {
+        if (typeof value === "object" && key in value) {
             return value[key];
         }
         return value;
@@ -1791,20 +1791,21 @@ var vis_1 = __webpack_require__(/*! ./vis */ "../crossfoam-vis/dst/vis.js");
 var NetworkVis = /** @class */function (_super) {
     __extends(NetworkVis, _super);
     function NetworkVis() {
-        var _this_1 = _super !== null && _super.apply(this, arguments) || this;
+        var _this_1 = _super.call(this) || this;
         _this_1.visType = "network";
         _this_1.pointMode = "single";
         _this_1.time = 0;
         _this_1.frameLoop = false;
+        _this_1.helpData = [browser.i18n.getMessage("helpNetwork_1"), browser.i18n.getMessage("helpNetwork_2"), browser.i18n.getMessage("helpNetwork_3"), browser.i18n.getMessage("helpNetwork_4"), browser.i18n.getMessage("helpNetwork_5"), browser.i18n.getMessage("helpNetwork_6"), browser.i18n.getMessage("helpNetwork_7")];
         _this_1.handleResize = utils_1.debounce(function () {
             _this_1.resize(true);
         }, 200, true);
+        _this_1.asyncGetIxState();
         return _this_1;
     }
     NetworkVis.prototype.destroy = function () {
         this.destroyed = true;
         this.container.selectAll("#tooltip").remove();
-        this.app.destroy(true, true);
     };
     NetworkVis.prototype.zoom = function (_this) {
         this.container.selectAll("#tooltip").remove();
@@ -1850,9 +1851,9 @@ var NetworkVis = /** @class */function (_super) {
             };
             // the assigned cluster color should be in the center
             if (node[6][_this_1.clusterId].length > 0 && node[6][_this_1.clusterId][0] in _this_1.paintCluster[_this_1.clusterId].clusters) {
-                var sumSize_1 = assignLinks(node, node[6][_this_1.clusterId], 0);
+                var sumSize_1 = assignLinks(node, node[6][_this_1.clusterId][0], 0);
                 Object.keys(node[13][_this_1.clusterId]).forEach(function (clusterKey) {
-                    if (clusterKey !== node[6][_this_1.clusterId][0]) {
+                    if (parseInt(clusterKey, 10) !== node[6][_this_1.clusterId][0]) {
                         sumSize_1 = assignLinks(node, clusterKey, sumSize_1);
                     }
                 });
@@ -1863,8 +1864,11 @@ var NetworkVis = /** @class */function (_super) {
                 pointMultiSizes.push(node[10] * 4);
             }
         });
-        this.paintEdges = data.edges.filter(function (d) {
-            return d[3] < 2 ? true : false;
+        this.paintEdges = [];
+        data.edges.forEach(function (edge) {
+            if (edge[2] >= 2) {
+                _this_1.paintEdges.push([edge[0], edge[1]]);
+            }
         });
         this.resize(false);
         d3.select(window).on("resize", function () {
@@ -1901,6 +1905,7 @@ var NetworkVis = /** @class */function (_super) {
         this.visNav.append("line").attr("x1", -40);
         this.visNav.append("text").attr("transform", "translate(-44, 5)").attr("text-anchor", "end").html(browser.i18n.getMessage("visNetworkToggleOff"));
         this.visNav.on("click", function () {
+            _this_1.ixTooltipHide();
             if (_this_1.pointMode === "single") {
                 _this_1.pointMode = "cluster";
                 _this_1.visNav.classed("active", true);
@@ -1972,13 +1977,10 @@ var NetworkVis = /** @class */function (_super) {
                     srcRGB: "src alpha"
                 }
             },
-            count: this.paintEdges.length,
             depth: {
                 enable: false
             },
-            elements: this.paintEdges.map(function (edge) {
-                return [edge[0], edge[1]];
-            }),
+            elements: this.paintEdges,
             frag: "\n        precision mediump float;\n        uniform vec4 color;\n        void main() {\n          gl_FragColor = color;\n        }",
             lineWidth: 1,
             primitive: "line",
@@ -2033,6 +2035,12 @@ var NetworkVis = /** @class */function (_super) {
         }
     };
     NetworkVis.prototype.update = function (data) {
+        if (this.showIxTooltip) {
+            this.ixTooltip(this.width - 70, 105);
+        }
+        if (this.showIxMessage) {
+            this.ixMessage(browser.i18n.getMessage("visNetworkIntro"));
+        }
         this.container.select("#overview-regl-canvas").style("width", this.width + "px").style("height", this.height + "px");
         this.container.select("#overview-regl-canvas canvas").attr("width", this.width * 2).attr("height", this.height * 2).style("width", this.width + "px").style("height", this.height + "px");
         this.visNav.attr("transform", "translate(" + (this.width - 50) + ", 90)");
@@ -2086,7 +2094,7 @@ var vis_1 = __webpack_require__(/*! ./vis */ "../crossfoam-vis/dst/vis.js");
 var OverviewVis = /** @class */function (_super) {
     __extends(OverviewVis, _super);
     function OverviewVis() {
-        var _this_1 = _super !== null && _super.apply(this, arguments) || this;
+        var _this_1 = _super.call(this) || this;
         _this_1.visType = "overview";
         _this_1.glNodes = [];
         _this_1.clickNodes = [];
@@ -2099,6 +2107,7 @@ var OverviewVis = /** @class */function (_super) {
         _this_1.handleResize = utils_1.debounce(function () {
             _this_1.resize(true);
         }, 200, true);
+        _this_1.asyncGetIxState();
         return _this_1;
     }
     OverviewVis.prototype.destroyTooltip = function () {
@@ -2181,9 +2190,7 @@ var OverviewVis = /** @class */function (_super) {
             pointSizes.push(node[7] * 4);
         });
         var navigation = this.container.append("div").attr("id", "overview-navigation").append("svg");
-        this.navData = [
-        // TODO: move to dictionary
-        [data.nodes.length, "<strong>" + browser.i18n.getMessage("friends") + "</strong> " + ui_helpers_1.formatNumber(data.nodes.length, browser.i18n.getUILanguage())], [data.proxies.length, "<strong>" + browser.i18n.getMessage("sharedFiendsOfFriends") + "</strong> " + ui_helpers_1.formatNumber(data.proxies.length, browser.i18n.getUILanguage())], [tempLeafs.length, "<strong>" + browser.i18n.getMessage("otherFriends") + "</strong> " + ui_helpers_1.formatNumber(tempLeafs.length, browser.i18n.getUILanguage())]];
+        this.navData = [[data.nodes.length, "<strong>" + browser.i18n.getMessage("friends") + "</strong> " + ui_helpers_1.formatNumber(data.nodes.length, browser.i18n.getUILanguage())], [data.proxies.length, "<strong>" + browser.i18n.getMessage("sharedFiendsOfFriends") + "</strong> " + ui_helpers_1.formatNumber(data.proxies.length, browser.i18n.getUILanguage())], [tempLeafs.length, "<strong>" + browser.i18n.getMessage("otherFriends") + "</strong> " + ui_helpers_1.formatNumber(tempLeafs.length, browser.i18n.getUILanguage())]];
         this.navLine = navigation.append("line").attr("transform", "translate(110, 0)").attr("y1", this.navData[0][2]).style("stroke-width", 5).style("stroke", "white");
         this.navPoints = navigation.append("g").selectAll("g").data(this.navData).enter().append("g").attr("class", "overview-navigation-buttons");
         var navScale = d3.scaleLinear().range([10, 35]).domain(d3.extent(this.navData, function (d) {
@@ -2234,6 +2241,7 @@ var OverviewVis = /** @class */function (_super) {
             _this_1.lineInterpolation = d3.interpolate(_this_1.lineTarget, _this_1.navDist * i + d[3] + d[2] - 5);
             _this_1.time = 0;
             _this_1.update(false);
+            _this_1.ixTooltipHide();
         });
         this.regl = REGL(document.getElementById("overview-regl-canvas"));
         window.onbeforeunload = function () {
@@ -2304,6 +2312,12 @@ var OverviewVis = /** @class */function (_super) {
         this.navPoints.attr("transform", function (d, i) {
             return "translate(110, " + (_this_1.navDist * i + d[3] + d[2] + 5) + ")";
         });
+        if (this.showIxTooltip) {
+            this.ixTooltip(this.width - 50, this.height / 2 + this.navDist * 1.5);
+        }
+        if (this.showIxMessage) {
+            this.ixMessage(browser.i18n.getMessage("visOverviewIntro"));
+        }
         this.navLine.attr("y2", this.navDist * 2 + this.navData[this.navData.length - 1][3] + this.navData[this.navData.length - 1][2]);
         this.svg.attr("transform", "translate(" + this.width / 2 + "," + this.height / 2 + ") scale(" + this.scaleTarget + ")");
         this.container.select("#overview-regl-canvas").style("width", this.width + "px").style("height", this.height + "px");
@@ -2338,6 +2352,88 @@ exports.OverviewVis = OverviewVis;
 "use strict";
 
 
+var __awaiter = this && this.__awaiter || function (thisArg, _arguments, P, generator) {
+    function adopt(value) {
+        return value instanceof P ? value : new P(function (resolve) {
+            resolve(value);
+        });
+    }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) {
+            try {
+                step(generator.next(value));
+            } catch (e) {
+                reject(e);
+            }
+        }
+        function rejected(value) {
+            try {
+                step(generator["throw"](value));
+            } catch (e) {
+                reject(e);
+            }
+        }
+        function step(result) {
+            result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
+        }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = this && this.__generator || function (thisArg, body) {
+    var _ = { label: 0, sent: function () {
+            if (t[0] & 1) throw t[1];return t[1];
+        }, trys: [], ops: [] },
+        f,
+        y,
+        t,
+        g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function () {
+        return this;
+    }), g;
+    function verb(n) {
+        return function (v) {
+            return step([n, v]);
+        };
+    }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (_) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0:case 1:
+                    t = op;break;
+                case 4:
+                    _.label++;return { value: op[1], done: false };
+                case 5:
+                    _.label++;y = op[1];op = [0];continue;
+                case 7:
+                    op = _.ops.pop();_.trys.pop();continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) {
+                        _ = 0;continue;
+                    }
+                    if (op[0] === 3 && (!t || op[1] > t[0] && op[1] < t[3])) {
+                        _.label = op[1];break;
+                    }
+                    if (op[0] === 6 && _.label < t[1]) {
+                        _.label = t[1];t = op;break;
+                    }
+                    if (t && _.label < t[2]) {
+                        _.label = t[2];_.ops.push(op);break;
+                    }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop();continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) {
+            op = [6, e];y = 0;
+        } finally {
+            f = t = 0;
+        }
+        if (op[0] & 5) throw op[1];return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 var cfData = __webpack_require__(/*! @crossfoam/data */ "../crossfoam-vis/node_modules/@crossfoam/data/dst/index.js");
 var ui_helpers_1 = __webpack_require__(/*! @crossfoam/ui-helpers */ "../crossfoam-vis/node_modules/@crossfoam/ui-helpers/dst/index.js");
@@ -2347,10 +2443,6 @@ var Vis = /** @class */function () {
     function Vis() {
         var _this = this;
         this.visType = null;
-        this.app = null;
-        this.glContainer = null;
-        this.glContainerArcs = null;
-        this.glContainerLines = null;
         this.canvasTransform = {
             k: 1,
             x: 0,
@@ -2362,18 +2454,37 @@ var Vis = /** @class */function () {
         this.clusterId = 0;
         this.destroyed = false;
         this.helpData = [];
+        this.showIxTooltip = true;
+        this.showIxMessage = true;
+        this.asyncGetIxState = function () {
+            return __awaiter(_this, void 0, void 0, function () {
+                var r;
+                var _this = this;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            return [4 /*yield*/, cfData.get("ixTooltip--" + this.visType, "false").then(function (alreadyShown) {
+                                if (alreadyShown === "true") {
+                                    _this.showIxTooltip = false;
+                                    d3.selectAll("#ixTooltip").remove();
+                                }
+                                return cfData.get("ixMessage--" + _this.visType, "false");
+                            }).then(function (alreadyShown) {
+                                if (alreadyShown === "true") {
+                                    _this.showIxMessage = false;
+                                    d3.selectAll("#ixMessage").remove();
+                                }
+                                return "true";
+                            })];
+                        case 1:
+                            r = _a.sent();
+                            return [2 /*return*/, r];
+                    }
+                });
+            });
+        };
         this.container = d3.select("#visContainer");
         d3.select("#visHelp").on("click", function () {
-            // if (this.app || ("app" in this)) {
-            //   let image = this.app.renderer.plugins.extract.image(this.glContainer);
-            //   document.body.appendChild(image);
-            //   if (this.glContainerArcs !== null) {
-            //     image = this.app.renderer.plugins.extract.image(this.glContainerArcs);
-            //     document.body.appendChild(image);
-            //     image = this.app.renderer.plugins.extract.image(this.glContainerLines);
-            //     document.body.appendChild(image);
-            //   }
-            // }
             _this.help();
         });
         this.resize(false);
@@ -2419,14 +2530,25 @@ var Vis = /** @class */function () {
         });
         var linkImg = wrapper.append("svg").style("height", linkSize + 2 + "px").style("width", linkSize + 2 + "px");
         var contentHolder = wrapper.append("div").style("border-color", color).attr("id", "tooltip--contentHolder");
-        var url = "https://www.twitter.com/" + (Number.isInteger(parseInt(data[1], 10)) ? data[1] : "i/user/" + data[1]);
-        contentHolder.append("span").attr("class", "tooltip--skyLine").html(data[4] ? "Friend of a friend" : "Direct friend");
+        var url = "https://www.twitter.com/" + (Number.isInteger(parseInt(data[1], 10)) ? "i/user/" + data[1] : data[1]);
+        contentHolder.append("span").attr("class", "tooltip--skyLine").html(data[4] ? browser.i18n.getMessage("visTooltipFriendOfFriend") : browser.i18n.getMessage("visTooltipDirectFriend"));
         var link = contentHolder.append("div").attr("class", "tooltip--link").append("a").attr("href", url);
         link.append("span").append("img").on("error", function (d, i, a) {
             d3.select(a[i]).attr("src", "https://abs.twimg.com/sticky/default_profile_images/default_profile_normal.png");
-        }).attr("src", data[14]);
-        link.append("span").html(data[15] === null ? "Sorry, we have the real username of this person." : data[15]);
-        contentHolder.append("span").attr("class", "tooltip--bottomLine").html((data[3] !== 0 || data[2] !== 0 ? "Friends:" + ui_helpers_1.formatNumber(data[3], browser.i18n.getUILanguage()) + " | Followers:" + ui_helpers_1.formatNumber(data[2], browser.i18n.getUILanguage()) + " | " : "") + ("Connections:" + ui_helpers_1.formatNumber(data[5], browser.i18n.getUILanguage())));
+        }).attr("src", data.length < 15 ? data[10] : data[14]);
+        var name;
+        if (data.length < 15) {
+            name = data[11] === null ? browser.i18n.getMessage("nameNotAvailable") : data[11];
+        } else {
+            name = data[15] === null ? browser.i18n.getMessage("nameNotAvailable") : data[15];
+        }
+        link.append("span").html(name);
+        var bottomLine;
+        if (data[3] !== 0 || data[2] !== 0) {
+            bottomLine = browser.i18n.getMessage("friends") + ":" + ui_helpers_1.formatNumber(data[3], browser.i18n.getUILanguage()) + " |         " + browser.i18n.getMessage("followers") + ":" + ui_helpers_1.formatNumber(data[2], browser.i18n.getUILanguage()) + " | ";
+        }
+        bottomLine += browser.i18n.getMessage("connections") + ":" + ui_helpers_1.formatNumber(data[5], browser.i18n.getUILanguage());
+        contentHolder.append("span").attr("class", "tooltip--bottomLine").html(bottomLine);
         if (actionLinks && actionLinks.length > 0) {
             var actionLinkP_1 = contentHolder.append("p").attr("id", "tooltip--actionLinks");
             actionLinks.forEach(function (actionLink) {
@@ -2461,6 +2583,26 @@ var Vis = /** @class */function () {
             linkPath.y2 = -2;
         }
         linkImg.append("path").style("stroke", color).style("stroke-width", 2).attr("d", "M" + linkPath.x1 + "," + linkPath.y1 + "L" + linkPath.x2 + "," + linkPath.y2);
+    };
+    Vis.prototype.ixTooltip = function (x, y) {
+        this.container.selectAll("#ixTooltip").remove();
+        this.container.append("div").attr("id", "ixTooltip").style("left", x + "px").style("top", y + "px").append("img").attr("src", "../assets/images/vis--overview--interaction-pointer@2x.png");
+    };
+    Vis.prototype.ixTooltipHide = function () {
+        d3.selectAll("#ixTooltip").remove();
+        this.showIxTooltip = false;
+        cfData.set("ixTooltip--" + this.visType, "true");
+    };
+    Vis.prototype.ixMessage = function (text) {
+        var _this = this;
+        this.container.selectAll("#ixMessage").remove();
+        var message = this.container.append("div").attr("id", "ixMessage").html("<a><img src=\"../assets/images/vis--closeButton@2x.png\" /></a><br /><p>" + text + "</p>").on("click", function () {
+            d3.selectAll("#ixMessage").remove();
+            _this.showIxMessage = false;
+            cfData.set("ixMessage--" + _this.visType, "true");
+        });
+        var size = message.node().getBoundingClientRect();
+        message.style("top", this.height / 2 - size.height / 2 + "px");
     };
     Vis.prototype.help = function () {
         var _this = this;
@@ -2600,7 +2742,7 @@ var get = function (key, defaultValue) {
     return browser.storage.local.get(key)
         .then(function (data) {
         if (data && data !== null && data !== undefined && !utils_1.objEmpty(data)) {
-            if (key in data) {
+            if (typeof data === "object" && key in data) {
                 return data[key];
             }
             return data;
@@ -2618,7 +2760,7 @@ var set = function (key, value) {
     var _a;
     return browser.storage.local.set((_a = {}, _a[key] = value, _a))
         .then(function () {
-        if (key in value) {
+        if (typeof value === "object" && key in value) {
             return value[key];
         }
         return value;
@@ -42525,7 +42667,7 @@ var get = function (key, defaultValue) {
     return browser.storage.local.get(key)
         .then(function (data) {
         if (data && data !== null && data !== undefined && !utils_1.objEmpty(data)) {
-            if (key in data) {
+            if (typeof data === "object" && key in data) {
                 return data[key];
             }
             return data;
@@ -42543,7 +42685,7 @@ var set = function (key, value) {
     var _a;
     return browser.storage.local.set((_a = {}, _a[key] = value, _a))
         .then(function () {
-        if (key in value) {
+        if (typeof value === "object" && key in value) {
             return value[key];
         }
         return value;

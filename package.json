@@ -18,14 +18,14 @@
     "typescript": "^2.9.2",
     "web-ext": "^3.2.1",
     "web-ext-types": "git+https://6f1cdd33c7cd4e4487e3dee6b0636999c408d83d:x-oauth-basic@github.com/sebastian-meier/web-ext-types.git",
-    "webpack": "^4.42.0",
+    "webpack": "^4.42.1",
     "webpack-cli": "^3.3.11",
     "xhr2": "^0.1.4"
   },
   "dependencies": {
-    "@crossfoam/data": "^1.0.1",
+    "@crossfoam/data": "^1.0.2",
     "@crossfoam/export": "^1.0.2",
-    "@crossfoam/network": "^1.3.0",
+    "@crossfoam/network": "^1.3.2",
     "@crossfoam/queue": "^1.0.0",
     "@crossfoam/services": "file:../crossfoam-services",
     "@crossfoam/ui-helpers": "^1.0.3",

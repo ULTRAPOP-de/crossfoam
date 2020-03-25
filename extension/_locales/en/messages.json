@@ -41,6 +41,12 @@
   "servicesTwitterAuthAlert":{
     "message": "Please input a valid 7-digit Twitter-Auth-Pin."
   },
+  "visTooltipFriendOfFriend":{
+    "message": "Friend of a friend"
+  },
+  "visTooltipDirectFriend":{
+    "message": "Direct friend"
+  },
   "visMenuOverview":{
     "message": "Overview"
   },
@@ -74,8 +80,23 @@
   "visProxiesToggleOff":{
     "message": "Show links from proxies"
   },
+  "visOverviewIntro":{
+    "message": "A user's friends and their friends have the strongest impact on what they see in their timeline.<br />But who are those people?"
+  },
+  "visNetworkIntro":{
+    "message": "Strongly interconnected clusters can be an indicator for a very homogenous circle of friends. Explore by switching the links to other clusters on and off."
+  },
+  "nameNotAvailable":{
+    "message": "Sorry, we do not have the real username of this person."
+  },
   "friends":{
     "message": "Friends"
+  },
+  "followers":{
+    "message": "Follower"
+  },
+  "connections":{
+    "message": "Connections"
   },
   "otherFriends": {
     "message": "Other friends of friends"
@@ -272,7 +293,7 @@
     "message": "If more of your friends interact with a tweet, the more likely it is to be shown prominently in your timeline."
   },
   "helpOverview_5": {
-    "message": "In the middle of the visualisation we you see the user's direct friends. The bigger the circle is, the more connected this person is to the rest of your friends and, thereby, the more likely it is that their content shows up in the user's timeline."
+    "message": "In the middle of the visualisation you see the user's direct friends. The bigger the circle is, the more connected this person is to the rest of the other friends and, thereby, the more likely it is that their content shows up in the user's timeline."
   },
   "helpOverview_6": {
     "message": "The second area are the user's friends' friends who are not direct friends. The bigger their circle is, the more of the user's friends they know and, thereby the more likely it is that the user themselves will see content from them."
@@ -282,5 +303,26 @@
   },
   "helpOverview_8": {
     "message": "While this might seam obvious, it is important to remember, that the people we mark as friends, have a strong influence on what we see on our social media outlets and, thereby, influence our view on the world."
+  },
+  "helpNetwork_1": {
+    "message": "This is the network visualiation. Here we show you all the friends of the selected user and their connections."
+  },
+  "helpNetwork_2": {
+    "message": "In most cases, those connections will turn into a mess. This is also know as the 'hairball' effect."
+  },
+  "helpNetwork_3": {
+    "message": "If you want to explore the connections more in depth, please use the cluster view."
+  },
+  "helpNetwork_4": {
+    "message": "In this network view you can easily identify outliers, for example people who are not connected to anyone else."
+  },
+  "helpNetwork_5": {
+    "message": "You can identify how strong clusters are connected to one another and which people are particular central within or between clusters."
+  },
+  "helpNetwork_6": {
+    "message": "If it looks like everyone is connected to everyone else, then the overall network is likely to be very homogenous, which can likely result in similar opinions in this network."
+  },
+  "helpNetwork_7": {
+    "message": "While we assign a cluster to each user, this is not absoulte. Use the toggle in the upper right to see, if users are also connected to other clusters."
   }
 }

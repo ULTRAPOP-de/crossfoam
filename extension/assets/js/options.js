@@ -861,7 +861,7 @@ var get = function (key, defaultValue) {
     return browser.storage.local.get(key)
         .then(function (data) {
         if (data && data !== null && data !== undefined && !utils_1.objEmpty(data)) {
-            if (key in data) {
+            if (typeof data === "object" && key in data) {
                 return data[key];
             }
             return data;
@@ -879,7 +879,7 @@ var set = function (key, value) {
     var _a;
     return browser.storage.local.set((_a = {}, _a[key] = value, _a))
         .then(function () {
-        if (key in value) {
+        if (typeof value === "object" && key in value) {
             return value[key];
         }
         return value;
