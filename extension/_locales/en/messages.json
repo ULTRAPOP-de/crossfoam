@@ -62,6 +62,9 @@
   "visListLegend":{
     "message": "Connections within the bubble;Many;Few;Highlight bubble on service;or hide"
   },
+  "visLegendNumberOfConnections":{
+    "message": "Number of connections:"
+  },
   "visNetworkToggleOn":{
     "message": "Hide links into other clusters"
   },

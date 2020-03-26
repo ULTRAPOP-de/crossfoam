@@ -62,6 +62,9 @@
   "visListLegend":{
     "message": "Vernetzung innerhalb der Blase;Groß;Gering;Blase im Service anzeigen;oder ausblenden"
   },
+  "visLegendNumberOfConnections":{
+    "message": "Anzahl der Verbindungen:"
+  },
   "visNetworkToggleOn":{
     "message": "Verbindungen in andere Cluster ausblenden"
   },

@@ -1197,15 +1197,17 @@ var ClusterVis = /** @class */function (_super) {
             }
             clusterPos[cluster] = [radius * Math.cos(i * theta), radius * Math.sin(i * theta)];
             clusters.forEach(function (eCluster) {
-                var eCount = _this_1.paintCluster[_this_1.clusterId].clusters[cluster].edges[eCluster][0];
-                if (eCount > eMax) {
-                    eMax = eCount;
-                }
-                if (eCount < eMin) {
-                    eMin = eCount;
-                }
-                if (cluster !== eCluster && cluster < eCluster) {
-                    edgeList.push([cluster, eCluster, eCount]);
+                if (eCluster in _this_1.paintCluster[_this_1.clusterId].clusters[cluster].edges) {
+                    var eCount = _this_1.paintCluster[_this_1.clusterId].clusters[cluster].edges[eCluster][0];
+                    if (eCount > eMax) {
+                        eMax = eCount;
+                    }
+                    if (eCount < eMin) {
+                        eMin = eCount;
+                    }
+                    if (cluster !== eCluster && cluster < eCluster) {
+                        edgeList.push([cluster, eCluster, eCount]);
+                    }
                 }
             });
         });
@@ -1793,6 +1795,7 @@ var NetworkVis = /** @class */function (_super) {
     function NetworkVis() {
         var _this_1 = _super.call(this) || this;
         _this_1.visType = "network";
+        _this_1.showProxies = false;
         _this_1.pointMode = "single";
         _this_1.time = 0;
         _this_1.frameLoop = false;
@@ -1821,7 +1824,15 @@ var NetworkVis = /** @class */function (_super) {
         var pointMultiColors = [];
         var pointMultiPositions = [];
         var pointMultiSizes = [];
+        var pointSizeMax = 0;
+        var pointSizeMin = Number.MAX_VALUE;
         data.nodes.forEach(function (node) {
+            if (node[5] > pointSizeMax) {
+                pointSizeMax = node[5];
+            }
+            if (node[5] < pointSizeMin) {
+                pointSizeMin = node[5];
+            }
             var color = [85 / 255, 85 / 255, 85 / 255];
             if (node[6][_this_1.clusterId].length > 0 && node[6][_this_1.clusterId][0] in _this_1.paintCluster[_this_1.clusterId].clusters) {
                 var rgb = d3.color(_this_1.paintCluster[_this_1.clusterId].clusters[node[6][_this_1.clusterId]].color).rgb();
@@ -1850,13 +1861,19 @@ var NetworkVis = /** @class */function (_super) {
                 return size;
             };
             // the assigned cluster color should be in the center
-            if (node[6][_this_1.clusterId].length > 0 && node[6][_this_1.clusterId][0] in _this_1.paintCluster[_this_1.clusterId].clusters) {
+            if (node[6][_this_1.clusterId].length > 0 && node[6][_this_1.clusterId][0] in _this_1.paintCluster[_this_1.clusterId].clusters && node[13][_this_1.clusterId][node[6][_this_1.clusterId][0]][0] > 0) {
                 var sumSize_1 = assignLinks(node, node[6][_this_1.clusterId][0], 0);
                 Object.keys(node[13][_this_1.clusterId]).forEach(function (clusterKey) {
                     if (parseInt(clusterKey, 10) !== node[6][_this_1.clusterId][0]) {
                         sumSize_1 = assignLinks(node, clusterKey, sumSize_1);
                     }
                 });
+                // } else if (node[13][this.clusterId][node[6][this.clusterId][0]][0] === 0) {
+                // This is a node that is only connected to a cluster through proxies and has no direct nodes
+                // For now we handle this as an unconnected node
+                // pointMultiColors.push([85 / 255, 85 / 255, 85 / 255]);
+                // pointMultiPositions.push([node[11] + this.width / 2, node[12] + this.height / 2]);
+                // pointMultiSizes.push(node[10] * 4);
             } else {
                 // unclustered / unconnected nodes
                 pointMultiColors.push([85 / 255, 85 / 255, 85 / 255]);
@@ -1865,9 +1882,12 @@ var NetworkVis = /** @class */function (_super) {
             }
         });
         this.paintEdges = [];
+        this.paintProxyEdges = [];
         data.edges.forEach(function (edge) {
-            if (edge[2] >= 2) {
+            if (edge[2] >= 5) {
                 _this_1.paintEdges.push([edge[0], edge[1]]);
+            } else {
+                _this_1.paintProxyEdges.push([parseInt(edge[0], 10), parseInt(edge[1], 10)]);
             }
         });
         this.resize(false);
@@ -1917,6 +1937,21 @@ var NetworkVis = /** @class */function (_super) {
             }
             _this_1.glAnimate();
         });
+        this.proxyToggle = svg.append("g").attr("id", "cluster-vis-showProxies-toggle").on("click", function () {
+            if (_this_1.showProxies) {
+                proxyToggleG.select("text").html(browser.i18n.getMessage("visProxiesToggleOff"));
+            } else {
+                proxyToggleG.select("text").html(browser.i18n.getMessage("visProxiesToggleOn"));
+            }
+            _this_1.showProxies = !_this_1.showProxies;
+            _this_1.proxyToggle.classed("active", _this_1.showProxies);
+            _this_1.update(false);
+        });
+        var proxyToggleG = this.proxyToggle.append("g");
+        proxyToggleG.append("image").attr("class", "cluster-vis-showProxies-normal").attr("width", 51).attr("height", 33).attr("xlink:href", "../assets/images/vis--cluster--showProxies-normal@2x.png");
+        proxyToggleG.append("image").attr("class", "cluster-vis-showProxies-active").attr("width", 51).attr("height", 33).attr("xlink:href", "../assets/images/vis--cluster--showProxies-active@2x.png");
+        proxyToggleG.append("text").attr("text-anchor", "end").attr("transform", "translate(-4, 23)").html(browser.i18n.getMessage("visProxiesToggleOff"));
+        this.circleLegend(pointSizeMin, pointSizeMax);
         this.canvasTransform = d3.zoomIdentity;
         this.regl = REGL(document.getElementById("overview-regl-canvas"));
         window.onbeforeunload = function () {
@@ -1994,6 +2029,41 @@ var NetworkVis = /** @class */function (_super) {
             },
             vert: "\n        precision mediump float;\n        attribute vec2 position;\n        uniform float scale;\n        uniform float offsetX;\n        uniform float offsetY;\n        uniform float stageWidth;\n        uniform float stageHeight;\n        vec2 normalizeCoords(vec2 position) {\n          // read in the positions into x and y vars\n          float x = position[0] * scale + offsetX;\n          float y = position[1] * scale + offsetY;\n          return vec2(\n            2.0 * ((x / stageWidth) - 0.5),\n            // invert y to treat [0,0] as bottom left in pixel space\n            -(2.0 * ((y / stageHeight) - 0.5))\n          );\n        }\n        void main() {\n          gl_Position = vec4(normalizeCoords(position), 0.0, 1.0);\n        }"
         });
+        this.reglDrawProxyLine = this.regl({
+            attributes: {
+                position: pointPositions
+            },
+            blend: {
+                color: [0, 0, 0, 0],
+                enable: true,
+                equation: {
+                    alpha: "add",
+                    rgb: "add"
+                },
+                func: {
+                    dstAlpha: 1,
+                    dstRGB: "one minus src alpha",
+                    srcAlpha: 1,
+                    srcRGB: "src alpha"
+                }
+            },
+            depth: {
+                enable: false
+            },
+            elements: this.paintProxyEdges,
+            frag: "\n        precision mediump float;\n        uniform vec4 color;\n        void main() {\n          gl_FragColor = color;\n        }",
+            lineWidth: 1,
+            primitive: "line",
+            uniforms: {
+                color: [0, 0, 0, 0.5],
+                offsetX: this.regl.prop("offsetX"),
+                offsetY: this.regl.prop("offsetY"),
+                scale: this.regl.prop("scale"),
+                stageHeight: this.regl.prop("stageHeight"),
+                stageWidth: this.regl.prop("stageWidth")
+            },
+            vert: "\n        precision mediump float;\n        attribute vec2 position;\n        uniform float scale;\n        uniform float offsetX;\n        uniform float offsetY;\n        uniform float stageWidth;\n        uniform float stageHeight;\n        vec2 normalizeCoords(vec2 position) {\n          // read in the positions into x and y vars\n          float x = position[0] * scale + offsetX;\n          float y = position[1] * scale + offsetY;\n          return vec2(\n            2.0 * ((x / stageWidth) - 0.5),\n            // invert y to treat [0,0] as bottom left in pixel space\n            -(2.0 * ((y / stageHeight) - 0.5))\n          );\n        }\n        void main() {\n          gl_Position = vec4(normalizeCoords(position), 0.0, 1.0);\n        }"
+        });
         this.time = 1;
         this.update(false);
     };
@@ -2012,6 +2082,15 @@ var NetworkVis = /** @class */function (_super) {
                     stageHeight: _this_1.height,
                     stageWidth: _this_1.width
                 });
+                if (_this_1.showProxies) {
+                    _this_1.reglDrawProxyLine({
+                        offsetX: _this_1.canvasTransform.x,
+                        offsetY: _this_1.canvasTransform.y,
+                        scale: _this_1.canvasTransform.k,
+                        stageHeight: _this_1.height,
+                        stageWidth: _this_1.width
+                    });
+                }
                 if (_this_1.pointMode === "cluster") {
                     _this_1.reglDrawMultiPoint({
                         offsetX: _this_1.canvasTransform.x,
@@ -2043,7 +2122,8 @@ var NetworkVis = /** @class */function (_super) {
         }
         this.container.select("#overview-regl-canvas").style("width", this.width + "px").style("height", this.height + "px");
         this.container.select("#overview-regl-canvas canvas").attr("width", this.width * 2).attr("height", this.height * 2).style("width", this.width + "px").style("height", this.height + "px");
-        this.visNav.attr("transform", "translate(" + (this.width - 50) + ", 90)");
+        this.visNav.attr("transform", "translate(" + (this.width - 43) + ", 80)");
+        this.proxyToggle.attr("transform", "translate(" + (this.width - 73) + ", 117)");
         this.regl.poll();
         this.glAnimate();
     };
@@ -2179,6 +2259,8 @@ var OverviewVis = /** @class */function (_super) {
         var pointColors = [];
         var pointPositions = [];
         var pointSizes = [];
+        var pointSizeMin = Number.MAX_VALUE;
+        var pointSizeMax = 0;
         this.paintNodes.forEach(function (node) {
             var color = [85 / 255, 85 / 255, 85 / 255];
             if (node[6][_this_1.clusterId].length > 0 && node[6][_this_1.clusterId][0] in _this_1.paintCluster[_this_1.clusterId].clusters) {
@@ -2188,7 +2270,14 @@ var OverviewVis = /** @class */function (_super) {
             pointColors.push(color);
             pointPositions.push([node[8], node[9]]);
             pointSizes.push(node[7] * 4);
+            if (node[5] > pointSizeMax) {
+                pointSizeMax = node[5];
+            }
+            if (node[5] < pointSizeMin) {
+                pointSizeMin = node[5];
+            }
         });
+        // ------ VIS NAVIGATION
         var navigation = this.container.append("div").attr("id", "overview-navigation").append("svg");
         this.navData = [[data.nodes.length, "<strong>" + browser.i18n.getMessage("friends") + "</strong> " + ui_helpers_1.formatNumber(data.nodes.length, browser.i18n.getUILanguage())], [data.proxies.length, "<strong>" + browser.i18n.getMessage("sharedFiendsOfFriends") + "</strong> " + ui_helpers_1.formatNumber(data.proxies.length, browser.i18n.getUILanguage())], [tempLeafs.length, "<strong>" + browser.i18n.getMessage("otherFriends") + "</strong> " + ui_helpers_1.formatNumber(tempLeafs.length, browser.i18n.getUILanguage())]];
         this.navLine = navigation.append("line").attr("transform", "translate(110, 0)").attr("y1", this.navData[0][2]).style("stroke-width", 5).style("stroke", "white");
@@ -2243,6 +2332,8 @@ var OverviewVis = /** @class */function (_super) {
             _this_1.update(false);
             _this_1.ixTooltipHide();
         });
+        this.circleLegend(pointSizeMin, pointSizeMax);
+        // ------ WebGL Object Initialization (REGL)
         this.regl = REGL(document.getElementById("overview-regl-canvas"));
         window.onbeforeunload = function () {
             _this_1.regl.destroy();
@@ -2603,6 +2694,29 @@ var Vis = /** @class */function () {
         });
         var size = message.node().getBoundingClientRect();
         message.style("top", this.height / 2 - size.height / 2 + "px");
+    };
+    Vis.prototype.circleLegend = function (min, max) {
+        // ------ LEGEND
+        var _this = this;
+        var legendWidth = 500;
+        var legend = this.container.append("div").attr("id", "circle-legend").append("svg").attr("width", legendWidth).attr("height", 50);
+        // --- Cluster-Colors
+        var colorLegend = legend.append("g");
+        var colorLegendOffset = 10;
+        Object.keys(this.paintCluster[this.clusterId].clusters).forEach(function (clusterKey) {
+            var clusterLegend = _this.paintCluster[_this.clusterId].clusters[clusterKey];
+            var colorLegendItem = colorLegend.append("g").attr("transform", "translate(" + (legendWidth - colorLegendOffset) + ", 45)");
+            colorLegendItem.append("circle").attr("r", 5).style("stroke", "#ffffff").style("fill", clusterLegend.color);
+            colorLegendOffset += 22 + colorLegendItem.append("text").attr("text-anchor", "end").attr("dx", -8).attr("dy", 4).text(clusterLegend.name).node().getBBox().width;
+        });
+        // --- Circle-Sizes
+        var circleLegend = legend.append("g").attr("transform", "translate(" + legendWidth + ",21)");
+        var circleLegendOffset = 5;
+        circleLegendOffset += 3 + circleLegend.append("text").attr("transform", "translate(-" + circleLegendOffset + ",0)").attr("class", "normal").attr("text-anchor", "end").text(max).node().getBBox().width;
+        circleLegend.append("image").attr("transform", "translate(-" + (circleLegendOffset + 40) + ",-13.5)").attr("width", 40).attr("height", 21).attr("xlink:href", "../assets/images/vis--legend--overview--circle@2x.png");
+        circleLegendOffset += 43;
+        circleLegendOffset += 3 + circleLegend.append("text").attr("transform", "translate(-" + circleLegendOffset + ",0)").attr("class", "normal").attr("text-anchor", "end").text(min).node().getBBox().width;
+        circleLegend.append("text").attr("text-anchor", "end").attr("transform", "translate(-" + circleLegendOffset + ",0)").text(browser.i18n.getMessage("visLegendNumberOfConnections"));
     };
     Vis.prototype.help = function () {
         var _this = this;

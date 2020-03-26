@@ -623,6 +623,29 @@ circle.overview-navigation-indicator {
   .overview-navigation-buttons.active line {
     stroke: #338498; }
 
+#visContainer.network #circle-legend,
+#visContainer.overview #circle-legend {
+  position: absolute;
+  z-index: 4;
+  bottom: 30px;
+  right: 15px;
+  pointer-events: none;
+  font-size: 10px; }
+  #visContainer.network #circle-legend text,
+  #visContainer.overview #circle-legend text {
+    font-weight: bold;
+    text-shadow: 2px  2px 2px white, 2px -2px 2px white, -2px  2px 2px white, -2px -2px 2px white; }
+    #visContainer.network #circle-legend text.normal,
+    #visContainer.overview #circle-legend text.normal {
+      font-weight: normal; }
+  #visContainer.network #circle-legend svg,
+  #visContainer.overview #circle-legend svg {
+    width: 500px;
+    height: 50px;
+    position: relative;
+    top: auto;
+    left: auto; }
+
 /* ----- NETWORK VIS ----- */
 circle.network-nav-circle {
   stroke: none; }
