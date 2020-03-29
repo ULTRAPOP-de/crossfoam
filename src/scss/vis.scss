@@ -377,7 +377,11 @@ circle.overview-navigation-indicator{
   }
 }
 
+#visContainer.network #line-legend,
+#visContainer.cluster #line-legend,
+#visContainer.overview #line-legend,
 #visContainer.network #circle-legend,
+#visContainer.cluster #circle-legend,
 #visContainer.overview #circle-legend{
   position:absolute;
   z-index: 4;
@@ -403,6 +407,13 @@ circle.overview-navigation-indicator{
     left: auto;
   }
 }
+
+#visContainer.network #line-legend,
+#visContainer.cluster #line-legend,
+#visContainer.overview #line-legend{
+  bottom: 55px;
+}
+
 
 /* ----- NETWORK VIS ----- */
 
@@ -432,6 +443,18 @@ circle.network-nav-circle{
 }
 
 /* ----- CLUSTER VIS ----- */
+
+.cluster-vis-entry{
+  cursor: pointer;
+  circle{
+    stroke: none;
+  }
+  &:hover{
+    circle{
+      stroke:black;
+    }
+  }
+}
 
 #cluster-vis-showEdges-toggle,
 #cluster-vis-showProxies-toggle{

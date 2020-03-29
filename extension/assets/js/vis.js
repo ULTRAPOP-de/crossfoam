@@ -1089,6 +1089,7 @@ var ClusterVis = /** @class */function (_super) {
             userLinks: [],
             userProxyLinks: []
         };
+        _this_1.simulation = null;
         _this_1.helpData = [];
         return _this_1;
     }
@@ -1107,6 +1108,19 @@ var ClusterVis = /** @class */function (_super) {
         }
         return false;
     };
+    ClusterVis.prototype.updateView = function () {
+        if (!("subView" in this.stateManager.urlState)) {
+            this.stateManager.urlState.subView = "level0";
+            this.stateManager.urlState.subViewId = 0;
+            this.stateManager.update();
+        } else if (this.stateManager.urlState.subView === "level0") {
+            this.buildLevel0();
+        } else if (this.stateManager.urlState.subView === "level1") {
+            this.buildLevel1(parseInt(this.stateManager.urlState.subViewId, 10));
+        } else if (this.stateManager.urlState.subView === "level2") {
+            this.buildLevel2(parseInt(this.stateManager.urlState.subViewId, 10));
+        }
+    };
     ClusterVis.prototype.build = function (data, centralNode) {
         var _this_1 = this;
         this.paintCluster = data.cluster;
@@ -1123,16 +1137,10 @@ var ClusterVis = /** @class */function (_super) {
         defs.append("clipPath").attr("id", "userClip").append("circle").attr("cx", this.imageSize / 2).attr("cy", this.imageSize / 2).attr("r", (this.imageSize - 4) / 2).style("fill", "black");
         this.svg = this.outerSvg.append("g");
         this.edgeToggle = this.outerSvg.append("g").attr("id", "cluster-vis-showEdges-toggle").on("click", function () {
-            if (_this_1.showEdges) {
-                edgeToggleG.select("text").html(browser.i18n.getMessage("visClusterToggleOff"));
-            } else {
-                edgeToggleG.select("text").html(browser.i18n.getMessage("visClusterToggleOn"));
-            }
             _this_1.showEdges = !_this_1.showEdges;
             if (_this_1.showEdges) {
                 _this_1.showUserEdges = false;
             }
-            _this_1.edgeToggle.classed("active", _this_1.showEdges);
             _this_1.paint();
         });
         var edgeToggleG = this.edgeToggle.append("g");
@@ -1140,13 +1148,10 @@ var ClusterVis = /** @class */function (_super) {
         edgeToggleG.append("image").attr("class", "cluster-vis-showEdges-active").attr("width", 51).attr("height", 33).attr("xlink:href", "../assets/images/vis--cluster--showEdges-active@2x.png");
         edgeToggleG.append("text").attr("text-anchor", "end").attr("transform", "translate(-4, 20)").html(browser.i18n.getMessage("visClusterToggleOff"));
         this.proxyToggle = this.outerSvg.append("g").attr("id", "cluster-vis-showProxies-toggle").on("click", function () {
-            if (_this_1.showProxies) {
-                proxyToggleG.select("text").html(browser.i18n.getMessage("visProxiesToggleOff"));
-            } else {
-                proxyToggleG.select("text").html(browser.i18n.getMessage("visProxiesToggleOn"));
-            }
             _this_1.showProxies = !_this_1.showProxies;
-            _this_1.proxyToggle.classed("active", _this_1.showProxies);
+            if (_this_1.showProxies) {
+                _this_1.showEdges = true;
+            }
             _this_1.paint();
         });
         var proxyToggleG = this.proxyToggle.append("g");
@@ -1154,13 +1159,14 @@ var ClusterVis = /** @class */function (_super) {
         proxyToggleG.append("image").attr("class", "cluster-vis-showProxies-active").attr("width", 51).attr("height", 33).attr("xlink:href", "../assets/images/vis--cluster--showProxies-active@2x.png");
         proxyToggleG.append("text").attr("text-anchor", "end").attr("transform", "translate(-4, 23)").html(browser.i18n.getMessage("visProxiesToggleOff"));
         this.resize(true);
-        this.buildLevel0();
+        this.updateView();
     };
     ClusterVis.prototype.buildLevel0 = function () {
         var _this_1 = this;
-        this.svg.selectAll("*").remove();
-        this.edgeToggle.classed("invisible", true);
-        this.proxyToggle.classed("invisible", true);
+        this.resetCluster();
+        this.showEdges = true;
+        this.showProxies = false;
+        this.level = 0;
         this.outerSvg.on("click", null);
         // generate first level data
         var clusterCounts = {};
@@ -1185,8 +1191,10 @@ var ClusterVis = /** @class */function (_super) {
         var max = 0;
         var min = Number.MAX_VALUE;
         // get min and max number of edges between cluster
-        var eMax = 0;
-        var eMin = Number.MAX_VALUE;
+        this.eMax = 0;
+        this.eMin = Number.MAX_VALUE;
+        this.ePMax = 0;
+        this.ePMin = Number.MAX_VALUE;
         var edgeList = [];
         clusters.forEach(function (cluster, i) {
             if (clusterCounts[cluster] > max) {
@@ -1197,22 +1205,28 @@ var ClusterVis = /** @class */function (_super) {
             }
             clusterPos[cluster] = [radius * Math.cos(i * theta), radius * Math.sin(i * theta)];
             clusters.forEach(function (eCluster) {
-                if (eCluster in _this_1.paintCluster[_this_1.clusterId].clusters[cluster].edges) {
+                if (eCluster in _this_1.paintCluster[_this_1.clusterId].clusters[cluster].edges && cluster !== eCluster && cluster < eCluster) {
                     var eCount = _this_1.paintCluster[_this_1.clusterId].clusters[cluster].edges[eCluster][0];
-                    if (eCount > eMax) {
-                        eMax = eCount;
+                    if (eCount > _this_1.eMax) {
+                        _this_1.eMax = eCount;
                     }
-                    if (eCount < eMin) {
-                        eMin = eCount;
+                    if (eCount < _this_1.eMin) {
+                        _this_1.eMin = eCount;
                     }
-                    if (cluster !== eCluster && cluster < eCluster) {
-                        edgeList.push([cluster, eCluster, eCount]);
+                    var ePCount = _this_1.paintCluster[_this_1.clusterId].clusters[cluster].edges[eCluster][1] + eCount;
+                    if (ePCount > _this_1.ePMax) {
+                        _this_1.ePMax = ePCount;
                     }
+                    if (ePCount < _this_1.ePMin) {
+                        _this_1.ePMin = ePCount;
+                    }
+                    edgeList.push([cluster, eCluster, eCount, ePCount]);
                 }
             });
         });
-        var clusterScale = d3.scaleLinear().domain([min, max]).range([20, 40]);
-        var edgeScale = d3.scaleLinear().domain([eMin, eMax]).range([1, 20]);
+        var clusterScale = d3.scaleLinear().domain([1, max]).range([5, 40]);
+        this.edgeScale = d3.scaleLinear().domain([0, this.eMax]).range([0, 20]);
+        this.edgeProxyScale = d3.scaleLinear().domain([0, this.ePMax]).range([0, 20]);
         // draw edges
         centerGroup.selectAll("line").data(edgeList).enter().append("line").attr("x1", function (d) {
             return clusterPos[d[0]][0];
@@ -1222,53 +1236,45 @@ var ClusterVis = /** @class */function (_super) {
             return clusterPos[d[0]][1];
         }).attr("y2", function (d) {
             return clusterPos[d[1]][1];
-        }).style("stroke", "rgba(0,0,0,0.3)").style("stroke-width", function (d) {
-            return edgeScale(d[2]);
-        });
+        }).style("stroke", "rgba(0,0,0,0.3)");
         // draw cluster circles
-        var clusterGroups = centerGroup.selectAll("g").data(clusters).enter().append("g").attr("transform", function (d) {
+        var clusterGroups = centerGroup.selectAll("g").data(clusters).enter().append("g").attr("class", "cluster-vis-entry").attr("transform", function (d) {
             return "translate(" + clusterPos[d].join(",") + ")";
         });
         clusterGroups.append("circle").style("fill", function (d) {
             return _this_1.paintCluster[_this_1.clusterId].clusters[d].color;
-        }).style("stroke", "none").attr("r", function (d) {
+        }).attr("r", function (d) {
             return clusterScale(clusterCounts[d]);
         });
-        clusterGroups.append("text").attr("transform", function (d) {
+        var clusterText = clusterGroups.append("text").attr("transform", function (d) {
             return "translate(0," + (clusterScale(clusterCounts[d]) + 15) + ")";
-        }).attr("text-anchor", "middle").text(function (d) {
+        });
+        clusterText.append("tspan").attr("x", 0).attr("text-anchor", "middle").style("font-weight", "bold").text(function (d) {
             return _this_1.paintCluster[_this_1.clusterId].clusters[d].name;
         });
-        clusterGroups.on("click", function (d) {
-            _this_1.buildLevel1(d);
+        clusterText.append("tspan").attr("x", 0).attr("dy", 15).attr("text-anchor", "middle").text(function (d) {
+            return "(" + clusterCounts[d] + ")";
         });
-        // Create the legend
-        // TODO: Move legend to lower right
-        var legendWidth = clusterScale(max) * 2;
-        var legend = this.svg.append("g").attr("transform", "translate(20,20)");
-        var legendY = 20;
-        legend.append("text").text("Number of connections:").attr("transform", "translate(0,0)");
-        legend.append("line").style("stroke", "black").style("stroke-width", edgeScale(eMin)).attr("x1", 0).attr("x2", legendWidth).attr("y1", legendY).attr("y2", legendY);
-        legend.append("text").attr("dy", 5).style("font-size", 10).text(eMin).attr("transform", "translate(" + (legendWidth + 5) + ", " + legendY + ")");
-        legendY += 20;
-        legend.append("line").style("stroke", "black").style("stroke-width", edgeScale(eMax)).attr("x1", 0).attr("x2", legendWidth).attr("y1", legendY).attr("y2", legendY);
-        legend.append("text").text(eMax).attr("dy", 5).style("font-size", 10).attr("transform", "translate(" + (legendWidth + 5) + ", " + legendY + ")");
-        legendY += 40;
-        legend.append("text").text("Number of Users:").attr("transform", "translate(0," + legendY + ")");
-        legend.append("circle").attr("transform", "translate(0," + legendY + ")").style("fill", "black").attr("r", clusterScale(min)).attr("cx", legendWidth / 2).attr("cy", legendWidth / 2);
-        legend.append("text").attr("dy", legendWidth / 2 + 5).style("font-size", 10).text(min).attr("transform", "translate(" + (legendWidth + 5) + ", " + legendY + ")");
-        legendY += 25 + clusterScale(min) * 2;
-        legend.append("circle").attr("transform", "translate(0," + legendY + ")").style("fill", "black").attr("r", clusterScale(max)).attr("cx", legendWidth / 2).attr("cy", legendWidth / 2);
-        legend.append("text").text(max).attr("dy", legendWidth / 2 + 5).style("font-size", 10).attr("transform", "translate(" + (legendWidth + 5) + ", " + legendY + ")");
+        clusterGroups.on("click", function (d) {
+            _this_1.setSubView("level1", d);
+        });
+        this.circleLegend(min, max, browser.i18n.getMessage("visLegendNumberOfUsers"));
+        this.paint();
+    };
+    ClusterVis.prototype.setSubView = function (subView, subViewId) {
+        this.stateManager.urlState.subView = subView;
+        this.stateManager.urlState.subViewId = subViewId;
+        this.stateManager.update();
     };
     ClusterVis.prototype.resetCluster = function () {
         this.svg.selectAll("*").remove();
-        this.edgeToggle.classed("invisible", false);
         this.edgeToggle.classed("active", false);
         this.showEdges = false;
-        this.proxyToggle.classed("invisible", false);
         this.proxyToggle.classed("active", false);
         this.showProxies = false;
+        if (this.simulation !== null) {
+            this.simulation.stop();
+        }
         this.outerSvg.call(this.zoomObj.transform, d3.zoomIdentity);
         this.graph = {
             links: [],
@@ -1308,7 +1314,7 @@ var ClusterVis = /** @class */function (_super) {
                     _this_1.tooltip(hit_1, hit_1.x * _this_1.canvasTransform.k + _this_1.canvasTransform.x, hit_1.y * _this_1.canvasTransform.k + _this_1.canvasTransform.y, color, [{
                         callback: function (d) {
                             _this_1.container.selectAll("#tooltip").remove();
-                            _this_1.buildLevel2(d);
+                            _this_1.setSubView("level2", d[0]);
                         },
                         label: "Show connections to this user &raquo;"
                     }]);
@@ -1346,6 +1352,8 @@ var ClusterVis = /** @class */function (_super) {
         this.resetCluster();
         this.setupClick();
         this.level = 1;
+        var min = Number.MAX_VALUE;
+        var max = 0;
         var clusterMap = {};
         var emptyCluster = 0;
         var clusters = Object.keys(this.paintCluster[this.clusterId].clusters);
@@ -1362,6 +1370,12 @@ var ClusterVis = /** @class */function (_super) {
         radius = radius / 2 - 70;
         this.paintNodes.forEach(function (node) {
             if (node[6][_this_1.clusterId][0].toString() === detailId.toString()) {
+                if (node[13][_this_1.clusterId][detailId][0] > max) {
+                    max = node[13][_this_1.clusterId][detailId][0];
+                }
+                if (node[13][_this_1.clusterId][detailId][0] < min) {
+                    min = node[13][_this_1.clusterId][detailId][0];
+                }
                 if (node[14] !== undefined && node[14] !== null) {
                     var img = document.createElement("img");
                     img.onerror = function (event) {
@@ -1454,14 +1468,16 @@ var ClusterVis = /** @class */function (_super) {
             }
             return _this_1.graph.nodes.length;
         });
+        this.circleLegend(min, max, browser.i18n.getMessage("visLegendNumberOfConnections"));
     };
-    ClusterVis.prototype.buildLevel2 = function (data) {
+    ClusterVis.prototype.buildLevel2 = function (detailId) {
         var _this_1 = this;
         this.resetCluster();
         this.setupClick();
         this.level = 2;
+        var max = 0;
         this.paintEdges.forEach(function (edge) {
-            if (edge[0] === data[0] || edge[1] === data[0]) {
+            if (edge[0] === detailId || edge[1] === detailId) {
                 [edge[0], edge[1]].forEach(function (nodeId) {
                     if (!(nodeId in _this_1.graph.nodeMap)) {
                         if (_this_1.paintNodes[nodeId][14] !== undefined && _this_1.paintNodes[nodeId][14] !== null) {
@@ -1480,7 +1496,7 @@ var ClusterVis = /** @class */function (_super) {
                         }
                         _this_1.paintNodes[nodeId].rUserCount = 0;
                         _this_1.paintNodes[nodeId].isCentral = false;
-                        if (nodeId === data[0]) {
+                        if (nodeId === detailId) {
                             _this_1.paintNodes[nodeId].isCentral = true;
                         }
                         _this_1.graph.nodes.push(_this_1.paintNodes[nodeId]);
@@ -1498,6 +1514,9 @@ var ClusterVis = /** @class */function (_super) {
                     });
                     [edge[0], edge[1]].forEach(function (nodeId) {
                         _this_1.graph.nodes[_this_1.graph.nodeMap[nodeId]].rUserCount += 1;
+                        if (_this_1.graph.nodes[_this_1.graph.nodeMap[nodeId]].rUserCount > max) {
+                            max = _this_1.graph.nodes[_this_1.graph.nodeMap[nodeId]].rUserCount;
+                        }
                     });
                 } else {
                     _this_1.graph.proxieLinks.push({
@@ -1510,13 +1529,45 @@ var ClusterVis = /** @class */function (_super) {
         this.setupSimulation(function (d) {
             return d.rUserCount;
         });
+        this.circleLegend(d3.min(this.graph.nodes, function (d) {
+            return d.rUserCount;
+        }), max, browser.i18n.getMessage("visLegendNumberOfConnections"));
     };
     // TODO: Add debouncer
     ClusterVis.prototype.paint = function () {
         var _this_1 = this;
-        if (this.level >= 1) {
+        this.ctx.clearRect(0, 0, this.width * 2, this.height * 2);
+        if (this.showProxies) {
+            this.proxyToggle.select("text").html(browser.i18n.getMessage("visProxiesToggleOn"));
+        } else {
+            this.proxyToggle.select("text").html(browser.i18n.getMessage("visProxiesToggleOff"));
+        }
+        this.proxyToggle.classed("active", this.showProxies);
+        if (this.showEdges) {
+            this.edgeToggle.select("text").html(browser.i18n.getMessage("visClusterToggleOn"));
+        } else {
+            this.edgeToggle.select("text").html(browser.i18n.getMessage("visClusterToggleOff"));
+        }
+        this.edgeToggle.classed("active", this.showEdges);
+        if (this.level === 0) {
+            if (!this.showEdges) {
+                this.svg.selectAll(".centerGroup line").style("opacity", 0);
+            } else {
+                if (!this.showProxies) {
+                    this.lineLegend(this.eMin, this.eMax);
+                } else {
+                    this.lineLegend(this.ePMin, this.ePMax);
+                }
+                this.svg.selectAll(".centerGroup line").style("opacity", 1).style("stroke-width", function (d) {
+                    if (!_this_1.showProxies) {
+                        return _this_1.edgeScale(d[2]);
+                    } else {
+                        return _this_1.edgeProxyScale(d[3]);
+                    }
+                });
+            }
+        } else if (this.level >= 1) {
             this.ctx.save();
-            this.ctx.clearRect(0, 0, this.width * 2, this.height * 2);
             this.ctx.translate(this.canvasTransform.x * 2, this.canvasTransform.y * 2);
             this.ctx.scale(this.canvasTransform.k, this.canvasTransform.k);
             this.ctx.strokeStyle = "rgba(0,0,0,0.2)";
@@ -1589,7 +1640,7 @@ var ClusterVis = /** @class */function (_super) {
     };
     // TODO: Move to utils
     ClusterVis.prototype.circlePath = function (x, y, r, direction) {
-        return "M" + x + "," + y + "      m" + -r + ", 0      a" + r + "," + r + " 0 " + (direction ? "0" : "1") + "," + (direction ? "1" : "0") + " " + r * 2 + ",0      a" + r + "," + r + " 0 " + (direction ? "0" : "1") + "," + (direction ? "1" : "0") + " " + -r * 2 + ",0Z";
+        return "M" + x + "," + y + "       m" + -r + ", 0       a" + r + "," + r + " 0 " + (direction ? "0" : "1") + "," + (direction ? "1" : "0") + " " + r * 2 + ",0       a" + r + "," + r + " 0 " + (direction ? "0" : "1") + "," + (direction ? "1" : "0") + " " + -r * 2 + ",0Z";
     };
     ClusterVis.prototype.positionLink = function (d, draw) {
         if (draw === void 0) {
@@ -1792,8 +1843,8 @@ var REGL = __webpack_require__(/*! regl */ "../crossfoam-vis/node_modules/regl/d
 var vis_1 = __webpack_require__(/*! ./vis */ "../crossfoam-vis/dst/vis.js");
 var NetworkVis = /** @class */function (_super) {
     __extends(NetworkVis, _super);
-    function NetworkVis() {
-        var _this_1 = _super.call(this) || this;
+    function NetworkVis(stateManager) {
+        var _this_1 = _super.call(this, stateManager) || this;
         _this_1.visType = "network";
         _this_1.showProxies = false;
         _this_1.pointMode = "single";
@@ -1887,6 +1938,7 @@ var NetworkVis = /** @class */function (_super) {
             if (edge[2] >= 5) {
                 _this_1.paintEdges.push([edge[0], edge[1]]);
             } else {
+                // fix for old data sets, new ones are already integers
                 _this_1.paintProxyEdges.push([parseInt(edge[0], 10), parseInt(edge[1], 10)]);
             }
         });
@@ -2173,8 +2225,8 @@ var REGL = __webpack_require__(/*! regl */ "../crossfoam-vis/node_modules/regl/d
 var vis_1 = __webpack_require__(/*! ./vis */ "../crossfoam-vis/dst/vis.js");
 var OverviewVis = /** @class */function (_super) {
     __extends(OverviewVis, _super);
-    function OverviewVis() {
-        var _this_1 = _super.call(this) || this;
+    function OverviewVis(stateManager) {
+        var _this_1 = _super.call(this, stateManager) || this;
         _this_1.visType = "overview";
         _this_1.glNodes = [];
         _this_1.clickNodes = [];
@@ -2531,7 +2583,7 @@ var ui_helpers_1 = __webpack_require__(/*! @crossfoam/ui-helpers */ "../crossfoa
 var utils_1 = __webpack_require__(/*! @crossfoam/utils */ "../crossfoam-vis/node_modules/@crossfoam/utils/dst/index.js");
 var d3 = __webpack_require__(/*! d3 */ "../crossfoam-vis/node_modules/d3/index.js");
 var Vis = /** @class */function () {
-    function Vis() {
+    function Vis(stateManager) {
         var _this = this;
         this.visType = null;
         this.canvasTransform = {
@@ -2574,6 +2626,7 @@ var Vis = /** @class */function () {
                 });
             });
         };
+        this.stateManager = stateManager;
         this.container = d3.select("#visContainer");
         d3.select("#visHelp").on("click", function () {
             _this.help();
@@ -2602,6 +2655,9 @@ var Vis = /** @class */function () {
     };
     Vis.prototype.update = function (data) {
         // destroy function
+    };
+    Vis.prototype.updateView = function () {
+        // called by the state manager
     };
     Vis.prototype.tooltip = function (data, _x, _y, color, actionLinks) {
         var _this = this;
@@ -2695,9 +2751,24 @@ var Vis = /** @class */function () {
         var size = message.node().getBoundingClientRect();
         message.style("top", this.height / 2 - size.height / 2 + "px");
     };
-    Vis.prototype.circleLegend = function (min, max) {
+    Vis.prototype.lineLegend = function (min, max) {
+        // ------ LEGEND
+        d3.selectAll("#line-legend").remove();
+        var legendWidth = 500;
+        var legend = this.container.append("div").attr("id", "line-legend").append("svg").attr("width", legendWidth).attr("height", 25);
+        // --- Circle-Sizes
+        var lineLegend = legend.append("g").attr("transform", "translate(" + legendWidth + ",21)");
+        var lineLegendOffset = 5;
+        lineLegendOffset += 3 + lineLegend.append("text").attr("transform", "translate(-" + lineLegendOffset + ",0)").attr("class", "normal").attr("text-anchor", "end").text(max).node().getBBox().width;
+        lineLegend.append("image").attr("transform", "translate(-" + (lineLegendOffset + 40) + ",-13.5)").attr("width", 40).attr("height", 21).attr("xlink:href", "../assets/images/vis--legend--overview--line@2x.png");
+        lineLegendOffset += 43;
+        lineLegendOffset += 3 + lineLegend.append("text").attr("transform", "translate(-" + lineLegendOffset + ",0)").attr("class", "normal").attr("text-anchor", "end").text(min).node().getBBox().width;
+        lineLegend.append("text").attr("text-anchor", "end").attr("transform", "translate(-" + lineLegendOffset + ",0)").text(browser.i18n.getMessage("visLegendNumberOfConnections"));
+    };
+    Vis.prototype.circleLegend = function (min, max, altText) {
         // ------ LEGEND
         var _this = this;
+        d3.selectAll("#circle-legend").remove();
         var legendWidth = 500;
         var legend = this.container.append("div").attr("id", "circle-legend").append("svg").attr("width", legendWidth).attr("height", 50);
         // --- Cluster-Colors
@@ -2716,7 +2787,11 @@ var Vis = /** @class */function () {
         circleLegend.append("image").attr("transform", "translate(-" + (circleLegendOffset + 40) + ",-13.5)").attr("width", 40).attr("height", 21).attr("xlink:href", "../assets/images/vis--legend--overview--circle@2x.png");
         circleLegendOffset += 43;
         circleLegendOffset += 3 + circleLegend.append("text").attr("transform", "translate(-" + circleLegendOffset + ",0)").attr("class", "normal").attr("text-anchor", "end").text(min).node().getBBox().width;
-        circleLegend.append("text").attr("text-anchor", "end").attr("transform", "translate(-" + circleLegendOffset + ",0)").text(browser.i18n.getMessage("visLegendNumberOfConnections"));
+        var labelNumOfConnections = browser.i18n.getMessage("visLegendNumberOfConnections");
+        if (altText && altText !== null) {
+            labelNumOfConnections = altText;
+        }
+        circleLegend.append("text").attr("text-anchor", "end").attr("transform", "translate(-" + circleLegendOffset + ",0)").text(labelNumOfConnections);
     };
     Vis.prototype.help = function () {
         var _this = this;
@@ -72874,53 +72949,61 @@ __webpack_require__.r(__webpack_exports__);
 // Master nav and extension version
 Object(_nav__WEBPACK_IMPORTED_MODULE_6__["setupNav"])();
 Object(_nav__WEBPACK_IMPORTED_MODULE_6__["setupVersion"])();
-var updateView = function () {
+var destroyVis = function () {
     if (cache.vis !== null) {
         cache.vis.destroy();
         cache.vis = null;
     }
+};
+var updateView = function () {
     if (stateManager.urlState.view === "selection" ||
         !("nUuid" in stateManager.urlState)) {
-        cache.vis = null;
+        destroyVis();
         selectionView();
     }
     else if (stateManager.urlState.view === "export") {
-        cache.vis = null;
+        destroyVis();
         setupExport();
     }
     else {
-        setupVis();
-        var loadState = void 0;
-        if (!(stateManager.urlState.nUuid in cache.networks)) {
-            var scrape = cache.scrapes[cache.scrapeKeys[stateManager.urlState.nUuid]];
-            loadState = _crossfoam_data__WEBPACK_IMPORTED_MODULE_0__["get"]("s--" + scrape.service + "--a--" + scrape.screenName + "-" + scrape.nUuid + "--nw")
-                .then(function (data) {
-                cache.networks[stateManager.urlState.nUuid] = data;
-                return Promise.resolve();
-            });
+        if (cache.vis !== null && stateManager.urlState.view === cache.vis.visType) {
+            cache.vis.updateView();
         }
         else {
-            loadState = Promise.resolve();
-        }
-        loadState.then(function () {
-            switch (stateManager.urlState.view) {
-                case "list":
-                    cache.vis = new _crossfoam_vis__WEBPACK_IMPORTED_MODULE_4__["ListVis"]();
-                    break;
-                case "network":
-                    cache.vis = new _crossfoam_vis__WEBPACK_IMPORTED_MODULE_4__["NetworkVis"]();
-                    break;
-                case "overview":
-                    cache.vis = new _crossfoam_vis__WEBPACK_IMPORTED_MODULE_4__["OverviewVis"]();
-                    break;
-                case "cluster":
-                    cache.vis = new _crossfoam_vis__WEBPACK_IMPORTED_MODULE_4__["ClusterVis"]();
-                    break;
+            destroyVis();
+            setupVis();
+            var loadState = void 0;
+            if (!(stateManager.urlState.nUuid in cache.networks)) {
+                var scrape = cache.scrapes[cache.scrapeKeys[stateManager.urlState.nUuid]];
+                loadState = _crossfoam_data__WEBPACK_IMPORTED_MODULE_0__["get"]("s--" + scrape.service + "--a--" + scrape.screenName + "-" + scrape.nUuid + "--nw")
+                    .then(function (data) {
+                    cache.networks[stateManager.urlState.nUuid] = data;
+                    return Promise.resolve();
+                });
             }
-            d3__WEBPACK_IMPORTED_MODULE_5__["select"]("#visContainer").attr("class", stateManager.urlState.view);
-            cache.vis.build(cache.networks[stateManager.urlState.nUuid], cache.scrapes[cache.scrapeKeys[stateManager.urlState.nUuid]]);
-            d3__WEBPACK_IMPORTED_MODULE_5__["selectAll"]("#spinnerOverlay").remove();
-        });
+            else {
+                loadState = Promise.resolve();
+            }
+            loadState.then(function () {
+                switch (stateManager.urlState.view) {
+                    case "list":
+                        cache.vis = new _crossfoam_vis__WEBPACK_IMPORTED_MODULE_4__["ListVis"](stateManager);
+                        break;
+                    case "network":
+                        cache.vis = new _crossfoam_vis__WEBPACK_IMPORTED_MODULE_4__["NetworkVis"](stateManager);
+                        break;
+                    case "overview":
+                        cache.vis = new _crossfoam_vis__WEBPACK_IMPORTED_MODULE_4__["OverviewVis"](stateManager);
+                        break;
+                    case "cluster":
+                        cache.vis = new _crossfoam_vis__WEBPACK_IMPORTED_MODULE_4__["ClusterVis"](stateManager);
+                        break;
+                }
+                d3__WEBPACK_IMPORTED_MODULE_5__["select"]("#visContainer").attr("class", stateManager.urlState.view);
+                cache.vis.build(cache.networks[stateManager.urlState.nUuid], cache.scrapes[cache.scrapeKeys[stateManager.urlState.nUuid]]);
+                d3__WEBPACK_IMPORTED_MODULE_5__["selectAll"]("#spinnerOverlay").remove();
+            });
+        }
     }
 };
 var stateManager = new _nav__WEBPACK_IMPORTED_MODULE_6__["StateManager"](updateView);

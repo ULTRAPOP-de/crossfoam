@@ -10,70 +10,79 @@ import { setupNav, setupVersion, StateManager } from "./nav";
 setupNav();
 setupVersion();
 
-const updateView = () => {
+const destroyVis = () => {
   if (cache.vis !== null) {
     cache.vis.destroy();
     cache.vis = null;
   }
+};
 
+const updateView = () => {
   if (stateManager.urlState.view === "selection" ||
       !("nUuid" in stateManager.urlState)
   ) {
 
-    cache.vis = null;
+    destroyVis();
     selectionView();
 
   } else if (stateManager.urlState.view === "export") {
 
-    cache.vis = null;
+    destroyVis();
     setupExport();
 
   } else {
 
-    setupVis();
-
-    let loadState: Promise<any>;
-
-    if (!(stateManager.urlState.nUuid in cache.networks)) {
-
-      const scrape = cache.scrapes[cache.scrapeKeys[stateManager.urlState.nUuid]];
-
-      loadState = cfData.get(`s--${scrape.service}--a--${scrape.screenName}-${scrape.nUuid}--nw`)
-        .then((data) => {
-
-          cache.networks[stateManager.urlState.nUuid] = data;
-          return Promise.resolve();
-
-        });
-
+    if (cache.vis !== null && stateManager.urlState.view === cache.vis.visType) {
+      cache.vis.updateView();
     } else {
-      loadState = Promise.resolve();
+      destroyVis();
+      setupVis();
+
+      let loadState: Promise<any>;
+  
+      if (!(stateManager.urlState.nUuid in cache.networks)) {
+  
+        const scrape = cache.scrapes[cache.scrapeKeys[stateManager.urlState.nUuid]];
+  
+        loadState = cfData.get(`s--${scrape.service}--a--${scrape.screenName}-${scrape.nUuid}--nw`)
+          .then((data) => {
+  
+            cache.networks[stateManager.urlState.nUuid] = data;
+            return Promise.resolve();
+  
+          });
+  
+      } else {
+        loadState = Promise.resolve();
+      }
+  
+      loadState.then(() => {
+  
+        switch (stateManager.urlState.view) {
+          case "list":
+            cache.vis = new ListVis(stateManager);
+            break;
+          case "network":
+            cache.vis = new NetworkVis(stateManager);
+            break;
+          case "overview":
+            cache.vis = new OverviewVis(stateManager);
+            break;
+          case "cluster":
+            cache.vis = new ClusterVis(stateManager);
+            break;
+        }
+  
+        d3.select("#visContainer").attr("class", stateManager.urlState.view);
+  
+        cache.vis.build(cache.networks[stateManager.urlState.nUuid],
+                        cache.scrapes[cache.scrapeKeys[stateManager.urlState.nUuid]]);
+  
+        d3.selectAll("#spinnerOverlay").remove();
+      });
     }
 
-    loadState.then(() => {
 
-      switch (stateManager.urlState.view) {
-        case "list":
-          cache.vis = new ListVis();
-          break;
-        case "network":
-          cache.vis = new NetworkVis();
-          break;
-        case "overview":
-          cache.vis = new OverviewVis();
-          break;
-        case "cluster":
-          cache.vis = new ClusterVis();
-          break;
-      }
-
-      d3.select("#visContainer").attr("class", stateManager.urlState.view);
-
-      cache.vis.build(cache.networks[stateManager.urlState.nUuid],
-                      cache.scrapes[cache.scrapeKeys[stateManager.urlState.nUuid]]);
-
-      d3.selectAll("#spinnerOverlay").remove();
-    });
   }
 };
 

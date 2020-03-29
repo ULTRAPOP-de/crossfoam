@@ -65,6 +65,9 @@
   "visLegendNumberOfConnections":{
     "message": "Number of connections:"
   },
+  "visLegendNumberOfUsers": {
+    "message": "Number of accounts in cluster"
+  },
   "visNetworkToggleOn":{
     "message": "Hide links into other clusters"
   },

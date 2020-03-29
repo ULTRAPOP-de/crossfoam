@@ -65,6 +65,9 @@
   "visLegendNumberOfConnections":{
     "message": "Anzahl der Verbindungen:"
   },
+  "visLegendNumberOfUsers": {
+    "message": "Anzahl Accounts im Cluster"
+  },
   "visNetworkToggleOn":{
     "message": "Verbindungen in andere Cluster ausblenden"
   },

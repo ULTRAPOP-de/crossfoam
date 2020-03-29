@@ -623,7 +623,11 @@ circle.overview-navigation-indicator {
   .overview-navigation-buttons.active line {
     stroke: #338498; }
 
+#visContainer.network #line-legend,
+#visContainer.cluster #line-legend,
+#visContainer.overview #line-legend,
 #visContainer.network #circle-legend,
+#visContainer.cluster #circle-legend,
 #visContainer.overview #circle-legend {
   position: absolute;
   z-index: 4;
@@ -631,20 +635,37 @@ circle.overview-navigation-indicator {
   right: 15px;
   pointer-events: none;
   font-size: 10px; }
+  #visContainer.network #line-legend text,
+  #visContainer.cluster #line-legend text,
+  #visContainer.overview #line-legend text,
   #visContainer.network #circle-legend text,
+  #visContainer.cluster #circle-legend text,
   #visContainer.overview #circle-legend text {
     font-weight: bold;
     text-shadow: 2px  2px 2px white, 2px -2px 2px white, -2px  2px 2px white, -2px -2px 2px white; }
+    #visContainer.network #line-legend text.normal,
+    #visContainer.cluster #line-legend text.normal,
+    #visContainer.overview #line-legend text.normal,
     #visContainer.network #circle-legend text.normal,
+    #visContainer.cluster #circle-legend text.normal,
     #visContainer.overview #circle-legend text.normal {
       font-weight: normal; }
+  #visContainer.network #line-legend svg,
+  #visContainer.cluster #line-legend svg,
+  #visContainer.overview #line-legend svg,
   #visContainer.network #circle-legend svg,
+  #visContainer.cluster #circle-legend svg,
   #visContainer.overview #circle-legend svg {
     width: 500px;
     height: 50px;
     position: relative;
     top: auto;
     left: auto; }
+
+#visContainer.network #line-legend,
+#visContainer.cluster #line-legend,
+#visContainer.overview #line-legend {
+  bottom: 55px; }
 
 /* ----- NETWORK VIS ----- */
 circle.network-nav-circle {
@@ -691,6 +712,13 @@ circle.network-nav-circle {
     stroke: #338498; }
 
 /* ----- CLUSTER VIS ----- */
+.cluster-vis-entry {
+  cursor: pointer; }
+  .cluster-vis-entry circle {
+    stroke: none; }
+  .cluster-vis-entry:hover circle {
+    stroke: black; }
+
 #cluster-vis-showEdges-toggle,
 #cluster-vis-showProxies-toggle {
   cursor: pointer; }
