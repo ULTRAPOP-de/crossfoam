@@ -62,6 +62,12 @@
   "visListLegend":{
     "message": "Connections within the bubble;Many;Few;Highlight bubble on service;or hide"
   },
+  "visListUserNetwork": {
+    "message": "User's friends in network"
+  },
+  "visListUserSocialProfile": {
+    "message": "Social Media Profile"
+  },
   "visLegendNumberOfConnections":{
     "message": "Number of connections:"
   },
@@ -85,6 +91,9 @@
   },
   "visProxiesToggleOff":{
     "message": "Show links from proxies"
+  },
+  "visClusterIntro":{
+    "message": "Explore the clusters, go down to the individual friends and their networks."
   },
   "visOverviewIntro":{
     "message": "A user's friends and their friends have the strongest impact on what they see in their timeline.<br />But who are those people?"
@@ -280,11 +289,35 @@
   "next": {
     "message": "next"
   },
+  "backToOverview": {
+    "message": "back to overview"
+  },
+  "helpCluster_1": {
+    "message": "In this view, you can further explore the clusters. By clicking on one of the clusters, you can see all the accounts that are part of this cluster."
+  },
+  "helpCluster_2": {
+    "message": "From here, you can go further and get the sub-network of an individual user."
+  },
+  "helpCluster_3": {
+    "message": "Important note: the individual user's networks are only the connections within in the current network. Each user will likely have more connections to people not present in this dataset."
+  },
+  "helpCluster_4": {
+    "message": "Using the button in the upper right: 'show/hide proxies' you can also see connections only established through a proxy. If you want to know more about proxies, <a href='help.html#proxies'>click here</a>."
+  },
   "helpList_1": {
-    "message": "This is the List Vis #1"
+    "message": "This is the List Vis, here you can quickly find people in the network and modify the cluster names and colors."
   },
   "helpList_2": {
-    "message": "This is the List Vis #2"
+    "message": "Use the search bar in the upper left to find someone."
+  },
+  "helpList_3": {
+    "message": "If you move your mouse over a user, a link will appear allowing you to jump to this user's friends within the current network or visit the user's social media profile."
+  },
+  "helpList_4": {
+    "message": "Click the small pen icon next to a cluster's name to rename a cluster or change it's color."
+  },
+  "helpList_5": {
+    "message": "By clicking the small eye next to the pen, you can toggle if this network should be highlighted next to respective accounts when browsing social media. <strong>Note:</strong> You can also disable this feature completely in the <a href='options.html'>settings</a>."
   },
   "helpOverview_1": {
     "message": "This is the overview visualiation. Here we show you all the friends of the selected user. <strong>But why is this of interest?</strong>"

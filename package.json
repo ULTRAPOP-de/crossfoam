@@ -28,7 +28,7 @@
     "@crossfoam/network": "^1.3.5",
     "@crossfoam/queue": "^1.0.0",
     "@crossfoam/services": "file:../crossfoam-services",
-    "@crossfoam/ui-helpers": "^1.0.3",
+    "@crossfoam/ui-helpers": "^1.0.5",
     "@crossfoam/utils": "^1.0.1",
     "@crossfoam/vis": "file:../crossfoam-vis",
     "codebird": "git+https://git@github.com/jublo/codebird-js.git",

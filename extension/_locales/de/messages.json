@@ -62,6 +62,12 @@
   "visListLegend":{
     "message": "Vernetzung innerhalb der Blase;Groß;Gering;Blase im Service anzeigen;oder ausblenden"
   },
+  "visListUserNetwork": {
+    "message": "Freunde im Netzwerk anzeigen"
+  },
+  "visListUserSocialProfile": {
+    "message": "Social Media Profil"
+  },
   "visLegendNumberOfConnections":{
     "message": "Anzahl der Verbindungen:"
   },
@@ -85,6 +91,9 @@
   },
   "visProxiesToggleOff":{
     "message": "Show links from proxies"
+  },
+  "visClusterIntro":{
+    "message": "Erforsche die Cluster, bis hinunter zu einzelnen Personen und deren Verbindungen innerhalb des Netzwerkes."
   },
   "visOverviewIntro":{
     "message": "Die Freunde einer Nutzer*in und deren andere Freunde, haben den größten Einfluss auf die Inhalte die ihr/ihm angezeigt werden. Doch wer sind diese Nutzer*innen eigentlich?"
@@ -280,11 +289,35 @@
   "next": {
     "message": "weiter"
   },
+  "backToOverview": {
+    "message": "zurück zur Übersicht"
+  },
+  "helpCluster_1": {
+    "message": "In dieser Ansicht hast du die Möglichkeit die einzelnen Cluster genauer zu untersuchen. Klicke auf ein Cluster um alle darin enthaltenen Accounts angezeigt zu bekommen."
+  },
+  "helpCluster_2": {
+    "message": "Von hier kannst du weiter auf einzelne Personen klicken und dir deren Verbindungen innerhalb dieses Netzwerks anzeigen zu lassen."
+  },
+  "helpCluster_3": {
+    "message": "Wichtig hier ist, dass die angezeigten Freunde der einzelnen Accounts nur die Verbindungen innerhalb des aktuellen Netzwerkes darstellen. Darüber hinaus können die Personen weitere Freunde habe."
+  },
+  "helpCluster_4": {
+    "message": "Über den Button oben rechts 'Proxies anzeigen/ausblenden' kannst du dir auch Verbindungen anzeigen, welche nur über Proxies zustande kommen. Wenn du mehr über Proxies erfahren willst, klick <a href='help.html#proxies'>hier</a>."
+  },
   "helpList_1": {
-    "message": "Das ist die List Vis #1"
+    "message": "Dies ist die Listenansicht, hier kannst du schnell Personen finden oder die Namen und Farben der Cluster anpassen."
   },
   "helpList_2": {
-    "message": "Das ist die List Vis #2"
+    "message": "Um jemanden zu finden, nutze die Suche oben links."
+  },
+  "helpList_3": {
+    "message": "Wenn du mit der Maus über eine Person fährst, bekommst du einen Link um dir die Freunde dieser Person im aktuellen Netzwerk anzuschauen, alternativ kannst du auch zum Social Media Profil der Person wechseln."
+  },
+  "helpList_4": {
+    "message": "Über das kleine Stift-Symbol neben dem Cluster-Namen kannst du das Cluster umbenennen und die Farbe verändern."
+  },
+  "helpList_5": {
+    "message": "Über das kleine Augen-Symbol kannst du ein- bzw. ausschalten, ob dieses Cluster auf Sozialen Medien bei den entsprechenden Accounts angezeigt werden soll. <strong>Hinweis:</strong> Du kannst diese Funktion auch in den <a href='options.html'>Einstellungen</a> komplett ausschalten."
   },
   "helpOverview_1": {
     "message": "Dies ist die Übersichts-Visualisierung. Hier werden alle Freund*innen der ausgewählten Nutzer*in angezeigt. <strong>Aber warum ist dies interessant?</strong>"

@@ -39,25 +39,19 @@ const updateView = () => {
       setupVis();
 
       let loadState: Promise<any>;
-  
       if (!(stateManager.urlState.nUuid in cache.networks)) {
-  
         const scrape = cache.scrapes[cache.scrapeKeys[stateManager.urlState.nUuid]];
-  
         loadState = cfData.get(`s--${scrape.service}--a--${scrape.screenName}-${scrape.nUuid}--nw`)
           .then((data) => {
-  
             cache.networks[stateManager.urlState.nUuid] = data;
             return Promise.resolve();
-  
           });
-  
       } else {
         loadState = Promise.resolve();
       }
-  
+
       loadState.then(() => {
-  
+
         switch (stateManager.urlState.view) {
           case "list":
             cache.vis = new ListVis(stateManager);
@@ -72,18 +66,19 @@ const updateView = () => {
             cache.vis = new ClusterVis(stateManager);
             break;
         }
-  
+
         d3.select("#visContainer").attr("class", stateManager.urlState.view);
-  
+
         cache.vis.build(cache.networks[stateManager.urlState.nUuid],
                         cache.scrapes[cache.scrapeKeys[stateManager.urlState.nUuid]]);
-  
+
         d3.selectAll("#spinnerOverlay").remove();
       });
     }
 
-
   }
+
+  updateBackButton();
 };
 
 const stateManager = new StateManager(updateView);
@@ -135,6 +130,9 @@ const selectionView = () => {
     li.append("span")
       .classed("scrapeImage", true)
       .append("img")
+        .on("error", (d, i, a) => {
+          d3.select(a[i]).attr("src", "https://abs.twimg.com/sticky/default_profile_images/default_profile_normal.png");
+        })
         .attr("src", cache.userImages[scrape.screenName]);
 
     li.append("span")
@@ -224,9 +222,28 @@ const selectionView = () => {
 
 const setupBackButton = () => {
   d3.select("#page").append("a")
-      .attr("id", "backButton")
-      .html(`&larr;&nbsp;${browser.i18n.getMessage("back")}`)
-      .attr("href", "vis.html");
+    .attr("id", "backButton")
+    .html(`&larr;&nbsp;${browser.i18n.getMessage("backToOverview")}`)
+    .attr("href", "vis.html");
+};
+
+const updateBackButton = () => {
+  const backButton = d3.select("#backButton");
+  if (!backButton.empty()) {
+    if ("subView" in stateManager.urlState && stateManager.urlState.subView !== "level0") {
+      backButton
+        .on("click", () => {
+          window.history.back();
+        })
+        .html(`&larr;&nbsp;${browser.i18n.getMessage("back")}`)
+        .attr("href", null);
+    } else {
+      backButton
+        .on("click", null)
+        .html(`&larr;&nbsp;${browser.i18n.getMessage("backToOverview")}`)
+        .attr("href", "vis.html");
+    }
+  }
 };
 
 const setupExport = () => {

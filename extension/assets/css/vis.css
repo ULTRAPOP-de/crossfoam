@@ -587,6 +587,12 @@ p.intro {
   display: block;
   width: 100%; }
 
+#tooltip a {
+  cursor: pointer;
+  color: #338498; }
+  #tooltip a:hover {
+    text-decoration: underline; }
+
 /* ----- OVERVIEW VIS ----- */
 .circularText {
   font-size: 8px; }
@@ -757,10 +763,26 @@ circle.network-nav-circle {
 #clusterList-wrapper {
   clear: both; }
 
+#clusterList-search {
+  position: absolute;
+  top: 55px;
+  left: 160px;
+  z-index: 4; }
+
+#clusterList-search-field {
+  -webkit-box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.25);
+  -moz-box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.25);
+  box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.25);
+  border-radius: 5px;
+  border: 2px solid #338498;
+  padding: 9px;
+  outline: none; }
+
 .clusterList-container {
   float: left;
   margin-right: 20px;
-  padding-bottom: 20px; }
+  padding-bottom: 20px;
+  width: 235px; }
   .clusterList-container:last-child {
     margin-right: 0; }
   .clusterList-container img {
@@ -780,8 +802,7 @@ circle.network-nav-circle {
         padding-right: 3px; }
         .clusterList-container ul li > span:last-child {
           padding-right: 0; }
-  .clusterList-container a {
-    text-decoration: none;
+  .clusterList-container .actionContainer {
     color: black;
     white-space: nowrap;
     display: inline-block;
@@ -789,8 +810,6 @@ circle.network-nav-circle {
     overflow: hidden;
     text-overflow: ellipsis;
     cursor: pointer; }
-    .clusterList-container a:hover {
-      text-decoration: underline; }
   .clusterList-container .clusterList-title {
     display: table-row; }
     .clusterList-container .clusterList-title > span {
@@ -800,6 +819,21 @@ circle.network-nav-circle {
       font-size: 16px;
       font-weight: bold;
       padding: 0 3px; }
+  .clusterList-container li .actions {
+    display: none; }
+    .clusterList-container li .actions a {
+      text-decoration: none;
+      color: #555555; }
+      .clusterList-container li .actions a:hover {
+        text-decoration: underline;
+        color: #000; }
+  .clusterList-container li:hover .actions {
+    display: inline; }
+  .clusterList-container li:hover .actionContainer {
+    padding: 5px 0 10px; }
+  .clusterList-container li:hover .username {
+    font-weight: bold;
+    padding-bottom: 5px; }
 
 .clusterList-editButton,
 .clusterList-hideButton {

@@ -1073,8 +1073,8 @@ var d3 = __webpack_require__(/*! d3 */ "../crossfoam-vis/node_modules/d3/index.j
 var vis_1 = __webpack_require__(/*! ./vis */ "../crossfoam-vis/dst/vis.js");
 var ClusterVis = /** @class */function (_super) {
     __extends(ClusterVis, _super);
-    function ClusterVis() {
-        var _this_1 = _super !== null && _super.apply(this, arguments) || this;
+    function ClusterVis(stateManager) {
+        var _this_1 = _super.call(this, stateManager) || this;
         _this_1.visType = "cluster";
         _this_1.imageSize = 48;
         _this_1.showEdges = false;
@@ -1090,7 +1090,8 @@ var ClusterVis = /** @class */function (_super) {
             userProxyLinks: []
         };
         _this_1.simulation = null;
-        _this_1.helpData = [];
+        _this_1.helpData = [browser.i18n.getMessage("helpCluster_1"), browser.i18n.getMessage("helpCluster_2"), browser.i18n.getMessage("helpCluster_3"), browser.i18n.getMessage("helpCluster_4")];
+        _this_1.asyncGetIxState();
         return _this_1;
     }
     ClusterVis.prototype.zoom = function (_this) {
@@ -1536,6 +1537,9 @@ var ClusterVis = /** @class */function (_super) {
     // TODO: Add debouncer
     ClusterVis.prototype.paint = function () {
         var _this_1 = this;
+        if (this.showIxMessage) {
+            this.ixMessage(browser.i18n.getMessage("visClusterIntro"));
+        }
         this.ctx.clearRect(0, 0, this.width * 2, this.height * 2);
         if (this.showProxies) {
             this.proxyToggle.select("text").html(browser.i18n.getMessage("visProxiesToggleOn"));
@@ -1567,6 +1571,7 @@ var ClusterVis = /** @class */function (_super) {
                 });
             }
         } else if (this.level >= 1) {
+            d3.selectAll("#line-legend").remove();
             this.ctx.save();
             this.ctx.translate(this.canvasTransform.x * 2, this.canvasTransform.y * 2);
             this.ctx.scale(this.canvasTransform.k, this.canvasTransform.k);
@@ -1726,7 +1731,7 @@ var ListVis = /** @class */function (_super) {
     function ListVis() {
         var _this = _super !== null && _super.apply(this, arguments) || this;
         _this.visType = "list";
-        _this.helpData = [browser.i18n.getMessage("helpList_1"), browser.i18n.getMessage("helpList_2")];
+        _this.helpData = [browser.i18n.getMessage("helpList_1"), browser.i18n.getMessage("helpList_2"), browser.i18n.getMessage("helpList_3"), browser.i18n.getMessage("helpList_4"), browser.i18n.getMessage("helpList_5")];
         return _this;
     }
     ListVis.prototype.build = function (data, centralNode) {
@@ -1797,10 +1802,24 @@ var ListVis = /** @class */function (_super) {
         }).attr("src", function (d) {
             return d[14];
         });
-        item.append("span")
+        item.append("span").attr("class", "actionContainer")
         // TODO: profile generator function in the service module
         .html(function (d) {
-            return "<a href=\"https://www.twitter.com/" + d[1] + "\">" + d[15] + "</a>";
+            return "<span class=\"username\">" + d[15] + "</span><br /><span class=\"actions\"><a href=\"vis.html?view=cluster&nUuid=" + _this.stateManager.urlState.nUuid + "&subView=level2&subViewId=" + d[0] + "\">" + browser.i18n.getMessage("visListUserNetwork") + "&nbsp;&raquo;</a><br /><a href=\"https://www.twitter.com/" + d[1] + "\">" + browser.i18n.getMessage("visListUserSocialProfile") + "&nbsp;&raquo;</a></span>";
+        });
+        this.container.append("div").attr("id", "clusterList-search").append("input").attr("id", "clusterList-search-field").attr("type", "text").attr("placeholder", "Search for Username").on("input", function () {
+            var searchWord = d3.select("#clusterList-search-field").property("value").toLowerCase();
+            if (searchWord.length === 0) {
+                item.style("display", null);
+            } else {
+                item.style("display", function (d) {
+                    if (d[15].toLowerCase().indexOf(searchWord) >= 0) {
+                        return null;
+                    } else {
+                        return "none";
+                    }
+                });
+            }
         });
     };
     return ListVis;
@@ -1956,11 +1975,18 @@ var NetworkVis = /** @class */function (_super) {
                 var dist = Math.sqrt(Math.pow(x - (node[0] * _this_1.canvasTransform.k + _this_1.canvasTransform.x), 2) + Math.pow(y - (node[1] * _this_1.canvasTransform.k + _this_1.canvasTransform.y), 2));
                 if (dist <= pointSizes[ni] / 4 * _this_1.canvasTransform.k) {
                     var color = "#555555";
+                    var params = [];
                     if (data.nodes[ni][6][_this_1.clusterId].length > 0 && data.nodes[ni][6][_this_1.clusterId][0] in _this_1.paintCluster[_this_1.clusterId].clusters) {
                         var rgb = d3.color(_this_1.paintCluster[_this_1.clusterId].clusters[data.nodes[ni][6][_this_1.clusterId]].color).rgb();
                         color = "rgb(" + rgb.r + ", " + rgb.g + ", " + rgb.b + ")";
+                        params = [{
+                            callback: function (d) {
+                                window.location.href = "vis.html?view=cluster&nUuid=" + _this_1.stateManager.urlState.nUuid + "&subView=level2&subViewId=" + d[0];
+                            },
+                            label: "Show connections to this user &raquo;"
+                        }];
                     }
-                    _this_1.tooltip(data.nodes[ni], node[0] * _this_1.canvasTransform.k + _this_1.canvasTransform.x, node[1] * _this_1.canvasTransform.k + _this_1.canvasTransform.y, color, []);
+                    _this_1.tooltip(data.nodes[ni], node[0] * _this_1.canvasTransform.k + _this_1.canvasTransform.x, node[1] * _this_1.canvasTransform.k + _this_1.canvasTransform.y, color, params);
                     hit = true;
                 }
             });
@@ -2282,11 +2308,18 @@ var OverviewVis = /** @class */function (_super) {
                 var dist = Math.sqrt(Math.pow(x - (node[8] * _this_1.scaleTarget + _this_1.width / 2), 2) + Math.pow(y - (node[9] * _this_1.scaleTarget + _this_1.height / 2), 2));
                 if (dist <= node[7] * _this_1.scaleTarget) {
                     var color = "#555555";
+                    var params = [];
                     if (node[6][_this_1.clusterId].length > 0 && node[6][_this_1.clusterId][0] in _this_1.paintCluster[_this_1.clusterId].clusters) {
                         var rgb = d3.color(_this_1.paintCluster[_this_1.clusterId].clusters[node[6][_this_1.clusterId]].color).rgb();
                         color = "rgb(" + rgb.r + ", " + rgb.g + ", " + rgb.b + ")";
+                        params = [{
+                            callback: function (d) {
+                                window.location.href = "vis.html?view=cluster&nUuid=" + _this_1.stateManager.urlState.nUuid + "&subView=level2&subViewId=" + d[0];
+                            },
+                            label: "Show connections to this user &raquo;"
+                        }];
                     }
-                    _this_1.tooltip(node, node[8] * _this_1.scaleTarget + _this_1.width / 2, node[9] * _this_1.scaleTarget + _this_1.height / 2, color, []);
+                    _this_1.tooltip(node, node[8] * _this_1.scaleTarget + _this_1.width / 2, node[9] * _this_1.scaleTarget + _this_1.height / 2, color, params);
                     hit = true;
                 }
             });
@@ -3191,6 +3224,7 @@ var colorPicker = function (containerId, hiddenId, width, color) {
         .style("margin-bottom", "5px");
     var canvas = colorContainer.append("canvas")
         .style("position", "relative")
+        .style("margin-bottom", "-" + (height - 5) + "px")
         .attr("width", width + "px")
         .attr("height", height + "px");
     canvas.call(d3.drag().on("drag", function () {
@@ -3204,7 +3238,7 @@ var colorPicker = function (containerId, hiddenId, width, color) {
     var svg = colorContainer.append("svg")
         .style("position", "relative")
         .style("left", 0)
-        .style("top", "-" + height + "px")
+        .style("top", "-5px")
         .attr("width", width + "px")
         .attr("height", height + "px")
         .style("pointer-events", "none");
@@ -73005,6 +73039,7 @@ var updateView = function () {
             });
         }
     }
+    updateBackButton();
 };
 var stateManager = new _nav__WEBPACK_IMPORTED_MODULE_6__["StateManager"](updateView);
 var selectionView = function () {
@@ -73038,6 +73073,9 @@ var selectionView = function () {
         li.append("span")
             .classed("scrapeImage", true)
             .append("img")
+            .on("error", function (d, i, a) {
+            d3__WEBPACK_IMPORTED_MODULE_5__["select"](a[i]).attr("src", "https://abs.twimg.com/sticky/default_profile_images/default_profile_normal.png");
+        })
             .attr("src", cache.userImages[scrape.screenName]);
         li.append("span")
             .text(scrape.screenName)
@@ -73108,8 +73146,27 @@ var selectionView = function () {
 var setupBackButton = function () {
     d3__WEBPACK_IMPORTED_MODULE_5__["select"]("#page").append("a")
         .attr("id", "backButton")
-        .html("&larr;&nbsp;" + browser.i18n.getMessage("back"))
+        .html("&larr;&nbsp;" + browser.i18n.getMessage("backToOverview"))
         .attr("href", "vis.html");
+};
+var updateBackButton = function () {
+    var backButton = d3__WEBPACK_IMPORTED_MODULE_5__["select"]("#backButton");
+    if (!backButton.empty()) {
+        if ("subView" in stateManager.urlState && stateManager.urlState.subView !== "level0") {
+            backButton
+                .on("click", function () {
+                window.history.back();
+            })
+                .html("&larr;&nbsp;" + browser.i18n.getMessage("back"))
+                .attr("href", null);
+        }
+        else {
+            backButton
+                .on("click", null)
+                .html("&larr;&nbsp;" + browser.i18n.getMessage("backToOverview"))
+                .attr("href", "vis.html");
+        }
+    }
 };
 var setupExport = function () {
     var scrape = cache.scrapes[cache.scrapeKeys[stateManager.urlState.nUuid]];
