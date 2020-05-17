@@ -7,5 +7,18 @@
 
       <div id="options--services"></div>
 
+      <h2>Cluster-Detection</h2>
+      <p>While browsing the web, the web-extension can identify people that are within one of the clusters labeled in one of your data collections. When you go into each data collection you can also turn the highlighting for specific clusters on and off (list view).</p>
+      <p><i>Browser-extensions are individual processes running in the background of your browser. Thereby, they consume ressources. We generally recommend you turn this feature or even the extension on, only if you need it.</i></p>
+      <div>
+        <label class="switch">
+          <input type="checkbox" id="siteAnalysis">
+          <span class="slider round"></span>
+        </label>
+        <span class="switch-state">
+          Clusters are not visible
+        </span>
+      </div>
+
     </div>
 <%- include("partials/static-footer.ejs", {js:"options", extraJs:["../assets/js/codebird.js"]}) %>

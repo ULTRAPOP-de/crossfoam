@@ -7,7 +7,6 @@ const translateInstall = [
   "installParagraph2",
   "installParagraph3",
   "installParagraph4",
-  "installParagraph5",
 ];
 
 translateInstall.forEach((t) => {
