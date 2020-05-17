@@ -7,83 +7,88 @@ import { objEmpty, uuid } from "@crossfoam/utils";
 
 // Modify dom
 const handleUpdated = (tabId, changeInfo, tabInfo) => {
-  console.log("handleUpdated");
-  // Only inject script after page is loaded and complete
-  if ("status" in changeInfo && changeInfo.status === "complete") {
-    console.log("status good");
-    /*
-      For obvious reasons it is not allowed to inject code
-      into the pages listed below, if we try, our dom manipulation
-      will produce errors, so the safest thing is to not even try
-    */
-    const ignore = [
-      "chrome-extension://",
-      "chrome://",
-      "about:newtab",
-      "about:home",
-    ];
-
-    let goodToGo = true;
-
-    if (!("url" in tabInfo)) {
-      goodToGo = false;
-    } else {
-      ignore.forEach((i) => {
-        if (tabInfo.url.indexOf(i) !== -1) {
-          goodToGo = false;
-        }
-      });
-    }
-
-    if (goodToGo) {
-      console.log("goodToGo");
-      /*
-        For some misterious reason onUpdate with a complete message
-        gets fired when someone closes this tab, so we need to
-        check if the tab still exists
-      */
-      browser.tabs.get(tabId)
-        .then((result) => {
-          console.log("does script already exist?");
-          return browser.tabs.executeScript(tabId, {
-            code: "typeof updateSite === 'function';",
-          });
-        })
-        .then((result: any): Promise<any> => {
-          if (!result || result[0] !== true) {
-            console.log("add poly");
-            return browser.tabs.executeScript(tabId, {
-              allFrames: true,
-              file: "assets/js/browser-polyfill.js",
-              matchAboutBlank: false,
-            }).then(() => {
-              console.log("add content");
-              return browser.tabs.executeScript(tabId, {
-                allFrames: true,
-                file: "assets/js/content.js",
-                matchAboutBlank: false,
-              });
-            }).then(() => {
-              console.log("add css");
-              return browser.tabs.insertCSS(tabId, {
-                allFrames: true,
-                file: "assets/css/content.css",
-                matchAboutBlank: false,
-              });
-            });
-         } else {
-           return Promise.resolve();
-         }
-        }).catch((err) => {
+  cfData.get("config--siteAnalysis", "false")
+    .then((data) => {
+      if (data === "true") {
+        console.log("handleUpdated");
+        // Only inject script after page is loaded and complete
+        if ("status" in changeInfo && changeInfo.status === "complete") {
+          console.log("status good");
           /*
-            we can ignore this.
-            this means the tab we were supposed to inject into
-            does not exists anymore.
+            For obvious reasons it is not allowed to inject code
+            into the pages listed below, if we try, our dom manipulation
+            will produce errors, so the safest thing is to not even try
           */
-          throw err;
-        });
-    }
-  }
+          const ignore = [
+            "chrome-extension://",
+            "chrome://",
+            "about:newtab",
+            "about:home",
+          ];
+
+          let goodToGo = true;
+
+          if (!("url" in tabInfo)) {
+            goodToGo = false;
+          } else {
+            ignore.forEach((i) => {
+              if (tabInfo.url.indexOf(i) !== -1) {
+                goodToGo = false;
+              }
+            });
+          }
+
+          if (goodToGo) {
+            console.log("goodToGo");
+            /*
+              For some misterious reason onUpdate with a complete message
+              gets fired when someone closes this tab, so we need to
+              check if the tab still exists
+            */
+            browser.tabs.get(tabId)
+              .then((result) => {
+                console.log("does script already exist?");
+                return browser.tabs.executeScript(tabId, {
+                  code: "typeof updateSite === 'function';",
+                });
+              })
+              .then((result: any): Promise<any> => {
+                if (!result || result[0] !== true) {
+                  console.log("add poly");
+                  return browser.tabs.executeScript(tabId, {
+                    allFrames: true,
+                    file: "assets/js/browser-polyfill.js",
+                    matchAboutBlank: false,
+                  }).then(() => {
+                    console.log("add content");
+                    return browser.tabs.executeScript(tabId, {
+                      allFrames: true,
+                      file: "assets/js/content.js",
+                      matchAboutBlank: false,
+                    });
+                  }).then(() => {
+                    console.log("add css");
+                    return browser.tabs.insertCSS(tabId, {
+                      allFrames: true,
+                      file: "assets/css/content.css",
+                      matchAboutBlank: false,
+                    });
+                  });
+              } else {
+                return Promise.resolve();
+              }
+              }).catch((err) => {
+                /*
+                  we can ignore this.
+                  this means the tab we were supposed to inject into
+                  does not exists anymore.
+                */
+                throw err;
+              });
+          }
+        }
+      }
+    });
 };
 
 browser.tabs.onUpdated.addListener(handleUpdated);

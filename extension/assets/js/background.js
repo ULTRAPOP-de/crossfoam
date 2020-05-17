@@ -41310,82 +41310,87 @@ __webpack_require__.r(__webpack_exports__);
 
 // Modify dom
 var handleUpdated = function (tabId, changeInfo, tabInfo) {
-    console.log("handleUpdated");
-    // Only inject script after page is loaded and complete
-    if ("status" in changeInfo && changeInfo.status === "complete") {
-        console.log("status good");
-        /*
-          For obvious reasons it is not allowed to inject code
-          into the pages listed below, if we try, our dom manipulation
-          will produce errors, so the safest thing is to not even try
-        */
-        var ignore = [
-            "chrome-extension://",
-            "chrome://",
-            "about:newtab",
-            "about:home",
-        ];
-        var goodToGo_1 = true;
-        if (!("url" in tabInfo)) {
-            goodToGo_1 = false;
-        }
-        else {
-            ignore.forEach(function (i) {
-                if (tabInfo.url.indexOf(i) !== -1) {
+    _crossfoam_data__WEBPACK_IMPORTED_MODULE_0__["get"]("config--siteAnalysis", "false")
+        .then(function (data) {
+        if (data === "true") {
+            console.log("handleUpdated");
+            // Only inject script after page is loaded and complete
+            if ("status" in changeInfo && changeInfo.status === "complete") {
+                console.log("status good");
+                /*
+                  For obvious reasons it is not allowed to inject code
+                  into the pages listed below, if we try, our dom manipulation
+                  will produce errors, so the safest thing is to not even try
+                */
+                var ignore = [
+                    "chrome-extension://",
+                    "chrome://",
+                    "about:newtab",
+                    "about:home",
+                ];
+                var goodToGo_1 = true;
+                if (!("url" in tabInfo)) {
                     goodToGo_1 = false;
                 }
-            });
-        }
-        if (goodToGo_1) {
-            console.log("goodToGo");
-            /*
-              For some misterious reason onUpdate with a complete message
-              gets fired when someone closes this tab, so we need to
-              check if the tab still exists
-            */
-            browser.tabs.get(tabId)
-                .then(function (result) {
-                console.log("does script already exist?");
-                return browser.tabs.executeScript(tabId, {
-                    code: "typeof updateSite === 'function';",
-                });
-            })
-                .then(function (result) {
-                if (!result || result[0] !== true) {
-                    console.log("add poly");
-                    return browser.tabs.executeScript(tabId, {
-                        allFrames: true,
-                        file: "assets/js/browser-polyfill.js",
-                        matchAboutBlank: false,
-                    }).then(function () {
-                        console.log("add content");
-                        return browser.tabs.executeScript(tabId, {
-                            allFrames: true,
-                            file: "assets/js/content.js",
-                            matchAboutBlank: false,
-                        });
-                    }).then(function () {
-                        console.log("add css");
-                        return browser.tabs.insertCSS(tabId, {
-                            allFrames: true,
-                            file: "assets/css/content.css",
-                            matchAboutBlank: false,
-                        });
+                else {
+                    ignore.forEach(function (i) {
+                        if (tabInfo.url.indexOf(i) !== -1) {
+                            goodToGo_1 = false;
+                        }
                     });
                 }
-                else {
-                    return Promise.resolve();
+                if (goodToGo_1) {
+                    console.log("goodToGo");
+                    /*
+                      For some misterious reason onUpdate with a complete message
+                      gets fired when someone closes this tab, so we need to
+                      check if the tab still exists
+                    */
+                    browser.tabs.get(tabId)
+                        .then(function (result) {
+                        console.log("does script already exist?");
+                        return browser.tabs.executeScript(tabId, {
+                            code: "typeof updateSite === 'function';",
+                        });
+                    })
+                        .then(function (result) {
+                        if (!result || result[0] !== true) {
+                            console.log("add poly");
+                            return browser.tabs.executeScript(tabId, {
+                                allFrames: true,
+                                file: "assets/js/browser-polyfill.js",
+                                matchAboutBlank: false,
+                            }).then(function () {
+                                console.log("add content");
+                                return browser.tabs.executeScript(tabId, {
+                                    allFrames: true,
+                                    file: "assets/js/content.js",
+                                    matchAboutBlank: false,
+                                });
+                            }).then(function () {
+                                console.log("add css");
+                                return browser.tabs.insertCSS(tabId, {
+                                    allFrames: true,
+                                    file: "assets/css/content.css",
+                                    matchAboutBlank: false,
+                                });
+                            });
+                        }
+                        else {
+                            return Promise.resolve();
+                        }
+                    }).catch(function (err) {
+                        /*
+                          we can ignore this.
+                          this means the tab we were supposed to inject into
+                          does not exists anymore.
+                        */
+                        throw err;
+                    });
                 }
-            }).catch(function (err) {
-                /*
-                  we can ignore this.
-                  this means the tab we were supposed to inject into
-                  does not exists anymore.
-                */
-                throw err;
-            });
+            }
         }
-    }
+    });
 };
 browser.tabs.onUpdated.addListener(handleUpdated);
 /* --------------------------------- */
