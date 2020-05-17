@@ -102,7 +102,8 @@ __webpack_require__.r(__webpack_exports__);
   "service_name": "Twitter",
   "service_key": "twitter",
   "queue_functions": [{ "name": "getUser", "paramCount": [1, 1], "skip": false, "passDown": true, "timeout": 60000 }, { "name": "getUsers", "paramCount": [2, 2], "skip": true, "passDown": true, "timeout": 1000 }, { "name": "getFriendsIds", "paramCount": [5, 5], "skip": true, "passDown": true, "timeout": 60000 }, { "name": "getFriends", "paramCount": [5, 5], "skip": true, "passDown": true, "timeout": 60000 }],
-  "regex": /http[s]*:\/\/[wwww.]*twitter\.com\/((?!(settings|hashtag|hashtags|explore|notifications|messages|home|compose|search|tos))[^\/]{3,})/
+  "regex": /http[s]*:\/\/[wwww.]*twitter\.com\/((?!(settings|hashtag|status|hashtags|explore|notifications|messages|home|compose|search|tos))[^\/]{3,})/,
+  "regex_exclude": /http[s]*:\/\/[wwww.]*twitter\.com\/([^\/]{3,})\/(status|followers_you_follow|following|followers)/
 });
 
 /***/ }),
@@ -807,7 +808,10 @@ var identifyService = function (url) {
     Object.keys(services).forEach(function (service) {
         var match = url.match(services[service].config.regex);
         if (match !== null) {
-            found = [service, match[1]];
+            var excludeMatch = url.match(services[service].config.regex_exclude);
+            if (excludeMatch === null) {
+                found = [service, match[1]];
+            }
         }
     });
     return found;
@@ -30878,6 +30882,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 (function () {
+    var dict;
     /* tslint:disable:only-arrow-functions */
     var debounce = function (fn, time) {
         var timeout;
@@ -30892,8 +30897,11 @@ __webpack_require__.r(__webpack_exports__);
     /* tslint:enable:only-arrow-functions */
     var updateSite = function () {
         var identifiedElements = [];
-        Array.from(document.body.querySelectorAll("a:not(.cf--modified)")).forEach(function (item) {
-            item.className = item.className + " cf--modified";
+        // CSS CHECK IF ONE OF ITS PARENTS OR CHILDREN HAS BEEN MODIFIED
+        Array.from(document.body.querySelectorAll("a:not([cfModified=modified])")).forEach(function (item) {
+            var attr = document.createAttribute("cfModified");
+            attr.value = "modified";
+            item.setAttributeNode(attr);
             var username = Object(_crossfoam_services__WEBPACK_IMPORTED_MODULE_0__["identifyService"])(item.href);
             if (username !== null) {
                 identifiedElements.push([
@@ -30902,40 +30910,23 @@ __webpack_require__.r(__webpack_exports__);
             }
         });
         if (identifiedElements.length > 0) {
-            Promise.all(identifiedElements.map(function (item) { return updateElement(item); }))
-                .catch(function (err) {
-                throw err;
+            identifiedElements.forEach(function (item) {
+                updateElement(item);
             });
         }
     };
     var updateElement = function (item) {
-        var nodeQuery = {};
-        var nodeQueryKey = "s--" + item[2] + "--nodes--" + item[1];
-        nodeQuery[nodeQueryKey] = [];
-        return Promise.resolve();
-        // return browser.storage.local.get(nodeQuery)
-        //   .then((clusters: {}) => {
-        //     if (clusters && (nodeQueryKey in clusters) && clusters[nodeQueryKey].length >= 1) {
-        //       return Promise.all(clusters[nodeQueryKey].map((cluster) => {
-        //         const clusterQuery = {};
-        //         const clusterQueryKey = `s--${item[2]}--${cluster[0]}--clusters--${cluster[1]}`;
-        //         clusterQuery[clusterQueryKey] = {name: "unknown", color: "#dddddd"};
-        //         return browser.storage.local.get(clusterQuery);
-        //       })).then((clustersData) => {
-        //         clustersData.forEach((clusterDataObj: {}) => {
-        //           const clusterData = clusterDataObj[Object.keys(clusterDataObj)[0]];
-        //           const text = document.createTextNode(clusterData.name);
-        //           const span = document.createElement("span");
-        //           span.style.color = clusterData.color;
-        //           span.className = "cf--clusterLabel";
-        //           span.appendChild(text);
-        //           item[0].appendChild(span);
-        //         });
-        //       });
-        //     } else {
-        //       return Promise.resolve();
-        //     }
-        //   });
+        if (item[2] in dict[item[1]].nodes) {
+            dict[item[1]].nodes[item[2]].forEach(function (clusterIds) {
+                var clusterData = dict[item[1]].cluster[clusterIds];
+                var text = document.createTextNode(clusterData.name);
+                var span = document.createElement("span");
+                span.style.backgroundColor = clusterData.color;
+                span.className = "cf--clusterLabel";
+                span.appendChild(text);
+                item[0].appendChild(span);
+            });
+        }
     };
     var debounceUpdate = debounce(updateSite, 200);
     // Updating the site if the dom changes
@@ -30947,7 +30938,12 @@ __webpack_require__.r(__webpack_exports__);
     // Testing the content_script injection for seb_meier
     // browser.storage.local.set({"s--twitter--nodes--seb_meier": [["seb_meier", 0]]});
     // browser.storage.local.set({"s--twitter--seb_meier--clusters--0": {name: "Cluster#1", color: "red"}});
-    updateSite();
+    browser.runtime.sendMessage({
+        type: "getDictionary"
+    }).then(function (dictionary) {
+        dict = dictionary;
+        updateSite();
+    });
     var browserMessage = function (request, sender, sendResponse) {
         switch (request.type) {
             case "modal":

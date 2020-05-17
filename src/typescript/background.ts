@@ -96,6 +96,29 @@ browser.tabs.onUpdated.addListener(handleUpdated);
 /* --------------------------------- */
 
 /*
+ in order for the detection to work super smoothly,
+ we keep an updated object of users and clusters
+ in the background page
+*/
+
+const networkDictionary = {};
+
+const updateDictionary = () => {
+  return Promise.all(Object.keys(services).map((service) => cfData.get(`s--${service}--d`)))
+    .then((data) => {
+      Object.keys(services).forEach((service, si) => {
+        networkDictionary[service] = data[si];
+      });
+    })
+    .catch((error) => {
+      throw error;
+    });
+};
+updateDictionary();
+
+/* --------------------------------- */
+
+/*
  register all required functions in the queue.
 */
 
@@ -115,28 +138,33 @@ queue.register(buildNetwork,
   [3, 3], true, true, 1);
 
 queue.register(cleanupNetwork,
-       "network--cleanupNetwork",
-       [3, 3], true, false, 1);
+  "network--cleanupNetwork",
+  [3, 3], true, false, 1);
 
 queue.register(analyseNetwork,
-       "network--analyseNetwork",
-       [3, 3], true, true, 1);
+  "network--analyseNetwork",
+  [3, 3], true, true, 1);
 
 queue.register(estimateCompletion,
-       "network--estimateCompletion",
-       [3, 3], true, true, 1);
+  "network--estimateCompletion",
+  [3, 3], true, true, 1);
 
 queue.register(checkupNetwork,
-       "network--checkupNetwork",
-       [3, 3], true, true, 1);
+  "network--checkupNetwork",
+  [3, 3], true, true, 1);
 
 queue.register(visualizeNetwork,
-       "network--visualizeNetwork",
-       [3, 3], true, true, 1);
+  "network--visualizeNetwork",
+  [3, 3], true, true, 1);
 
 queue.register(updateNetworkDictionary,
-       "network-updateNetworkDictionary",
-       [3, 3], true, false, 1);
+  "network-updateNetworkDictionary",
+  [3, 3], true, true, 1);
+
+queue.register(updateDictionary,
+  "updateDictionary",
+  [0, 0], true, false, 1);
+ 
 
 // Pick up where we left of...
 
@@ -313,9 +341,18 @@ const browserMessage = (request, sender, sendResponse) => {
       break;
     case "call":
       queue.call(request.func, request.params, request.date, request.nUuid);
+      return Promise.resolve();
+      break;
+    case "updateDictionary":
+      updateDictionary();
+      return Promise.resolve();
+      break;
+    case "getDictionary":
+      return Promise.resolve(networkDictionary);
       break;
     default:
-      console.log(request, sender, sendResponse);
+      console.log("UNKNOWN", request, sender, sendResponse);
+      return Promise.resolve();
       break;
   }
   return true;

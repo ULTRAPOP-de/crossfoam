@@ -11,7 +11,7 @@ Object.keys(services).forEach((serviceKey) => {
 
 });
 
-cfData.get("config--siteAnalysis", "false")
+cfData.get("config--siteAnalysis", "true")
   .then((state) => {
     const checkbox: HTMLInputElement = document.getElementById("siteAnalysis") as HTMLInputElement;
     if (state === "false") {
