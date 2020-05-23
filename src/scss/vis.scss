@@ -143,22 +143,23 @@ p.intro{
 
   li{
     display:table-row;
-    background-color: #338498;
-    color: white;
-    display:block;
-    white-space: nowrap;
-    padding:0;
-    border-bottom: 1px solid rgba(255,255,255,0.3);
-    &:first-child{
+    a{
+      background-color: #338498;
+      color: white;
+      display:block;
+      white-space: nowrap;
+      border-bottom: 1px solid rgba(255,255,255,0.3);
+    }
+    &:first-child a{
       border-top-right-radius: 5px;
       border-top-left-radius: 5px;
     }
-    &:last-child{
+    &:last-child a{
       border-color: transparent;
       border-bottom-right-radius: 5px;
       border-bottom-left-radius: 5px;
     }
-    &.active, &:hover{
+    &.active a, a:hover{
       background-color:#004D61;
       cursor: pointer;
     }
@@ -168,7 +169,7 @@ p.intro{
     }
   }
   .icon{
-    padding:1px 5px 0 0;
+    padding:2px 5px 0 0;
   }
 }
 

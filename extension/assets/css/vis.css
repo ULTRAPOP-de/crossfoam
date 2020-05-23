@@ -439,28 +439,28 @@ p.intro {
     border-radius: 5px;
     display: table; }
   #visNav li {
-    display: table-row;
-    background-color: #338498;
-    color: white;
-    display: block;
-    white-space: nowrap;
-    padding: 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.3); }
-    #visNav li:first-child {
+    display: table-row; }
+    #visNav li a {
+      background-color: #338498;
+      color: white;
+      display: block;
+      white-space: nowrap;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.3); }
+    #visNav li:first-child a {
       border-top-right-radius: 5px;
       border-top-left-radius: 5px; }
-    #visNav li:last-child {
+    #visNav li:last-child a {
       border-color: transparent;
       border-bottom-right-radius: 5px;
       border-bottom-left-radius: 5px; }
-    #visNav li.active, #visNav li:hover {
+    #visNav li.active a, #visNav li a:hover {
       background-color: #004D61;
       cursor: pointer; }
     #visNav li span {
       display: table-cell;
       vertical-align: middle; }
   #visNav .icon {
-    padding: 1px 5px 0 0; }
+    padding: 2px 5px 0 0; }
 
 #visHelp {
   position: absolute;
