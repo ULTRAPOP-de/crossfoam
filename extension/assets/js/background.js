@@ -41573,6 +41573,9 @@ var browserMessage = function (request, sender, sendResponse) {
         case "getDictionary":
             return Promise.resolve(networkDictionary);
             break;
+        case "getConfigLabel":
+            return _crossfoam_data__WEBPACK_IMPORTED_MODULE_0__["get"]("config--showLabels", "true");
+            break;
         default:
             console.log("UNKNOWN", request, sender, sendResponse);
             return Promise.resolve();

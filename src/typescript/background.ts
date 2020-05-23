@@ -350,6 +350,9 @@ const browserMessage = (request, sender, sendResponse) => {
     case "getDictionary":
       return Promise.resolve(networkDictionary);
       break;
+    case "getConfigLabel":
+      return cfData.get("config--showLabels", "true");
+      break;
     default:
       console.log("UNKNOWN", request, sender, sendResponse);
       return Promise.resolve();

@@ -1277,6 +1277,24 @@ _crossfoam_data__WEBPACK_IMPORTED_MODULE_0__["get"]("config--siteAnalysis", "tru
         }
     });
 });
+_crossfoam_data__WEBPACK_IMPORTED_MODULE_0__["get"]("config--showLabels", "true")
+    .then(function (state) {
+    var checkbox = document.getElementById("showLabels");
+    if (state === "false") {
+        checkbox.checked = false;
+    }
+    else {
+        checkbox.checked = true;
+    }
+    checkbox.addEventListener("change", function () {
+        if (checkbox.checked) {
+            _crossfoam_data__WEBPACK_IMPORTED_MODULE_0__["set"]("config--showLabels", "true");
+        }
+        else {
+            _crossfoam_data__WEBPACK_IMPORTED_MODULE_0__["set"]("config--showLabels", "false");
+        }
+    });
+});
 
 
 /***/ })

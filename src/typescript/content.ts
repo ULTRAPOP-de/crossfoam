@@ -7,6 +7,7 @@ declare var FontFace: any;
 (() => {
 
   let dict;
+  let configLabel;
 
   /* tslint:disable:only-arrow-functions */
   const debounce = (fn, time) => {
@@ -59,7 +60,9 @@ declare var FontFace: any;
         const span = document.createElement("span");
         span.style.backgroundColor = clusterData.color;
         span.className = "cf--clusterLabel";
-        span.appendChild(text);
+        if (configLabel === "true") {
+          span.appendChild(text);
+        }
         item[0].appendChild(span);
       });
     }
@@ -79,7 +82,12 @@ declare var FontFace: any;
   // browser.storage.local.set({"s--twitter--seb_meier--clusters--0": {name: "Cluster#1", color: "red"}});
 
   browser.runtime.sendMessage({
-    type: "getDictionary"
+    type: "getConfigLabel"
+  }).then((config) => {
+    configLabel = config;
+    return browser.runtime.sendMessage({
+      type: "getDictionary"
+    });
   }).then((dictionary) => {
     dict = dictionary;
     updateSite();

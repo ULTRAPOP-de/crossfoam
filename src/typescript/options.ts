@@ -27,3 +27,20 @@ cfData.get("config--siteAnalysis", "true")
       }
     });
   });
+
+cfData.get("config--showLabels", "true")
+  .then((state) => {
+    const checkbox: HTMLInputElement = document.getElementById("showLabels") as HTMLInputElement;
+    if (state === "false") {
+      checkbox.checked = false;
+    } else {
+      checkbox.checked = true;
+    }
+    checkbox.addEventListener( "change", () => {
+      if (checkbox.checked) {
+        cfData.set("config--showLabels", "true");
+      } else {
+        cfData.set("config--showLabels", "false");
+      }
+    });
+  });
