@@ -286,6 +286,12 @@ nav ul li {
   #page.static li {
     padding-bottom: 10px;
     font-size: 14px; }
+  #page.static a {
+    color: #338498;
+    text-decoration: none; }
+    #page.static a:hover {
+      text-decoration: underline;
+      color: #004D61; }
 
 .github-badge {
   margin-top: 40px;
@@ -322,6 +328,9 @@ hr.divider {
 
 #footer {
   padding: 50px 0 100px 0; }
+
+.switch-container {
+  margin-bottom: 10px; }
 
 /* source: https://www.w3schools.com/howto/howto_css_switch.asp*/
 /* The switch - the box around the slider */

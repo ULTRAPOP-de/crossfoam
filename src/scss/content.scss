@@ -9,6 +9,14 @@
   color:#ffffff;
   font-family: Helvetica, Arial, sans-serif;
   align-self:flex-start;
+  &.cf--noText{
+    line-height: 0;
+    display:inline-block;
+    font-size:0;
+    height:8px;
+    width:6px;
+    border-radius: 10px;
+  }
 }
 
 // #react-root *{

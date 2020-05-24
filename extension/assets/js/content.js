@@ -30869,9 +30869,12 @@ __webpack_require__.r(__webpack_exports__);
                 var text = document.createTextNode(clusterData.name);
                 var span = document.createElement("span");
                 span.style.backgroundColor = clusterData.color;
-                span.className = "cf--clusterLabel";
                 if (configLabel === "true") {
+                    span.className = "cf--clusterLabel cf--withText";
                     span.appendChild(text);
+                }
+                else {
+                    span.className = "cf--clusterLabel cf--noText";
                 }
                 item[0].appendChild(span);
             });
@@ -30888,11 +30891,11 @@ __webpack_require__.r(__webpack_exports__);
     // browser.storage.local.set({"s--twitter--nodes--seb_meier": [["seb_meier", 0]]});
     // browser.storage.local.set({"s--twitter--seb_meier--clusters--0": {name: "Cluster#1", color: "red"}});
     browser.runtime.sendMessage({
-        type: "getConfigLabel"
+        type: "getConfigLabel",
     }).then(function (config) {
         configLabel = config;
         return browser.runtime.sendMessage({
-            type: "getDictionary"
+            type: "getDictionary",
         });
     }).then(function (dictionary) {
         dict = dictionary;

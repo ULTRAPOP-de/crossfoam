@@ -337,6 +337,18 @@ svg.logoSpinner {
   width: 100%; }
 
 /*----- LIST -----*/
+#nodatayet {
+  padding-top: 20px;
+  text-align: center; }
+  #nodatayet strong {
+    font-weight: bold; }
+  #nodatayet a {
+    color: #338498;
+    text-decoration: none; }
+    #nodatayet a:hover {
+      text-decoration: underline;
+      color: #004D61; }
+
 #scrape-container, #exportContainer {
   margin: 100px auto 0 auto;
   width: 80%;

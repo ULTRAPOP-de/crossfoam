@@ -105,119 +105,129 @@ const selectionView = () => {
       ../assets/images/navbar--icon-vis-delete-inline@2x.png 2x">`,
     ]));
 
-  const list = container.append("ul");
+  if (cache.scrapes.length < 1) {
 
-  let lastService = "";
+    container.append("div")
+      .attr("id", "nodatayet")
+      .append("p")
+        .html(browser.i18n.getMessage("noDataYet"));
 
-  cache.scrapes.forEach((scrape) => {
+  } else {
+    const list = container.append("ul");
 
-    if (scrape.service !== lastService) {
-      list.append("li")
-        .classed("scrapeTitle", true)
-        .text(scrape.service);
+    let lastService = "";
 
-      lastService = scrape.service;
-    }
+    cache.scrapes.forEach((scrape) => {
 
-    const li = list.append("li")
-      .classed("scrapeItem", true)
-      .on("click", () => {
-        stateManager.urlState.nUuid = scrape.nUuid;
-        stateManager.urlState.view = "overview";
-        stateManager.update();
-      });
+      if (scrape.service !== lastService) {
+        list.append("li")
+          .classed("scrapeTitle", true)
+          .text(scrape.service);
 
-    li.append("span")
-      .classed("scrapeImage", true)
-      .append("img")
-        .on("error", (d, i, a) => {
-          d3.select(a[i]).attr("src", "https://abs.twimg.com/sticky/default_profile_images/default_profile_normal.png");
-        })
-        .attr("src", cache.userImages[scrape.screenName]);
+        lastService = scrape.service;
+      }
 
-    li.append("span")
-      .text(scrape.screenName)
-      .classed("scrapeName", true);
+      const li = list.append("li")
+        .classed("scrapeItem", true)
+        .on("click", () => {
+          stateManager.urlState.nUuid = scrape.nUuid;
+          stateManager.urlState.view = "overview";
+          stateManager.update();
+        });
 
-    li.append("a")
-      .datum(scrape)
-      .classed("scrapeDelete", true)
-      .html(`<img src="../assets/images/navbar--icon-vis-delete.png" \
-  srcset="../assets/images/navbar--icon-vis-delete.png 1x, \
-  ../assets/images/navbar--icon-vis-delete@2x.png 2x" >`)
-      .on("click", (d) => {
-        d3.event.stopPropagation();
-
-        const confirmation = confirm(browser.i18n.getMessage("confirmDelete"));
-
-        if (confirmation === true) {
-          li
-            .style("opacity", 0.5)
-            .style("pointer-events", "none");
-
-          browser.runtime.sendMessage({
-            centralNode: d.screenName,
-            id: d.nUuid,
-            service: d.service,
-            type: "removeFromQueue",
+      li.append("span")
+        .classed("scrapeImage", true)
+        .append("img")
+          .on("error", (d, i, a) => {
+            d3.select(a[i])
+              .attr("src", "https://abs.twimg.com/sticky/default_profile_images/default_profile_normal.png");
           })
-          .then(() => {
-            return Promise.all([
-              cfData.remove(`s--${d.service}--a--${d.screenName}-${d.nUuid}--c`),
-              cfData.remove(`s--${d.service}--a--${d.screenName}-${d.nUuid}--n`),
-              cfData.remove(`s--${d.service}--a--${d.screenName}-${d.nUuid}--nw`),
-            ]);
-          })
-          .then(() => {
-            return cfData.get(`s--${d.service}--nw--${d.screenName}`);
-          })
-          .then((data) => {
-            delete data[d.nUuid];
-            return cfData.set(`s--${d.service}--nw--${d.screenName}`, data);
-          })
-          .then(() => {
-            update();
-          });
-        }
-      });
+          .attr("src", cache.userImages[scrape.screenName]);
 
-    li.append("a")
-      .classed("scrapeExport", true)
-      .html(`<img src="../assets/images/navbar--icon-vis-download.png" \
-  srcset="../assets/images/navbar--icon-vis-download.png 1x, \
-  ../assets/images/navbar--icon-vis-download@2x.png 2x" >`)
-      .on("click", () => {
-        d3.event.stopPropagation();
+      li.append("span")
+        .text(scrape.screenName)
+        .classed("scrapeName", true);
 
-        stateManager.urlState.nUuid = scrape.nUuid;
-        stateManager.urlState.view = "export";
-        stateManager.update();
-      });
+      li.append("a")
+        .datum(scrape)
+        .classed("scrapeDelete", true)
+        .html(`<img src="../assets/images/navbar--icon-vis-delete.png" \
+    srcset="../assets/images/navbar--icon-vis-delete.png 1x, \
+    ../assets/images/navbar--icon-vis-delete@2x.png 2x" >`)
+        .on("click", (d) => {
+          d3.event.stopPropagation();
 
-    const scrapeRight = li.append("span")
-      .classed("scrapeMeta", true);
+          const confirmation = confirm(browser.i18n.getMessage("confirmDelete"));
 
-    if (!scrape.completed) {
+          if (confirmation === true) {
+            li
+              .style("opacity", 0.5)
+              .style("pointer-events", "none");
+
+            browser.runtime.sendMessage({
+              centralNode: d.screenName,
+              id: d.nUuid,
+              service: d.service,
+              type: "removeFromQueue",
+            })
+            .then(() => {
+              return Promise.all([
+                cfData.remove(`s--${d.service}--a--${d.screenName}-${d.nUuid}--c`),
+                cfData.remove(`s--${d.service}--a--${d.screenName}-${d.nUuid}--n`),
+                cfData.remove(`s--${d.service}--a--${d.screenName}-${d.nUuid}--nw`),
+              ]);
+            })
+            .then(() => {
+              return cfData.get(`s--${d.service}--nw--${d.screenName}`);
+            })
+            .then((data) => {
+              delete data[d.nUuid];
+              return cfData.set(`s--${d.service}--nw--${d.screenName}`, data);
+            })
+            .then(() => {
+              update();
+            });
+          }
+        });
+
+      li.append("a")
+        .classed("scrapeExport", true)
+        .html(`<img src="../assets/images/navbar--icon-vis-download.png" \
+    srcset="../assets/images/navbar--icon-vis-download.png 1x, \
+    ../assets/images/navbar--icon-vis-download@2x.png 2x" >`)
+        .on("click", () => {
+          d3.event.stopPropagation();
+
+          stateManager.urlState.nUuid = scrape.nUuid;
+          stateManager.urlState.view = "export";
+          stateManager.update();
+        });
+
+      const scrapeRight = li.append("span")
+        .classed("scrapeMeta", true);
+
+      if (!scrape.completed) {
+        scrapeRight.append("span")
+          .text(browser.i18n.getMessage("selectionInProgress"))
+          .classed("scrapeState", true);
+      }
+
+      const date = new Date(scrape.date);
+
       scrapeRight.append("span")
-        .text(browser.i18n.getMessage("selectionInProgress"))
-        .classed("scrapeState", true);
-    }
+        .html(`&nbsp;${formatDate(date, true)}&nbsp;(${scrape.nUuid})`)
+        .classed("scrapeDate", true);
 
-    const date = new Date(scrape.date);
+      scrapeRight.append("br");
 
-    scrapeRight.append("span")
-      .html(`&nbsp;${formatDate(date, true)}&nbsp;(${scrape.nUuid})`)
-      .classed("scrapeDate", true);
+      scrapeRight.append("span")
+        .text(scrape.completeCount + " Nodes")
+        .classed("scrapeCount", true);
 
-    scrapeRight.append("br");
+      li.append("hr");
 
-    scrapeRight.append("span")
-      .text(scrape.completeCount + " Nodes")
-      .classed("scrapeCount", true);
-
-    li.append("hr");
-
-  });
+    });
+  }
 };
 
 const setupBackButton = () => {
@@ -364,8 +374,6 @@ const setupVis = () => {
     <span>${browser.i18n.getMessage("navHelp")}</span></span>`);
 
   setupBackButton();
-
-  // TODO: Loading indicator
 };
 
 const cache = {

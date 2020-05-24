@@ -1,6 +1,20 @@
 import * as cfData from "@crossfoam/data";
 import { services } from "@crossfoam/services";
 
+const translates = [
+  ["settings--title", "settings"],
+  ["settings--serviceTitle", "services"],
+  ["settings--clusterTitle", "settingsClusterTitle"],
+  ["settings--clusterDescription", "settingsClusterDescription"],
+  ["settings--clusterNote", "settingsClusterNote"],
+  ["settings--clusterSwitch1", "settingsClusterSwitch1"],
+  ["settings--clusterSwitch2", "settingsClusterSwitch2"],
+];
+
+translates.forEach((t: [string, string]) => {
+  document.querySelector("#" + t[0]).innerHTML = browser.i18n.getMessage(t[1]);
+});
+
 Object.keys(services).forEach((serviceKey) => {
 
     document.getElementById("options--services").innerHTML = `<div class='services--service-container'>\

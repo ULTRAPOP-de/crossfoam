@@ -23,7 +23,7 @@
     "xhr2": "^0.1.4"
   },
   "dependencies": {
-    "@crossfoam/data": "^1.0.2",
+    "@crossfoam/data": "file:../crossfoam-data",
     "@crossfoam/export": "^1.0.2",
     "@crossfoam/network": "file:../crossfoam-network",
     "@crossfoam/queue": "^1.0.0",

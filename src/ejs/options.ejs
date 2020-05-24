@@ -1,30 +1,30 @@
 <%- include("partials/static-header.ejs", {title:"Options", css:"options"}) %>
 <%- include("partials/nav.ejs", {current: "options"}) %>
     <div id="page" class="static">
-      <h1>Options</h1>
+      <h1 id="settings--title">Options</h1>
 
-      <h2>Services</h2>
+      <h2 id="settings--serviceTitle">Services</h2>
 
       <div id="options--services"></div>
 
-      <h2>Cluster-Detection</h2>
-      <p>While browsing the web, the web-extension can identify people that are within one of the clusters labeled in one of your data collections. When you go into each data collection (list view) you can turn the highlighting for specific clusters on (and off). The default is, that all clusters are off.</p>
-      <p><i>Browser-extensions are individual processes running in the background of your browser. Thereby, they consume ressources. We generally recommend you turn this feature or even the extension on, only if you need it.</i></p>
-      <div>
+      <h2 id="settings--clusterTitle">Cluster-Detection</h2>
+      <p id="settings--clusterDescription">While browsing the web, the web-extension can identify people that are within one of the clusters labeled in one of your data collections. When you go into each data collection (list view) you can turn the highlighting for specific clusters on (and off). The default is, that all clusters are off.</p>
+      <p><i id="settings--clusterNote">Browser-extensions are individual processes running in the background of your browser. Thereby, they consume ressources. We generally recommend you turn this feature or even the extension on, only if you need it.</i></p>
+      <div class="switch-container" id="siteAnalysisContainer">
         <label class="switch">
           <input type="checkbox" id="siteAnalysis">
           <span class="slider round"></span>
         </label>
-        <span class="switch-state">
-          Clusters are not visible
+        <span class="switch-state" id="settings--clusterSwitch1">
+          Show clusters on Social Media
         </span>
       </div>
-      <div>
+      <div class="switch-container" id="showLabelsContainer">
         <label class="switch">
           <input type="checkbox" id="showLabels">
           <span class="slider round"></span>
         </label>
-        <span class="switch-state">
+        <span class="switch-state" id="settings--clusterSwitch2">
           Show labels
         </span>
       </div>

@@ -31,7 +31,7 @@ declare var FontFace: any;
     Array.from(document.body.querySelectorAll("a:not([cfModified=modified])")).forEach((item: HTMLLinkElement) => {
       const attr = document.createAttribute("cfModified");
       attr.value = "modified";
-      item.setAttributeNode(attr); 
+      item.setAttributeNode(attr);
 
       const username = identifyService(item.href);
 
@@ -59,9 +59,11 @@ declare var FontFace: any;
         const text = document.createTextNode(clusterData.name);
         const span = document.createElement("span");
         span.style.backgroundColor = clusterData.color;
-        span.className = "cf--clusterLabel";
         if (configLabel === "true") {
+          span.className = "cf--clusterLabel cf--withText";
           span.appendChild(text);
+        } else {
+          span.className = "cf--clusterLabel cf--noText";
         }
         item[0].appendChild(span);
       });
@@ -82,17 +84,17 @@ declare var FontFace: any;
   // browser.storage.local.set({"s--twitter--seb_meier--clusters--0": {name: "Cluster#1", color: "red"}});
 
   browser.runtime.sendMessage({
-    type: "getConfigLabel"
+    type: "getConfigLabel",
   }).then((config) => {
     configLabel = config;
     return browser.runtime.sendMessage({
-      type: "getDictionary"
+      type: "getDictionary",
     });
   }).then((dictionary) => {
     dict = dictionary;
     updateSite();
   });
-  
+
   const browserMessage = (request, sender, sendResponse) => {
     switch (request.type) {
       case "modal":
