@@ -205,76 +205,141 @@ nav ul li {
     background-color: #004D61;
     cursor: pointer; }
 
-/*---------- MODAL ----------*/
-.cf--modal-container {
-  position: fixed;
+#page.static {
+  width: 90%;
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 50px 0 0 0;
+  min-height: calc(100vh - 200px); }
+  #page.static h1, #page.static p.center {
+    text-align: center; }
+  #page.static li {
+    padding-bottom: 10px;
+    font-size: 14px; }
+  #page.static a {
+    color: #338498;
+    text-decoration: none; }
+    #page.static a:hover {
+      text-decoration: underline;
+      color: #004D61; }
+
+#static-footer {
+  height: 200px;
+  width: 100%;
+  padding-top: 100px; }
+  #static-footer p {
+    padding: 0;
+    margin: 0;
+    color: rgba(0, 0, 0, 0.5); }
+    #static-footer p a {
+      color: rgba(0, 0, 0, 0.5);
+      text-decoration: none; }
+    #static-footer p a:hover {
+      color: #000;
+      text-decoration: underline; }
+
+#static-inner-footer {
+  width: 100%;
+  height: 100px;
+  text-align: center;
+  background-color: rgba(0, 0, 0, 0.05);
+  box-shadow: inset 0 7px 9px -7px rgba(0, 0, 0, 0.2); }
+
+.github-badge {
+  padding-top: 20px;
+  margin-top: 40px;
+  display: table;
+  margin: 0 auto;
+  max-width: 500px;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.5); }
+  .github-badge > span {
+    display: table-row; }
+    .github-badge > span > span {
+      display: table-cell;
+      vertical-align: middle; }
+  .github-badge img {
+    height: 32px;
+    width: auto;
+    margin-right: 15px;
+    opacity: 0.5; }
+  .github-badge:hover {
+    color: black; }
+    .github-badge:hover img {
+      opacity: 1; }
+
+hr.divider {
+  margin: 0;
+  padding: 0;
+  clear: both;
+  height: 1px;
+  visibility: hidden; }
+  hr.divider.spacing {
+    margin-bottom: 30px; }
+  hr.divider.closing {
+    margin-bottom: 100px; }
+
+#footer {
+  padding: 50px 0 100px 0; }
+
+.switch-container {
+  margin-bottom: 10px; }
+
+/* source: https://www.w3schools.com/howto/howto_css_switch.asp*/
+/* The switch - the box around the slider */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 30px;
+  height: 17px; }
+
+/* Hide default HTML checkbox */
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0; }
+
+/* The slider */
+.slider {
+  position: absolute;
+  cursor: pointer;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.6);
-  font-family: "Inter", Helvetica, Arial, sans-serif;
-  font-size: 14px;
-  z-index: 999999; }
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s; }
 
-.cf--modal-box {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 90%;
-  max-width: 400px;
-  background-color: #fff;
-  -webkit-box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.75);
-  -moz-box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.75);
-  box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.75); }
-  .cf--modal-box.cf--modal-box-transparent {
-    background: none;
-    -webkit-box-shadow: none;
-    -moz-box-shadow: none;
-    box-shadow: none;
-    color: white;
-    font-weight: 700;
-    text-align: center;
-    font-size: 18px; }
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 13px;
+  width: 13px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s; }
 
-.cf--modal-spinner {
-  padding-bottom: 40px; }
+input:checked + .slider {
+  background-color: #338498; }
 
-.cf--modal-header {
-  color: white;
-  background-color: #338498;
-  background-size: 103px 20px;
-  background-repeat: no-repeat;
-  background-position: 14px 7px;
-  height: 37px;
-  background-image: url("../images/modal-header.png"); }
+input:focus + .slider {
+  box-shadow: 0 0 1px #338498; }
 
-@media screen and (-webkit-min-device-pixel-ratio: 2), screen and (min-resolution: 192dpi), screen and (min-resolution: 2dppx) {
-  .cf--modal-header {
-    background-image: url("../images/modal-header@2x.png"); } }
+input:checked + .slider:before {
+  -webkit-transform: translateX(13px);
+  -ms-transform: translateX(13px);
+  transform: translateX(13px); }
 
-.cf--modal-title {
-  font-weight: bold;
-  padding: 10px 15px 0px; }
+/* Rounded sliders */
+.slider.round {
+  border-radius: 17px; }
 
-.cf--modal-message {
-  padding: 6px 15px 3px 15px; }
-
-.cf--modal-buttons {
-  padding: 10px 15px; }
-
-.cf--modal-buttons button {
-  padding: 5px 10px;
-  background: white;
-  border: 1px solid #338498;
-  border-radius: 3px;
-  margin-right: 10px;
-  color: #338498;
-  cursor: pointer;
-  font-size: 13px; }
-  .cf--modal-buttons button:hover {
-    color: white;
-    background-color: #338498; }
+.slider.round:before {
+  border-radius: 50%; }
 
 /*# sourceMappingURL=help.css.map */

@@ -1,9 +1,77 @@
 <%- include("partials/static-header.ejs", {title:"Help", css:"help"}) %>
 <%- include("partials/nav.ejs", {current: "help"}) %>
     <div id="page" class="static">
-      <h1>Help</h1>
+      <h1 id="help--headline">Help</h1>
 
-      <p>Hello world</p>
+      <h2 id="help--h-usage">Benutzung</h2>
+      <p style="text-align: center;"><img src="/assets/images/faq/intro-1@2x.jpg" id="help--howto-image" style="max-width:358px;" alt="" /></p>
+      <p style="text-align: center;"><a href="/html/howto.html" id="help--howto-link">Anleitung erneut anschauen &raquo;</a></p>
 
+      <h2>FAQ</h2>
+
+      <ul>
+        <li><a href="#faq-privacy">Werden Daten über mich gesammelt?</a></li>
+        <li><a href="#faq-proxy">Was sind Proxy-Kontakte?</a></li>
+        <li><a href="#faq-profiles">Profilbilder werden nicht angezeigt</a></li>
+        <li><a href="#faq-browserbar">Crossfoam Icon nicht in Browserbar / Crossfoam nicht verfügbar</a></li>
+        <li><a href="#faq-slow">Warum dauert das so lange?</a></li>
+        <li><a href="#faq-follower">Warum werdennur Personen denen gefolgt wird gesammelt und nicht auch die Follower des Accounts?</a></li>
+        <li><a href="#faq-webgl">Die Visualisierung funktioniert bei mir nicht</a></li>
+      </ul>
+
+      <h3 id="faq--browserbar">Werden Daten über mich gesammelt?</h3>
+      <p id="faq--browserbar-copy">
+        Eine Anwendung wie diese könnte wesentlich komfortabler über einen Cloud-Service gelöst werden. Wir haben sehr viel Arbeit in diese Anwendung gesteckt, um diese völlig unabhängig von externen Diensten zu machen. Wenn Daten gesammelt werden, merkt dies natürlich der Dienst von dem ich die Daten abrufe (z.B. Twitter), darüber hinaus werden keine Informationen an Dritte weitergeleitet. Selbst wir als Entwickler der Anwendung haben keine Ahnung was ihr mit unserer Browser-Erweiterung macht.
+      </p>
+
+      <h3 id="faq--proxy">Was sind Proxy-Kontakte?</h3>
+      <p id="faq--proxy-copy">Der Analyse Crossfoams liegt eine grundsätzliche Annahme zu Grunde: Die Personen denen ein Account folgt, haben Einfluss auf die Inhalte die dieser Account sieht.</p>
+      <p style="text-align: center;"><img style="max-width:230px;" src="/assets/images/faq/faq-proxy-1@2x.jpg" alt="" /></p>
+      <p id="faq--proxy-copy">Dies entsteht zum Teil durch die Inhalte die andere Accounts posten, aber auch durch Interaktionen mit den Inhalten dritter. Z.B. wenn jemanden einen Inhalt liked, steigt die Wahrscheinlichkeit, dass dieser Inhalt auch bei dessen den Followern auftaucht. Daraus bedingt sich, dass Accounts denen viele Personen folgen, eine höhere Wahrscheinlichkeit haben im Newsfeed des Accounts aufzutauchen.</p>
+      <p style="text-align: center;"><img style="max-width:230px;" src="/assets/images/faq/faq-proxy-2@2x.jpg" alt="" /></p>
+      <p id="faq--proxy-copy">Dies gilt natürlich nicht nur für Personen denen dieser Account auch folgt, sondern auch für Dritte, welche gar nicht teil des Freundes-Netzwerks sind. Wenn viele der Freunde einer Person folgen, besteht eine hohe Wahrscheinlichkeit das Inhalte dieser Person auch für den zentralen Account angezeigt werden. Weiterhin können solche Personen auch ein Hinweis für Cluster sein. Wenn eine bestimmte Gruppe im Netzwerk den selben Dritten folgt, ist dies ein Hinweis für eine Ähnlichkeit dieser Accounts.</p>
+      <p style="text-align: center;"><img style="max-width:230px;" src="/assets/images/faq/faq-proxy-3@2x.jpg" alt="" /></p>
+
+      <hr class="faq-divider" />
+
+      <h3 id="faq--profiles">Profilbilder werden nicht alle angezeigt</h3>
+      <p style="text-align: center;"><img style="border-radius:50px;" src="/assets/images/twitter_default_profile_normal.png" alt="" /></p>
+      <p id="faq--profiles-copy">
+        Die Profilbilder der gesammelten Accounts werden nicht lokal gespeichert. Diese werden vom Server des jeweiligen Social-Media Anbieters auf Anfrage geladen. Lediglich die URL zum Bild wird gespeichert. Leider nutzen manche Anbieter keine dauerhaften URLs für das Profilbild einer Nutzer*in. Sobald eine Nutzer*in ein neues Bild hochlädt, ist die von uns zwischengespeicherte URL nicht mehr korrekt. In solch einem Fall wird ein Platzerhalterbild angezeigt.
+      </p>
+
+      <hr class="faq-divider" />
+
+      <h3 id="faq--browserbar">Crossfoam Icon nicht in Browserbar / Crossfoam nicht verfügbar</h3>
+      <p id="faq--browserbar-copy">
+        Sollte Crossfoam nicht angezeigt werden, sollte man zuerst sicherstellen, dass die Erweiterung auch aktiviert ist. Hierfür zur Seite der Browsererweiterungen wechseln und gegebenenfalls aktivieren:
+      </p>
+      <p style="text-align: center;"><img style="max-width:500px;" src="/assets/images/faq/crossfoam-extension@2x.jpg" alt="" /></p>
+      <p id="faq--browserbar-copy">
+        Wenn man viele Erweiterungen installiert hat, kann es sein, dass nicht mehr alle direkt in der Browserleiste angezeigt werden. Dann einfach auf das kleine Erweiterungs-Icon klicken, um eine List aller Erweiterungen anzuzeigen:
+      </p>
+      <p style="text-align: center;"><img style="max-width:500px;" src="/assets/images/faq/browserbar@2x.jpg" alt="" /></p>
+
+      <hr class="faq-divider" />
+
+      <h3 id="faq--slow">Warum dauert das so lange?</h3>
+      <p style="text-align: center;"><img style="max-width:500px;" src="/assets/images/faq/slow@2x.jpg" alt="" /></p>
+      <h3 id="faq--slow">Sammeln der Daten</h3>
+      <p id="faq--slow-copy">Die Daten werden direkt von den Servern der jeweiligen Social-Media Dienste abgerufen. Diese haben Limits wieviele Daten man in einem bestimmten Zeitraum abrufen darf. Hierdurch dauert es leider etwas länger die Daten herunterzuladen. Man kann den Download aber einfach im Hintergrund laufen lassen. Der Download läuft auch über einen Computer- oder Browser-Neustart hinweg.</p>
+      <h3 id="faq--slow">Visualisierung der Daten</h3>
+      <p id="faq--slow-copy">Wir haben uns sehr viel Mühe gegeben, auch große Netzwerke flüssig darzustellen. Je nach Netzwerk größe kann das initiale Laden aber ein paar Sekunden dauern. Die Qualität der Darstellung ist auch stark von den Ressourcen des anzeigenden Rechners abhängig. Auf alten Browsern, die kein WebGL unterstützen, lassen sich die große Menge der Daten leider nicht korrekt abbilden. Wir empfehlen in solchen Fällen nur die Cluster- und Listenansicht zu nutzen.</p>
+
+      <hr class="faq-divider" />
+
+      <h3 id="faq--follower">Warum werdennur Personen denen gefolgt wird gesammelt und nicht auch die Follower des Accounts?</h3>
+      <p id="faq--follower-copy">
+        Wir haben dieses Tool mit einem sehr spezifisch Ziel entwickelt. Menschen auf die Filterblasen aufmerksam zu machen, die sie sich selber schaffen. Dies bezieht sich primär auf die Personen denen der ausgewählte Account folgt. Des weiteren gibt es Individuen denen wortwörtlich Millionen folgen, dies wäre unmöglich mit unserem Tool zu aggregieren und analysieren.
+      </p>
+
+      <h3 id="faq--follower">Die Visualisierung funktioniert bei mir nicht</h3>
+      <p id="faq--follower-copy">Für eine korrekte Darstellung benötigt man einen aktuellen Browser der WebGL unterstützt. Ist dies nicht der Fall stehen lediglich die Cluster- und Listenansicht zur Verfügung.</p>
+
+      <h2>Kontakt</h2>
+      <p>Weitere Fragen? Dann nimm <a href="mailto:info@ultrapop.de">Kontakt</a> mit uns auf.</p>
     </div>
 <%- include("partials/static-footer.ejs", {js:"help"}) %>

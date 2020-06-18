@@ -1,7 +1,10 @@
 #page.static{
+  width:90%;
   max-width: 500px;
   margin: 0 auto;
-  padding-top: 50px;
+  padding: 50px 0 0 0;
+
+  min-height: calc(100vh - 200px);
 
   h1, p.center{
     text-align: center;
@@ -22,7 +25,35 @@
   }
 }
 
+#static-footer{
+  height: 200px;
+  width:100%;
+  padding-top:100px;
+  p{
+    padding:0;
+    margin:0;
+    color:rgba(0,0,0,0.5);
+    a{
+      color:rgba(0,0,0,0.5);
+      text-decoration: none;
+    }
+    a:hover{
+      color:#000;
+      text-decoration: underline;
+    }
+  }
+}
+
+#static-inner-footer{
+  width:100%;
+  height: 100px;
+  text-align:center;
+  background-color: rgba(0,0,0,0.05);
+  box-shadow: inset 0 7px 9px -7px rgba(0,0,0,0.2);
+}
+
 .github-badge{
+  padding-top:20px;
   margin-top: 40px;
   display:table;
   margin:0 auto;
@@ -60,6 +91,9 @@ hr.divider{
   visibility: hidden;
   &.spacing{
     margin-bottom:30px;
+  }
+  &.closing{
+    margin-bottom:100px;
   }
 }
 

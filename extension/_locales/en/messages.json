@@ -166,6 +166,15 @@
   "githubPromote": {
     "message": "If you want to know more about the changes, take a look at our Repository on GitHub. The whole Crossfoam web extension is open source:"
   },
+  "fundingTitle":{
+    "message":"Funding"
+  },
+  "fundingDescription":{
+    "message": "This project was part of the fifth iteration of the ProtoypeFund. It, thereby, received financial funding through the Software Sprint Program, run by the BMBF."
+  },
+  "fundingThanks": {
+    "message": "We thank the whole PrototypeFund team for their support and the ministry for providing us with an opportunity to invest time into a not for profit, open source project for empowering users."
+  },
   "extensionDescription": {
     "message": "Crossfoam is a tool for analyzing social networks."
   },

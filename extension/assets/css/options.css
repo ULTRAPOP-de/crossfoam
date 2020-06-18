@@ -206,9 +206,11 @@ nav ul li {
     cursor: pointer; }
 
 #page.static {
+  width: 90%;
   max-width: 500px;
   margin: 0 auto;
-  padding-top: 50px; }
+  padding: 50px 0 0 0;
+  min-height: calc(100vh - 200px); }
   #page.static h1, #page.static p.center {
     text-align: center; }
   #page.static li {
@@ -221,7 +223,30 @@ nav ul li {
       text-decoration: underline;
       color: #004D61; }
 
+#static-footer {
+  height: 200px;
+  width: 100%;
+  padding-top: 100px; }
+  #static-footer p {
+    padding: 0;
+    margin: 0;
+    color: rgba(0, 0, 0, 0.5); }
+    #static-footer p a {
+      color: rgba(0, 0, 0, 0.5);
+      text-decoration: none; }
+    #static-footer p a:hover {
+      color: #000;
+      text-decoration: underline; }
+
+#static-inner-footer {
+  width: 100%;
+  height: 100px;
+  text-align: center;
+  background-color: rgba(0, 0, 0, 0.05);
+  box-shadow: inset 0 7px 9px -7px rgba(0, 0, 0, 0.2); }
+
 .github-badge {
+  padding-top: 20px;
   margin-top: 40px;
   display: table;
   margin: 0 auto;
@@ -253,6 +278,8 @@ hr.divider {
   visibility: hidden; }
   hr.divider.spacing {
     margin-bottom: 30px; }
+  hr.divider.closing {
+    margin-bottom: 100px; }
 
 #footer {
   padding: 50px 0 100px 0; }
