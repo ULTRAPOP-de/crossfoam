@@ -5,43 +5,13 @@
 @import 'modal';
 @import 'static';
 
-#page.static.install{
-  max-width:960px;
-  font-size:18px;
-}
-
-h2{
-  text-align: center;
-  font-size:1.5em;
-}
-
-p{
-  font-weight:300;
-  line-height:1.4em;
-}
-
 img.full{
   width:100%;
   height:auto;
 }
 
-#specialHeadline1{
-  text-align:center;
-  margin: -100px 0 100px 0;
-}
-
-#specialImage1{
-  margin-top:50px;
-}
-
-#specialImage2{
-  margin-bottom:20px;
-}
-
-.middleBlock{
-  max-width:550px;
-  padding:25px;
-  margin: 0 auto 50px auto;
+.center{
+  text-align: center;
 }
 
 @media (min-width: 768px) {
@@ -67,4 +37,24 @@ img.full{
 
 .table p{
   padding:0 25px;
+}
+
+.table{
+  margin-bottom:40px;
+}
+
+#page p span{
+  font-weight:bold;
+  font-size:24px;
+}
+
+#static-footer #version{
+  z-index: auto;
+  position: inherit;
+  bottom:auto;
+  right:auto;
+  font-size:12px;
+  padding:15px 0 0 0;
+  color:rgba(0,0,0,0.5);
+  text-align: center;
 }

@@ -390,5 +390,116 @@
   },
   "helpNetwork_7": {
     "message": "While we assign a cluster to each user, this is not absoulte. Use the toggle in the upper right to see, if users are also connected to other clusters."
+  },
+  "helpPageHowToLink":{
+    "message": "Read the instructions again &raquo;"
+  },
+  "helpPageFaqLink1":{
+    "message": "Is any data on me being collected?"
+  },
+  "helpPageFaqLink2":{
+    "message": "What are proxy contacts?"
+  },
+  "helpPageFaqLink3":{
+    "message": "Some profile pictures are not showing up"
+  },
+  "helpPageFaqLink4":{
+    "message": "Crossfoam Icon not in browser bar / Crossfoam not available"
+  },
+  "helpPageFaqLink5":{
+    "message": "Why is it taking so long?"
+  },
+  "helpPageFaqLink6":{
+    "message": "Why are only people being collected that follow the selected account and not it's followers?"
+  },
+  "helpPageFaqLink7":{
+    "message": "The visualisation does not work"
+  },
+  "helpPagePrivacyCopy":{
+    "message": "It would be a lot easier to build a service like this as a cloud service. But we invested a lot of time to make sure, this extension is completely independent from any third-party services. Only when the social network data is being collected, the service the data is coming from (for example Twitter), knows you are collecting the data. Beyond this, not even we, the developers of this service know what you are doing with it. Its all locally on your machine."
+  },
+  "helpPageProxyCopy1":{
+    "message": "Crossfoam's analysis is based on a fundamental assumption: The people an account follows, have influence on the content that this account sees."
+  },
+  "helpPageProxyCopy2":{
+    "message": "This is partly due to the content posted by other accounts, but also to interactions with the content of third parties. E.g. if someone likes a piece of content, the probability that this content will also appear in their followers' content increases. As a result, people that are followed by many friends of the selected account are more likely to appear in the accounts's news feed."
+  },
+  "helpPageProxyCopy3":{
+    "message": "This is not only valid for people who are friends of the selected account, but also for third parties who are not part of the friends-network. If many of the account's friends follow such a person, there is a high probability that the content of this person is also displayed to the selected account. Furthermore, such persons can also be an indicator for clusters. If a certain group in the network follows the same person outside the network, this might be an indication for a similarity of these people."
+  },
+  "helpPageProfilesCopy":{
+    "message": "The profile pictures of the collected accounts are not stored locally. They are loaded from the server of the respective social media provider on request. Only the URL to the image is stored. Unfortunately some providers do not use permanent URLs for the profile picture of a user. As soon as a user uploads a new image, the URL the extension cached is no longer correct. In such a case, a placeholder image will be displayed."
+  },
+  "helpPageBrowserbarCopy1":{
+    "message": "If Crossfoam is not displayed, you should first make sure that the extension is activated. To do this, go to the browser extensions page and activate it if necessary:"  
+  },
+  "helpPageBrowserbarCopy2":{
+    "message": "If you have installed many extensions, it is possible that not all of them are displayed directly in the browser bar. Then simply click on the small extension icon to display a list of all extensions:"
+  },
+  "helpPageFollowerCopy":{
+    "message": "We have developed this tool with a very specific goal. To make people aware of the filter bubbles they create for themselves. This refers primarily to the people that the selected account follows. Furthermore, there are individuals that are literally followed by millions, this would be impossible to aggregate and analyze with our tool."
+  },
+  "helpPageWebglCopy":{
+    "message": "For a correct display you need a current browser that supports WebGL. If this is not the case, only the cluster and list view are available."
+  },
+  "helpPageSlowHead1":{
+    "message": "Data collection"
+  },
+  "helpPageSlowHead2":{
+    "message": "Data visualisation"
+  },
+  "helpPageSlowCopy1":{
+    "message": "For a correct display you need a current browser that supports WebGL. If this is not the case, only the cluster and list view are available."
+  },
+  "helpPageSlowCopy2":{
+    "message": "We have taken great pains to ensure that even large networks can be displayed smoothly. Depending on the size of the network, the initial loading can take a few seconds. The quality of the display also depends heavily on the resources of the computer. On old browsers that do not support WebGL, the large amount of data can unfortunately not be displayed correctly. In such cases, we recommend using only the cluster and list view."
+  },
+  "helpPageGetInTouch":{
+    "message": "Any more questions? Don't hesitate getting in <a href=\"mailto:info@ultrapop.de\">touch</a>."  
+  },
+  "contact": {
+    "message": "Contact"
+  },
+  "howToTitle": {
+    "message": "How to use Crossfoam"
+  },
+  "howToIntro": {
+    "message": "This is a quick manual for how to use Crossfoam. In its current state, Crossfoam requires a browser based on either Firefox or Chromium and a user account from Twitter."
+  },
+  "howToCopy1": {
+    "message": "<span>(1)</span> Choose an account which might be interesting to you. (This might be your own account.)"
+  },
+  "howToCopy2": {
+    "message": "<span>(2)</span> Right click on the account and choose \"Analyse user's network\"."
+  },
+  "howToCopy3": {
+    "message": "<span>(3)</span> Click on the Crossfoam icon in the upper right of your browser window."
+  },
+  "howToCopy4": {
+    "message": "<span>(4)</span> Crossfoam gives you information on its progress on collecting the data. Collecting and analysing large networks can take up to several hours. Choose \"explore data\" for further insights."
+  },
+  "howToCopy5": {
+    "message": "Please keep in mind, Crossfoam can not analyse live data. Once requested, Crossfoam downloads a snapshot of the state of the network and analyses it. Snapshots may become outdated over time."
+  },
+  "howToCopy6": {
+    "message": "<span>(5)</span> This screen gives you an overview of which accounts Crossfoam has analysed already. You can delete or export analysed data, or click on the username to explore the visualisation."
+  },
+  "howToCopy7": {
+    "message": "<span>(6)</span> If you select an account, the next screens visualises the social network of the chosen account. Explore the visualisations and use the help button in the lower left to learn more about each visualisation."
+  },
+  "howToCopy8": {
+    "message": "<span>(7)</span> Crossfoam tries to find bubbles in the analysed networks by comparing the connections within a cluster with those across clusters. Account clusters with many internal, but very few external connections, are identified as bubbles and color-coded for your convenience."
+  },
+  "howToCopy9": {
+    "message": "<span>(8)</span> An account, which is identified as belonging to a bubble, can be marked as such in the social network interface. This dis/enabled in the settings."
+  },
+  "howToCopy10": {
+    "message": "<span>(9)</span> When you want rename the clusters or change their color, select the account in question from the overview and go to the list-view. The icons at the top of each cluster allows you to modify the individual clusters."
+  },
+  "howToCopy11": {
+    "message": "<span>(10)</span> These bubbles can be relabeled with a more descriptive name. You can further choose whether bubble membership is displayed on the social network site."
+  },
+  "howToCopy12": {
+    "message": "All of the analysed information will only be accessible via the single device Crossfoam is running on and nothing will ever be shared with Twitter or anyone else for that matter."
   }
 }

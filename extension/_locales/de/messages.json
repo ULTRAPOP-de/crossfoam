@@ -390,5 +390,116 @@
   },
   "helpNetwork_7": {
     "message": "Wir versuchen jedem Nutzer ein Cluster zuzuweisen. Diese Zuweisung ist aber nicht absolut. Nutz den Knopf oben links um zu sehen, mit welchen anderen Clustern die Nutzer auch Verbindungen haben."
+  },
+  "helpPageHowToLink":{
+    "message": "Anleitung erneut anschauen &raquo;"
+  },
+  "helpPageFaqLink1":{
+    "message": "Werden Daten über mich gesammelt?"
+  },
+  "helpPageFaqLink2":{
+    "message": "Was sind Proxy-Kontakte?"
+  },
+  "helpPageFaqLink3":{
+    "message": "Profilbilder werden nicht angezeigt"
+  },
+  "helpPageFaqLink4":{
+    "message": "Crossfoam Icon nicht in Browserbar / Crossfoam nicht verfügbar"
+  },
+  "helpPageFaqLink5":{
+    "message": "Warum dauert das so lange?"
+  },
+  "helpPageFaqLink6":{
+    "message": "Warum werden nur Personen denen gefolgt wird gesammelt und nicht auch die Follower des Accounts?"
+  },
+  "helpPageFaqLink7":{
+    "message": "Die Visualisierung funktioniert bei mir nicht"
+  },
+  "helpPagePrivacyCopy":{
+    "message": "Eine Anwendung wie diese könnte wesentlich komfortabler über einen Cloud-Service gelöst werden. Wir haben sehr viel Arbeit in diese Anwendung gesteckt, um diese völlig unabhängig von externen Diensten zu machen. Wenn Daten gesammelt werden, merkt dies natürlich der Dienst von dem ich die Daten abrufe (z.B. Twitter), darüber hinaus werden keine Informationen an Dritte weitergeleitet. Selbst wir als Entwickler der Anwendung haben keine Ahnung was ihr mit unserer Browser-Erweiterung macht."
+  },
+  "helpPageProxyCopy1":{
+    "message": "Der Analyse Crossfoams liegt eine grundsätzliche Annahme zu Grunde: Die Personen denen ein Account folgt, haben Einfluss auf die Inhalte die dieser Account sieht."
+  },
+  "helpPageProxyCopy2":{
+    "message": "Dies entsteht zum Teil durch die Inhalte die andere Accounts posten, aber auch durch Interaktionen mit den Inhalten dritter. Z.B. wenn jemanden einen Inhalt liked, steigt die Wahrscheinlichkeit, dass dieser Inhalt auch bei dessen den Followern auftaucht. Daraus bedingt sich, dass Accounts denen viele Personen folgen, eine höhere Wahrscheinlichkeit haben im Newsfeed des Accounts aufzutauchen."
+  },
+  "helpPageProxyCopy3":{
+    "message": "Dies gilt natürlich nicht nur für Personen denen dieser Account auch folgt, sondern auch für Dritte, welche gar nicht teil des Freundes-Netzwerks sind. Wenn viele der Freunde einer Person folgen, besteht eine hohe Wahrscheinlichkeit das Inhalte dieser Person auch für den zentralen Account angezeigt werden. Weiterhin können solche Personen auch ein Hinweis für Cluster sein. Wenn eine bestimmte Gruppe im Netzwerk den selben Dritten folgt, ist dies ein Hinweis für eine Ähnlichkeit dieser Accounts."
+  },
+  "helpPageProfilesCopy":{
+    "message": "Die Profilbilder der gesammelten Accounts werden nicht lokal gespeichert. Diese werden vom Server des jeweiligen Social-Media Anbieters auf Anfrage geladen. Lediglich die URL zum Bild wird gespeichert. Leider nutzen manche Anbieter keine dauerhaften URLs für das Profilbild einer Nutzer*in. Sobald eine Nutzer*in ein neues Bild hochlädt, ist die von uns zwischengespeicherte URL nicht mehr korrekt. In solch einem Fall wird ein Platzerhalterbild angezeigt."
+  },
+  "helpPageBrowserbarCopy1":{
+    "message": "Sollte Crossfoam nicht angezeigt werden, sollte man zuerst sicherstellen, dass die Erweiterung auch aktiviert ist. Hierfür zur Seite der Browsererweiterungen wechseln und gegebenenfalls aktivieren:"  
+  },
+  "helpPageBrowserbarCopy2":{
+    "message": "Wenn man viele Erweiterungen installiert hat, kann es sein, dass nicht mehr alle direkt in der Browserleiste angezeigt werden. Dann einfach auf das kleine Erweiterungs-Icon klicken, um eine List aller Erweiterungen anzuzeigen:"
+  },
+  "helpPageFollowerCopy":{
+    "message": "Wir haben dieses Tool mit einem sehr spezifisch Ziel entwickelt. Menschen auf die Filterblasen aufmerksam zu machen, die sie sich selber schaffen. Dies bezieht sich primär auf die Personen denen der ausgewählte Account folgt. Des weiteren gibt es Individuen denen wortwörtlich Millionen folgen, dies wäre unmöglich mit unserem Tool zu aggregieren und analysieren."
+  },
+  "helpPageWebglCopy":{
+    "message": "Für eine korrekte Darstellung benötigt man einen aktuellen Browser der WebGL unterstützt. Ist dies nicht der Fall stehen lediglich die Cluster- und Listenansicht zur Verfügung."
+  },
+  "helpPageSlowHead1":{
+    "message": "Sammeln der Daten"
+  },
+  "helpPageSlowHead2":{
+    "message": "Visualisierung der Daten"
+  },
+  "helpPageSlowCopy1":{
+    "message": "Die Daten werden direkt von den Servern der jeweiligen Social-Media Dienste abgerufen. Diese haben Limits wieviele Daten man in einem bestimmten Zeitraum abrufen darf. Hierdurch dauert es leider etwas länger die Daten herunterzuladen. Man kann den Download aber einfach im Hintergrund laufen lassen. Der Download läuft auch über einen Computer- oder Browser-Neustart hinweg."
+  },
+  "helpPageSlowCopy2":{
+    "message": "Wir haben uns sehr viel Mühe gegeben, auch große Netzwerke flüssig darzustellen. Je nach Netzwerkgröße kann das initiale Laden aber ein paar Sekunden dauern. Die Qualität der Darstellung ist auch stark von den Ressourcen des anzeigenden Rechners abhängig. Auf alten Browsern, die kein WebGL unterstützen, lassen sich die große Menge der Daten leider nicht korrekt abbilden. Wir empfehlen in solchen Fällen nur die Cluster- und Listenansicht zu nutzen."
+  },
+  "helpPageGetInTouch":{
+    "message": "Weitere Fragen? Dann nimm <a href=\"mailto:info@ultrapop.de\">Kontakt</a> mit uns auf."  
+  },
+  "contact": {
+    "message": "Contact"
+  },
+  "howToTitle": {
+    "message": "Wie funktioniert Crossfoam"
+  },
+  "howToIntro": {
+    "message": "Dies ist eine kurze Gebrauchsanweisung für Crossfoam. Die aktuelle Version benötigt einen Browser der auf Firefox oder Chromium aufsetzt, sowie einen Twitter-Account (wenn man Daten von dort herunterladen möchte)."
+  },
+  "howToCopy1": {
+    "message": "<span>(1)</span> Wähle einen Twitter-Account, der dich interessiert. (Dies könnte z.B. dein eigener sein.)"
+  },
+  "howToCopy2": {
+    "message": "<span>(2)</span> Mit einem Rechts-Klick auf den Namen des Accounts, die Funktion \"Netzwerk der Nutzer*in analysieren\" auswählen."
+  },
+  "howToCopy3": {
+    "message": "<span>(3)</span> Klicke auf das Crossfoam Icon in deiner Browserbar."
+  },
+  "howToCopy4": {
+    "message": "<span>(4)</span> Crossfoam zeigt dir hier den Fortschritt beim Sammeln der Daten. Das Sammeln und Analysieren großer Netzwerke kann mehrere Stunden dauern. Klicke auf \"Daten explorieren\" um mehr zu erfahren."
+  },
+  "howToCopy5": {
+    "message": "Es ist zu beachten, dass Crossfoam keine Echtzeit-Analse durchführt. Sobald Daten zu einem ausgewählten Account angefordert werden, erstellt Crossfoam eine lokale Version des Netzwerks zu diesem Zeitpunkt. Entsprechend veralten die Daten über Zeit."
+  },
+  "howToCopy6": {
+    "message": "<span>(5)</span> Diese Ansicht zeigt dir welche Daten bereits heruntergeladen wurden und welche Prozesse noch laufen. Von hier aus kannst du heruntergeladene Daten löschen, exportieren oder mit einem Klick auf den Nutzer*innennamen die Daten visuell explorieren."
+  },
+  "howToCopy7": {
+    "message": "<span>(6)</span> Wenn man einen Account auswählt, visualisieren die nächsten Screens das Netzwerk dieses Accounts. Exploriere die verschiedenen Visualisierungen, bei Fragen findest du in der unteren linken Ecke weitere Hinweise zu jeder Ansicht."
+  },
+  "howToCopy8": {
+    "message": "<span>(7)</span> Crossfoam versucht Blasen im Netzwerk des ausgewählten Accounts zu erkennen. Hierzu werden die Verbindungen zwischen Personen in einer bestimmten Gruppe mit den Verbindungen des Gesamtnetzwerks verglichen. Gibt es eine solche Gruppe die viele interne Verbindungen hat, wird dies als Cluster markiert. Solch ein Cluster kann eine potentiale Blase darstellen."
+  },
+  "howToCopy9": {
+    "message": "<span>(8)</span> Ein Account, welcher als Mitglied einer Blase identifziert wurde, kann auf Twitter entsprechend hervorgehoben werden. Diese Funktion lässt sich in den Einstellungen ein- und ausschalten."
+  },
+  "howToCopy10": {
+    "message": "<span>(9)</span> Um die Cluster umzubennen und die Farbe anzupassen, geht man von der Übersicht in die Visualisierungen und zur Listenansicht. Dort findet man über den jeweiligen Listen Icons zum bearbeiten des Clusters."
+  },
+  "howToCopy11": {
+    "message": "<span>(10)</span> Jedes Cluster kann so einfach umbenannt werden. Außerdem kann auch für jedes Cluster explizit entschieden werden, ob dies auf entsprechenden Social Media Seiten angezeigt werden soll."
+  },
+  "howToCopy12": {
+    "message": "Alle Daten und Analysen sind nur von dem Browser verfügbar, auf welchem Crossfoam installiert ist. Diese Informationen werden nicht mit Dritten geteilt."
   }
 }

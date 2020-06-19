@@ -3,3 +3,19 @@
 @import 'basics';
 @import 'navbar';
 @import 'static';
+
+.faq-divider {
+  width: 50%;
+  margin:25px auto 40px auto;
+}
+
+#static-footer #version{
+  z-index: auto;
+  position: inherit;
+  bottom:auto;
+  right:auto;
+  font-size:12px;
+  padding:15px 0 0 0;
+  color:rgba(0,0,0,0.5);
+  text-align: center;
+}

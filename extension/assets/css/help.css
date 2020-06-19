@@ -246,7 +246,6 @@ nav ul li {
   box-shadow: inset 0 7px 9px -7px rgba(0, 0, 0, 0.2); }
 
 .github-badge {
-  padding-top: 20px;
   margin-top: 40px;
   display: table;
   margin: 0 auto;
@@ -341,5 +340,19 @@ input:checked + .slider:before {
 
 .slider.round:before {
   border-radius: 50%; }
+
+.faq-divider {
+  width: 50%;
+  margin: 25px auto 40px auto; }
+
+#static-footer #version {
+  z-index: auto;
+  position: inherit;
+  bottom: auto;
+  right: auto;
+  font-size: 12px;
+  padding: 15px 0 0 0;
+  color: rgba(0, 0, 0, 0.5);
+  text-align: center; }
 
 /*# sourceMappingURL=help.css.map */
