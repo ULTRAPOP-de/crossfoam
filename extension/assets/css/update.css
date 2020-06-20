@@ -418,4 +418,14 @@ input:checked + .slider:before {
   #versionControl span {
     font-style: italic; }
 
+#static-footer #version {
+  z-index: auto;
+  position: inherit;
+  bottom: auto;
+  right: auto;
+  font-size: 12px;
+  padding: 15px 0 0 0;
+  color: rgba(0, 0, 0, 0.5);
+  text-align: center; }
+
 /*# sourceMappingURL=update.css.map */

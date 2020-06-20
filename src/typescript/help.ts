@@ -1,4 +1,4 @@
-import { setupVersion } from "./nav";
+import { setupVersion, setupFooter } from "./nav";
 
 const translates = [
   ["help--headline", "navHelp"],
@@ -39,3 +39,4 @@ translates.forEach((t: [string, string]) => {
 });
 
 setupVersion();
+setupFooter();

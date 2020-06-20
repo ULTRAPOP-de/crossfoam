@@ -1,3 +1,5 @@
+import { setupVersion, setupFooter } from "./nav";
+
 document.querySelector("#versionControl").innerHTML = browser.i18n.getMessage(
   "updateVersion",
   [
@@ -16,3 +18,6 @@ browser.i18n.getMessage("updateMessage").split(";").forEach((item) => {
   li.appendChild(text);
   list.appendChild(li);
 });
+
+setupVersion();
+setupFooter();

@@ -3,9 +3,9 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Crossfoam - Options</title>
+    <title>Crossfoam - Legal</title>
 
-    <link rel="stylesheet" href="../assets/css/options.css">
+    <link rel="stylesheet" href="../assets/css/legal.css">
   </head>
   <body id="vis--page">
 <div id="navbar">
@@ -31,7 +31,7 @@
         </a>
       </li>
       <li>
-        <a href="options.html" id="icon-options" class="active">
+        <a href="options.html" id="icon-options">
           <span>
             <img src="../assets/images/navbar--icon-settings.png" srcset="../assets/images/navbar--icon-settings.png 1x, ../assets/images/navbar--icon-settings@2x.png 2x" >
           </span>
@@ -42,32 +42,12 @@
   </nav>
 </div>
     <div id="page" class="static">
-      <h1 id="settings--title">Options</h1>
+      <h1>Crossfoam Update</h1>
 
-      <h2 id="settings--serviceTitle">Services</h2>
+      <p id="versionControl" class="center"></p>
 
-      <div id="options--services"></div>
-
-      <h2 id="settings--clusterTitle">Cluster-Detection</h2>
-      <p id="settings--clusterDescription">While browsing the web, the web-extension can identify people that are within one of the clusters labeled in one of your data collections. When you go into each data collection (list view) you can turn the highlighting for specific clusters on (and off). The default is, that all clusters are off.</p>
-      <p><i id="settings--clusterNote">Browser-extensions are individual processes running in the background of your browser. Thereby, they consume ressources. We generally recommend you turn this feature or even the extension on, only if you need it.</i></p>
-      <div class="switch-container" id="siteAnalysisContainer">
-        <label class="switch">
-          <input type="checkbox" id="siteAnalysis">
-          <span class="slider round"></span>
-        </label>
-        <span class="switch-state" id="settings--clusterSwitch1">
-          Show clusters on Social Media
-        </span>
-      </div>
-      <div class="switch-container" id="showLabelsContainer">
-        <label class="switch">
-          <input type="checkbox" id="showLabels">
-          <span class="slider round"></span>
-        </label>
-        <span class="switch-state" id="settings--clusterSwitch2">
-          Show labels
-        </span>
+      <div id="updateMessage">
+        <ul></ul>
       </div>
 
     </div>
@@ -90,10 +70,6 @@
     <!-- Promise Polyfill -->
     <script src="../assets/js/q.js"></script>
     
-    
-      <script src="../assets/js/codebird.js"></script>
-    
-    
-    <script src="../assets/js/options.js"></script>
+    <script src="../assets/js/legal.js"></script>
   </body>
 </html>

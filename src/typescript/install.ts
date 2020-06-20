@@ -1,4 +1,4 @@
-import { setupVersion } from "./nav";
+import { setupVersion, setupFooter } from "./nav";
 
 const translateInstall = [
   "installTitle",
@@ -9,9 +9,11 @@ const translateInstall = [
   "installParagraph2",
   "installParagraph3",
   "installParagraph4",
+  "installParagraph5",
   "fundingTitle",
   "fundingDescription",
   "fundingThanks",
+  "howToTitle",
 ];
 
 translateInstall.forEach((t) => {
@@ -19,3 +21,4 @@ translateInstall.forEach((t) => {
 });
 
 setupVersion();
+setupFooter();

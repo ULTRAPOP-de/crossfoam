@@ -23,6 +23,9 @@
   "installParagraph4":{
     "message": "Crossfoam analyses and visualises your filter bubbles on social media, so you can discover the extent to which your online community is an echo chamber or a place of diverse opinions. Fine-grained analysis allows you to explore your social network, diversify it, or - if you prefer - dig deeper into your bubble. Crossfoam thus becomes a tool for electronic self-determination."
   },
+  "installParagraph5":{
+    "message": "Quick introduction to how Crossfoam works &raquo;"
+  },
   "servicesTwitterAuthorizeNote":{
     "message": "If you want to collect data from Twitter, you need to authorize yourself. Authorization is free. ULTRAPOP will not know how you use the widget, data is coming directly from Twitter to you.<br /><br /><i>When you click on the button below a new window or tab will open. Please follow the instructions. In the end you will receive a code. Return to this page and enter the code below.</i>"
   },
@@ -459,6 +462,9 @@
   },
   "contact": {
     "message": "Contact"
+  },
+  "legal": {
+    "message": "Legal & Data Protection"
   },
   "howToTitle": {
     "message": "How to use Crossfoam"

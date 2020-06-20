@@ -29538,14 +29538,17 @@ var translateInstall = [
     "installParagraph2",
     "installParagraph3",
     "installParagraph4",
+    "installParagraph5",
     "fundingTitle",
     "fundingDescription",
     "fundingThanks",
+    "howToTitle",
 ];
 translateInstall.forEach(function (t) {
     document.querySelector("#" + t).innerHTML = browser.i18n.getMessage(t);
 });
 Object(_nav__WEBPACK_IMPORTED_MODULE_0__["setupVersion"])();
+Object(_nav__WEBPACK_IMPORTED_MODULE_0__["setupFooter"])();
 
 
 /***/ }),
@@ -29554,13 +29557,14 @@ Object(_nav__WEBPACK_IMPORTED_MODULE_0__["setupVersion"])();
 /*!*******************************!*\
   !*** ./src/typescript/nav.ts ***!
   \*******************************/
-/*! exports provided: setupNav, setupVersion, StateManager */
+/*! exports provided: setupNav, setupVersion, setupFooter, StateManager */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setupNav", function() { return setupNav; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setupVersion", function() { return setupVersion; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setupFooter", function() { return setupFooter; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "StateManager", function() { return StateManager; });
 /* harmony import */ var d3__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! d3 */ "./node_modules/d3/index.js");
 /* harmony import */ var d3_history__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! d3-history */ "./node_modules/d3-history/build/d3-history.js");
@@ -29584,6 +29588,10 @@ var setupNav = function () {
 var setupVersion = function () {
     d3__WEBPACK_IMPORTED_MODULE_0__["select"]("#version")
         .text("v" + browser.runtime.getManifest().version);
+};
+var setupFooter = function () {
+    d3__WEBPACK_IMPORTED_MODULE_0__["select"]("#footer--legalLink").html(browser.i18n.getMessage("legal"));
+    d3__WEBPACK_IMPORTED_MODULE_0__["select"]("#footer--contactLink").html(browser.i18n.getMessage("contact"));
 };
 /*---------- D3-HISTORY ----------*/
 var StateManager = /** @class */ (function () {

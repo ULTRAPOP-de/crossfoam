@@ -1,4 +1,4 @@
-import { setupVersion } from "./nav";
+import { setupVersion, setupFooter } from "./nav";
 
 const translateHowTo = [
   ["howto--title", "howToTitle"],
@@ -34,3 +34,4 @@ for (let i = 1; i <= 3; i += 1) {
 }
 
 setupVersion();
+setupFooter();

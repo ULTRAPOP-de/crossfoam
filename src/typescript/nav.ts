@@ -24,6 +24,11 @@ const setupVersion = () => {
     .text("v" + browser.runtime.getManifest().version);
 };
 
+const setupFooter = () => {
+  d3.select("#footer--legalLink").html(browser.i18n.getMessage("legal"));
+  d3.select("#footer--contactLink").html(browser.i18n.getMessage("contact"));
+};
+
 /*---------- D3-HISTORY ----------*/
 
 class StateManager {
@@ -111,4 +116,4 @@ class StateManager {
 
 }
 
-export { setupNav, setupVersion, StateManager };
+export { setupNav, setupVersion, setupFooter, StateManager };
