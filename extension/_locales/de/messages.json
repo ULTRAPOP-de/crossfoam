@@ -507,5 +507,92 @@
   },
   "howToCopy12": {
     "message": "Alle Daten und Analysen sind nur von dem Browser verfügbar, auf welchem Crossfoam installiert ist. Diese Informationen werden nicht mit Dritten geteilt."
+  },
+  "legalTitle": {
+    "message": "Impressum & Datenschutz"
+  },
+  "legalHeadline1": {
+    "message": "Zusammenfassung"
+  },
+  "legalCopy1": {
+    "message": "Bei der Entwicklung von Crossfoam Standen für uns Datenschutz und Privatsphäre im Vordergrund. Crossfoam selber sammelt und erhebt keine Daten. Nur während des Downloads der Daten von den entsprechenden Social Media Services, wird mit Servern von Dritten interagiert. Hierbei gelten die jeweiligen Datenschutzbestimmungen der entsprechenden Services (siehe unten). Darüber hinaus haben wir versucht, die Einbindung von sogenannten Software-Paketen Dritter möglichst klein zu halten. Um Gefahren auch auf dieser Ebene auszuschließen (List der Pakete siehe unten)."
+  },
+  "legalHeadline2": {
+    "message": "Kontakt"
+  },
+  "legalCopy2": {
+    "message": "Sebastian Meier & Daniel Lommes<br />info@ultrapop.de"
+  },
+  "legalHeadline3": {
+    "message": "Free & Open Source Software"
+  },
+  "legalCopy3": {
+    "message": "Die Software wird im aktuellen Zustand ohne jegliche Gewähr zur Verfügung gestellt, ohne jegliche  ausdrückliche oder stillschweigende Gewährleistung, einschließlich, aber nicht beschränkt auf die Gewährleistung der Handelsfähigkeit, der Eignung für einen bestimmten Zweck und der Nichtverletzung Rechte Dritter. In keinem Fall sind die Autoren oder Urheberrechtsinhaber haftbar für Ansprüche, Schäden oder andere Haftungen, ob in einer Vertragsklage, einer unerlaubten Handlung oder anderweitig, die sich aus, oder in Verbindung mit der Software oder der Nutzung oder anderen Geschäften mit der Software ergeben."
+  },
+  "legalHeadline4": {
+    "message": "Softwarepakete"
+  },
+  "legalCopy4": {
+    "message": "Für die Visualisierung und interaktive Elemente der Website wird die Bibliothek D3 genutzt."
+  },
+  "legalCopy5": {
+    "message": "Um auch große Netzwerke visualisieren zu können, nutzen wir WebGL, um dies zu ermöglichen nutzen wir die Bibliothek REGL."
+  },
+  "legalCopy6": {
+    "message": "Zum Download der Netzwerkdaten von Twitter, wird die Bibliothek Codebird genutzt."
+  },
+  "legalCopy7": {
+    "message": "Zur Erkennung von Clustern in Netzwerken, was auch als Community-Erkennung bezeichnet wird, werden drei verschiedene Module genutzt:"
+  },
+  "legalCopy8": {
+    "message": "Mozilla hat ein Modul entwickelt, welches es uns erlaubt Crossfoam möglichst einfach für Firefox, Chrome, etc. zu entwickeln."
+  },
+  "legalCopy9": {
+    "message": "Damit Crossfoam auch auf älteren Browsern läuft, nutzen wir Q für die nicht vorhandene Promise-Funktionalität."
+  },
+  "legalHeadline5": {
+    "message": "Daten sammeln"
+  },
+  "legalCopy10": {
+    "message": "Um die Netzwerkdaten zu sammeln, müssen Server der Social Media Dienstleister kontaktiert werden. Dies passiert nur nach expliziter Interaktion der Nutzer*in. Crossfoam führt diese Kommunikation nicht unaufgeforder auf. Außerdem werden Profilbilder der Accounts direkt von den Social Media Servern geladen. Dies ist auch möglich, ohne dass man bei dem jeweiligen Service eingeloggt ist und einen Account hat. Entsprechend können auch in diesem Fall Daten durch Twitter erhoben werden."
+  },
+  "legalCopy11": {
+    "message": "Für das Abrufen der Daten von Twitter, gelten Twitters Datenschutzbestimmungen:  <a href=\"https://twitter.com/de/privacy\">https://twitter.com/de/privacy</a>"
+  },
+  "legalCopy12": {
+    "message": "[Auszug aus Twitters Datenschutzbestimmung] Falls Sie in den Vereinigten Staaten von Amerika, oder in einem anderen Land außerhalb der Europäischen Union, der EFTA-Staaten, oder des Vereinigten Königreichs leben, ist der für Ihre personenbezogenen Daten Zuständige für die Verarbeitung Verantwortliche Twitter, Inc. mit folgender Anschrift:"
+  },
+  "legalCopy13": {
+    "message": "Twitter, Inc.<br />Z. Hdn.: Privacy Policy Inquiry<br />1355 Market Street, Suite 900<br />San Francisco, CA 94103, USA"
+  },
+  "legalCopy14": {
+    "message": "Falls Sie innerhalb der Europäischen Union, der EFTA-Staaten, oder dem Vereinigten Königreichs leben, ist der für die Verarbeitung Verantwortliche Twitter International Company mit folgender Anschrift:"
+  },
+  "legalCopy15": {
+    "message": "Twitter International Company<br />Z. Hddn.: Data Protection Officer<br />One Cumberland Place, Fenian Street<br />Dublin 2, D02 AX07 IRLAND"
+  },
+  "legalHeadline6": {
+    "message": "Haftung für Inhalte"
+  },
+  "legalCopy16": {
+    "message": "Als Diensteanbieter sind wir gemäß § 7 Abs.1 TMG für eigene Inhalte in dieser Erweiterung nach den allgemeinen Gesetzen verantwortlich. Nach §§ 8 bis 10 TMG sind wir als Diensteanbieter jedoch nicht verpflichtet, übermittelte oder gespeicherte fremde Informationen zu überwachen oder nach Umständen zu forschen, die auf eine rechtswidrige Tätigkeit hinweisen."
+  },
+  "legalCopy17": {
+    "message": "Verpflichtungen zur Entfernung oder Sperrung der Nutzung von Informationen nach den allgemeinen Gesetzen bleiben hiervon unberührt. Eine diesbezügliche Haftung ist jedoch erst ab dem Zeitpunkt der Kenntnis einer konkreten Rechtsverletzung möglich. Bei Bekanntwerden von entsprechenden Rechtsverletzungen werden wir diese Inhalte umgehend entfernen."
+  },
+  "legalHeadline7": {
+    "message": "Haftung für Links"
+  },
+  "legalCopy18": {
+    "message": "Unser Angebot enthält Links zu externen Websites Dritter, auf deren Inhalte wir keinen Einfluss haben. Deshalb können wir für diese fremden Inhalte auch keine Gewähr übernehmen. Für die Inhalte der verlinkten Seiten ist stets der jeweilige Anbieter oder Betreiber der Seiten verantwortlich. Die verlinkten Seiten wurden zum Zeitpunkt der Verlinkung auf mögliche Rechtsverstöße überprüft. Rechtswidrige Inhalte waren zum Zeitpunkt der Verlinkung nicht erkennbar."
+  },
+  "legalCopy19": {
+    "message": "Eine permanente inhaltliche Kontrolle der verlinkten Seiten ist jedoch ohne konkrete Anhaltspunkte einer Rechtsverletzung nicht zumutbar. Bei Bekanntwerden von Rechtsverletzungen werden wir derartige Links umgehend entfernen."
+  },
+  "legalHeadline8": {
+    "message": "Urheberrecht"
+  },
+  "legalCopy20": {
+    "message": "Der zugrundeliegende Code ist unter der offenen MIT-Linzenz verfügbar. Die Gestaltung der Anwenung, inklusive jeglicher Grafiken und Texte unterliegen dem deutschen Urherberrecht."
   }
 }

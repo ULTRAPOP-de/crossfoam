@@ -20,6 +20,7 @@
     "web-ext-types": "git+https://6f1cdd33c7cd4e4487e3dee6b0636999c408d83d:x-oauth-basic@github.com/sebastian-meier/web-ext-types.git",
     "webpack": "^4.43.0",
     "webpack-cli": "^3.3.11",
+    "tslint": "^5.20.1",
     "xhr2": "^0.1.4"
   },
   "dependencies": {
@@ -35,7 +36,6 @@
     "d3": "^5.16.0",
     "d3-history": "^2.0.1",
     "q": "^1.5.1",
-    "tslint": "^5.20.1",
     "webextension-polyfill": "^0.4.0"
   },
   "scripts": {

@@ -351,4 +351,7 @@ input:checked + .slider:before {
   color: rgba(0, 0, 0, 0.5);
   text-align: center; }
 
+#page.static ul li {
+  font-size: 12px; }
+
 /*# sourceMappingURL=legal.css.map */
