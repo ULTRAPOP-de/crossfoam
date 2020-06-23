@@ -398,8 +398,8 @@ browser.runtime.onInstalled.addListener(handleInstalled);
 const installData = () => {
   // make sure its not yet installed
   cfData.get("s--twitter--a--wikidata-d1f6b7b3--nw", { empty: true })
-    .then((data) => {
-      if ("empty" in data) {
+    .then((checkData) => {
+      if ("empty" in checkData) {
         cfData.get(`s--twitter--u`, [])
           .then((sTwitterU) => {
             if (!sTwitterU.includes("wikidata")) {
@@ -411,7 +411,7 @@ const installData = () => {
             return d3.json("/assets/data/wikidata.json");
           })
           .then((data) => {
-            const setData = {}
+            const setData = {};
             setData[data["s--twitter--nw--wikidata"].key] = data["s--twitter--nw--wikidata"].value;
             return cfData.set("s--twitter--nw--wikidata", setData)
               .then(() => {
@@ -423,9 +423,6 @@ const installData = () => {
               .catch((err) => {
                 throw err;
               });
-          })
-          .then(() => {
-      
           })
           .catch((err) => {
             throw err;

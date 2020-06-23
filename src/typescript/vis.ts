@@ -203,6 +203,70 @@ const selectionView = () => {
           stateManager.update();
         });
 
+      li.append("span")
+        .attr("class", "scrapeDivider")
+        .append("span");
+
+      // visualisation direct links
+
+      li.append("a")
+        .classed("scrapeVisList", true)
+        .html(`<img src="../assets/images/navbar--icon-vis-goto-list.png" \
+    srcset="../assets/images/navbar--icon-vis-goto-list.png 1x, \
+    ../assets/images/navbar--icon-vis-goto-list@2x.png 2x" >`)
+        .on("click", () => {
+          d3.event.stopPropagation();
+
+          stateManager.urlState.nUuid = scrape.nUuid;
+          stateManager.urlState.view = "list";
+          stateManager.update();
+        });
+
+      li.append("a")
+        .classed("scrapeVisCluster", true)
+        .html(`<img src="../assets/images/navbar--icon-vis-goto-cluster.png" \
+    srcset="../assets/images/navbar--icon-vis-goto-cluster.png 1x, \
+    ../assets/images/navbar--icon-vis-goto-cluster@2x.png 2x" >`)
+        .on("click", () => {
+          d3.event.stopPropagation();
+
+          stateManager.urlState.nUuid = scrape.nUuid;
+          stateManager.urlState.view = "cluster";
+          stateManager.update();
+        });
+
+      li.append("a")
+        .classed("scrapeVisNetwork", true)
+        .html(`<img src="../assets/images/navbar--icon-vis-goto-network.png" \
+    srcset="../assets/images/navbar--icon-vis-goto-network.png 1x, \
+    ../assets/images/navbar--icon-vis-goto-network@2x.png 2x" >`)
+        .on("click", () => {
+          d3.event.stopPropagation();
+
+          stateManager.urlState.nUuid = scrape.nUuid;
+          stateManager.urlState.view = "network";
+          stateManager.update();
+        });
+
+      li.append("a")
+        .classed("scrapeVisOverview", true)
+        .html(`<img src="../assets/images/navbar--icon-vis-goto-overview.png" \
+    srcset="../assets/images/navbar--icon-vis-goto-overview.png 1x, \
+    ../assets/images/navbar--icon-vis-goto-overview@2x.png 2x" >`)
+        .on("click", () => {
+          d3.event.stopPropagation();
+
+          stateManager.urlState.nUuid = scrape.nUuid;
+          stateManager.urlState.view = "overview";
+          stateManager.update();
+        });
+
+      li.append("span")
+        .attr("class", "scrapeDivider")
+        .append("span");
+
+      // meta data
+
       const scrapeRight = li.append("span")
         .classed("scrapeMeta", true);
 
@@ -211,8 +275,6 @@ const selectionView = () => {
           .text(browser.i18n.getMessage("selectionInProgress"))
           .classed("scrapeState", true);
       }
-
-      // 
 
       const date = new Date(scrape.date);
 

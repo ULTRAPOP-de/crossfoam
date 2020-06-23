@@ -410,6 +410,8 @@ svg.logoSpinner {
   font-size: 10px;
   margin-right: 5px; }
 
+.scrapeVisList, .scrapeVisOverview,
+.scrapeVisCluster, .scrapeVisNetwork,
 .scrapeExport, .scrapeDelete {
   border-radius: 5px;
   width: 28px;
@@ -418,8 +420,23 @@ svg.logoSpinner {
   overflow: hidden;
   background-color: rgba(0, 0, 0, 0.1);
   margin: 1px 0 0 10px; }
+  .scrapeVisList:hover, .scrapeVisOverview:hover,
+  .scrapeVisCluster:hover, .scrapeVisNetwork:hover,
   .scrapeExport:hover, .scrapeDelete:hover {
     background-color: rgba(0, 0, 0, 0.2); }
+
+.scrapeDivider {
+  float: right;
+  height: 28px;
+  width: 1px;
+  margin: 0 5px 0 15px;
+  display: block; }
+  .scrapeDivider span {
+    display: block;
+    height: 20px;
+    margin: 4px 0;
+    width: 1px;
+    background-color: #979797; }
 
 /*----- VIS -----*/
 p.intro {

@@ -29846,9 +29846,9 @@ var StateManager = /** @class */ (function () {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _nav__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./nav */ "./src/typescript/nav.ts");
-/* harmony import */ var _crossfoam_data__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @crossfoam/data */ "../crossfoam-data/dst/index.js");
-/* harmony import */ var _crossfoam_data__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_crossfoam_data__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _crossfoam_data__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @crossfoam/data */ "../crossfoam-data/dst/index.js");
+/* harmony import */ var _crossfoam_data__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_crossfoam_data__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _nav__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./nav */ "./src/typescript/nav.ts");
 
 
 var translateInstall = [
@@ -29859,13 +29859,13 @@ translateInstall.forEach(function (t) {
     document.querySelector("#" + t).innerHTML = browser.i18n.getMessage(t);
 });
 var updateState = function () {
-    _crossfoam_data__WEBPACK_IMPORTED_MODULE_1__["get"]("s--twitter--a--wikidata-d1f6b7b3--nw", { empty: true })
+    _crossfoam_data__WEBPACK_IMPORTED_MODULE_0__["get"]("s--twitter--a--wikidata-d1f6b7b3--nw", { empty: true })
         .then(function (data) {
         if ("empty" in data) {
             setTimeout(function () { updateState(); }, 1000);
         }
         else {
-            window.location.href = '/html/install.html';
+            window.location.href = "/html/install.html";
         }
     })
         .catch(function (err) {
@@ -29873,8 +29873,8 @@ var updateState = function () {
     });
 };
 updateState();
-Object(_nav__WEBPACK_IMPORTED_MODULE_0__["setupVersion"])();
-Object(_nav__WEBPACK_IMPORTED_MODULE_0__["setupFooter"])();
+Object(_nav__WEBPACK_IMPORTED_MODULE_1__["setupVersion"])();
+Object(_nav__WEBPACK_IMPORTED_MODULE_1__["setupFooter"])();
 
 
 /***/ })

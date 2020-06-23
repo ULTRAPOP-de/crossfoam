@@ -1,4 +1,4 @@
-import { setupVersion, setupFooter } from "./nav";
+import { setupFooter, setupVersion } from "./nav";
 
 document.querySelector("#versionControl").innerHTML = browser.i18n.getMessage(
   "updateVersion",

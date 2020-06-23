@@ -1,5 +1,5 @@
-import { setupVersion, setupFooter } from "./nav";
 import * as cfData from "@crossfoam/data";
+import { setupFooter, setupVersion } from "./nav";
 
 const translateInstall = [
   "installTitle",
@@ -16,7 +16,7 @@ const updateState = () => {
       if ("empty" in data) {
         setTimeout(() => { updateState(); }, 1000);
       } else {
-        window.location.href = '/html/install.html';
+        window.location.href = "/html/install.html";
       }
     })
     .catch((err) => {

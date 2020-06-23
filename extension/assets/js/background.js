@@ -71110,8 +71110,8 @@ browser.runtime.onInstalled.addListener(handleInstalled);
 var installData = function () {
     // make sure its not yet installed
     _crossfoam_data__WEBPACK_IMPORTED_MODULE_0__["get"]("s--twitter--a--wikidata-d1f6b7b3--nw", { empty: true })
-        .then(function (data) {
-        if ("empty" in data) {
+        .then(function (checkData) {
+        if ("empty" in checkData) {
             _crossfoam_data__WEBPACK_IMPORTED_MODULE_0__["get"]("s--twitter--u", [])
                 .then(function (sTwitterU) {
                 if (!sTwitterU.includes("wikidata")) {
@@ -71135,8 +71135,6 @@ var installData = function () {
                     .catch(function (err) {
                     throw err;
                 });
-            })
-                .then(function () {
             })
                 .catch(function (err) {
                 throw err;
