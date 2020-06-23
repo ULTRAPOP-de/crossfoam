@@ -714,7 +714,7 @@ var getUsers = function (centralNode, nUuid, timestamp, uniqueID, queue) {
         var limit = 100;
         var more = false;
         // TODO: this should be relative to the overall size of the core-network
-        var proxySizeLimit = 5;
+        var proxySizeLimit = data[0].nodes.length / 20;
         Object.keys(data[0].proxyKeys).forEach(function (proxy) {
             if (!(proxy in data[1]) && data[0].proxies[data[0].proxyKeys[proxy]][5] > proxySizeLimit) {
                 if (query.length < limit) {

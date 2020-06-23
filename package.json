@@ -25,9 +25,9 @@
   },
   "dependencies": {
     "@crossfoam/data": "file:../crossfoam-data",
-    "@crossfoam/export": "^1.0.2",
+    "@crossfoam/export": "^1.0.3",
     "@crossfoam/network": "file:../crossfoam-network",
-    "@crossfoam/queue": "^1.0.0",
+    "@crossfoam/queue": "^1.0.1",
     "@crossfoam/services": "file:../crossfoam-services",
     "@crossfoam/ui-helpers": "file:../crossfoam-ui-helpers",
     "@crossfoam/utils": "^1.0.1",

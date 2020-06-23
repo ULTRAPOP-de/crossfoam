@@ -1,4 +1,7 @@
 {
+  "preInstallIntro": {
+    "message": "Crossfoam wird eingerichtet. Bitte kurz warten."
+  },
   "installTitle":{
     "message": "Willkommen bei Crossfoam"
   },

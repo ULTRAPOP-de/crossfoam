@@ -212,10 +212,12 @@ const selectionView = () => {
           .classed("scrapeState", true);
       }
 
+      // 
+
       const date = new Date(scrape.date);
 
       scrapeRight.append("span")
-        .html(`&nbsp;${formatDate(date, true)}&nbsp;(${scrape.nUuid})`)
+        .html(`&nbsp;${formatDate(date, true)}`)
         .classed("scrapeDate", true);
 
       scrapeRight.append("br");

@@ -4,6 +4,7 @@ import { analyseNetwork, buildNetwork, checkupNetwork, cleanupNetwork,
 import * as queue from "@crossfoam/queue";
 import { identifyService, services } from "@crossfoam/services";
 import { objEmpty, uuid } from "@crossfoam/utils";
+import * as d3 from "d3";
 
 // Modify dom
 const handleUpdated = (tabId, changeInfo, tabInfo) => {
@@ -379,9 +380,10 @@ const handleInstalled = (details) => {
         });
         break;
       case "install":
+        installData();
         browser.tabs.create({
           active: true,
-          url: `/html/install.html`,
+          url: "/html/preInstall.html",
         });
         break;
       default:
@@ -392,6 +394,50 @@ const handleInstalled = (details) => {
 };
 
 browser.runtime.onInstalled.addListener(handleInstalled);
+
+const installData = () => {
+  // make sure its not yet installed
+  cfData.get("s--twitter--a--wikidata-d1f6b7b3--nw", { empty: true })
+    .then((data) => {
+      if ("empty" in data) {
+        cfData.get(`s--twitter--u`, [])
+          .then((sTwitterU) => {
+            if (!sTwitterU.includes("wikidata")) {
+              sTwitterU.push("wikidata");
+            }
+            return cfData.set(`s--twitter--u`, sTwitterU);
+          })
+          .then(() => {
+            return d3.json("/assets/data/wikidata.json");
+          })
+          .then((data) => {
+            const setData = {}
+            setData[data["s--twitter--nw--wikidata"].key] = data["s--twitter--nw--wikidata"].value;
+            return cfData.set("s--twitter--nw--wikidata", setData)
+              .then(() => {
+                return cfData.set("s--twitter--a--wikidata-d1f6b7b3--c", data["s--twitter--a--wikidata-d1f6b7b3--c"]);
+              })
+              .then(() => {
+                return cfData.set("s--twitter--a--wikidata-d1f6b7b3--nw", data["s--twitter--a--wikidata-d1f6b7b3--nw"]);
+              })
+              .catch((err) => {
+                throw err;
+              });
+          })
+          .then(() => {
+      
+          })
+          .catch((err) => {
+            throw err;
+          });
+      } else {
+        console.log("already exists");
+      }
+    })
+    .catch((err) => {
+      throw err;
+    });
+};
 
 /* --------------------------------- */
 
