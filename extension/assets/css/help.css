@@ -347,7 +347,10 @@ input:checked + .slider:before {
 
 .faq-divider {
   width: 50%;
-  margin: 25px auto 40px auto; }
+  margin: 50px auto 0 auto; }
+
+h3 {
+  padding-top: 55px; }
 
 #static-footer #version {
   z-index: auto;
