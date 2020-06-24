@@ -222,6 +222,10 @@ nav ul li {
     #page.static a:hover {
       text-decoration: underline;
       color: #004D61; }
+  #page.static p {
+    font-size: 16px; }
+  #page.static h3 {
+    font-size: 18px; }
 
 #static-footer {
   height: 200px;

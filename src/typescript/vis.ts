@@ -97,6 +97,18 @@ const selectionView = () => {
   container.append("p")
     .classed("intro", true)
     .html(browser.i18n.getMessage("selectionIntro", [
+      `<img src="../assets/images/navbar--icon-vis-goto-overview-inline.png" \
+      srcset="../assets/images/navbar--icon-vis-goto-overview-inline.png 1x, \
+      ../assets/images/navbar--icon-vis-goto-overview-inline@2x.png 2x">`,
+      `<img src="../assets/images/navbar--icon-vis-goto-network-inline.png" \
+      srcset="../assets/images/navbar--icon-vis-goto-network-inline.png 1x, \
+      ../assets/images/navbar--icon-vis-goto-network-inline@2x.png 2x">`,
+      `<img src="../assets/images/navbar--icon-vis-goto-cluster-inline.png" \
+      srcset="../assets/images/navbar--icon-vis-goto-cluster-inline.png 1x, \
+      ../assets/images/navbar--icon-vis-goto-cluster-inline@2x.png 2x">`,
+      `<img src="../assets/images/navbar--icon-vis-goto-list-inline.png" \
+      srcset="../assets/images/navbar--icon-vis-goto-list-inline.png 1x, \
+      ../assets/images/navbar--icon-vis-goto-list-inline@2x.png 2x">`,
       `<img src="../assets/images/navbar--icon-vis-download-inline.png" \
       srcset="../assets/images/navbar--icon-vis-download-inline.png 1x, \
       ../assets/images/navbar--icon-vis-download-inline@2x.png 2x">`,

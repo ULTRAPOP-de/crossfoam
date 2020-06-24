@@ -154,7 +154,7 @@
     "message": "Die Datensammlung läuft noch."
   },
   "selectionIntro":{
-    "message": "Wähle einen der Datensätze aus, um das Netzwerk zu erforschen oder die Namen und Farben der Blasen zu bearbeiten, $IMG1$ die Netzwerkdaten zu exportieren oder $IMG2$ alle zugehörigen Daten zu löschen.",
+    "message": "Wähle einen der Datensätze aus, um die Visualisierungen des Netzwerk zu erforschen ($IMG1$ Übersicht, $IMG2$ Netzwerk und $IMG3$ Cluster) oder ändere die Namen und Farben der Blasen in der $IMG4$ Listenansicht, $IMG5$ die Netzwerkdaten zu exportieren oder $IMG6$ alle zugehörigen Daten zu löschen.",
     "placeholders":{
       "IMG1": {
         "content": "$1",
@@ -162,6 +162,22 @@
       },
       "IMG2": {
         "content": "$2",
+        "example": "<img src='URL' />"
+      },
+      "IMG3": {
+        "content": "$3",
+        "example": "<img src='URL' />"
+      },
+      "IMG4": {
+        "content": "$4",
+        "example": "<img src='URL' />"
+      },
+      "IMG5": {
+        "content": "$5",
+        "example": "<img src='URL' />"
+      },
+      "IMG6": {
+        "content": "$6",
         "example": "<img src='URL' />"
       }
     }

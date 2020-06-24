@@ -154,7 +154,7 @@
     "message": "Data collection is still in progress."
   },
   "selectionIntro":{
-    "message": "Select one of the accounts below to explore the account's network and edit the bubble-labels and colors, $IMG1$ export the network data or $IMG2$ delete all data connected to that account.",
+    "message": "Select one of the accounts below to explore the account's network visualisations ($IMG1$ Overview, $IMG2$ Network and $IMG3$ Cluster) or edit the bubble-labels and colors from the $IMG4$ list-view, $IMG5$ export the network data or $IMG6$ delete all data connected to that account.",
     "placeholders":{
       "IMG1": {
         "content": "$1",
@@ -162,6 +162,22 @@
       },
       "IMG2": {
         "content": "$2",
+        "example": "<img src='URL' />"
+      },
+      "IMG3": {
+        "content": "$3",
+        "example": "<img src='URL' />"
+      },
+      "IMG4": {
+        "content": "$4",
+        "example": "<img src='URL' />"
+      },
+      "IMG5": {
+        "content": "$5",
+        "example": "<img src='URL' />"
+      },
+      "IMG6": {
+        "content": "$6",
         "example": "<img src='URL' />"
       }
     }
