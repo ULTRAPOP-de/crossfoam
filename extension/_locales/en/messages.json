@@ -63,7 +63,7 @@
     "message": "List"
   },
   "visListLegend":{
-    "message": "Connections within the bubble;Many;Few;Highlight bubble on service;or hide"
+    "message": "Connections within the cluster;Many;Few;Highlight cluster on service;or hide"
   },
   "visListUserNetwork": {
     "message": "User's friends in network"
@@ -154,7 +154,7 @@
     "message": "Data collection is still in progress."
   },
   "selectionIntro":{
-    "message": "Select one of the accounts below to explore the account's network visualisations ($IMG1$ Overview, $IMG2$ Network and $IMG3$ Cluster) or edit the bubble-labels and colors from the $IMG4$ list-view, $IMG5$ export the network data or $IMG6$ delete all data connected to that account.",
+    "message": "Select one of the accounts below to explore the account's network visualisations ($IMG1$ Overview, $IMG2$ Network and $IMG3$ Cluster) or edit the cluster-labels and colors from the $IMG4$ list-view, $IMG5$ export the network data or $IMG6$ delete all data connected to that account.",
     "placeholders":{
       "IMG1": {
         "content": "$1",
@@ -339,7 +339,7 @@
     "message": "next"
   },
   "backToOverview": {
-    "message": "back to overview"
+    "message": "back to selection"
   },
   "helpCluster_1": {
     "message": "In this view, you can further explore the clusters. By clicking on one of the clusters, you can see all the accounts that are part of this cluster."
@@ -513,16 +513,16 @@
     "message": "<span>(6)</span> If you select an account, the next screens visualises the social network of the chosen account. Explore the visualisations and use the help button in the lower left to learn more about each visualisation."
   },
   "howToCopy8": {
-    "message": "<span>(7)</span> Crossfoam tries to find bubbles in the analysed networks by comparing the connections within a cluster with those across clusters. Account clusters with many internal, but very few external connections, are identified as bubbles and color-coded for your convenience."
+    "message": "<span>(7)</span> Crossfoam tries to find clusters (bubbles) in the analysed networks by comparing the connections within a cluster with those across clusters. Account clusters with many internal, but very few external connections, are identified as bubbles and color-coded for your convenience."
   },
   "howToCopy9": {
-    "message": "<span>(8)</span> An account, which is identified as belonging to a bubble, can be marked as such in the social network interface. This dis/enabled in the settings."
+    "message": "<span>(8)</span> An account, which is identified as belonging to a cluster, can be marked as such in the social network interface. This dis/enabled in the settings."
   },
   "howToCopy10": {
     "message": "<span>(9)</span> When you want rename the clusters or change their color, select the account in question from the overview and go to the list-view. The icons at the top of each cluster allows you to modify the individual clusters."
   },
   "howToCopy11": {
-    "message": "<span>(10)</span> These bubbles can be relabeled with a more descriptive name. You can further choose whether bubble membership is displayed on the social network site."
+    "message": "<span>(10)</span> These clusters can be relabeled with a more descriptive name. You can further choose whether cluster membership is displayed on the social network site."
   },
   "howToCopy12": {
     "message": "All of the analysed information will only be accessible via the single device Crossfoam is running on and nothing will ever be shared with Twitter or anyone else for that matter."

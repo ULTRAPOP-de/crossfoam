@@ -154,7 +154,7 @@
     "message": "Die Datensammlung läuft noch."
   },
   "selectionIntro":{
-    "message": "Wähle einen der Datensätze aus, um die Visualisierungen des Netzwerk zu erforschen ($IMG1$ Übersicht, $IMG2$ Netzwerk und $IMG3$ Cluster) oder ändere die Namen und Farben der Blasen in der $IMG4$ Listenansicht, $IMG5$ die Netzwerkdaten zu exportieren oder $IMG6$ alle zugehörigen Daten zu löschen.",
+    "message": "Wähle einen der Datensätze aus, um die Visualisierungen des Netzwerk zu erforschen ($IMG1$ Übersicht, $IMG2$ Netzwerk und $IMG3$ Cluster) oder ändere die Namen und Farben der Cluster in der $IMG4$ Listenansicht, $IMG5$ die Netzwerkdaten zu exportieren oder $IMG6$ alle zugehörigen Daten zu löschen.",
     "placeholders":{
       "IMG1": {
         "content": "$1",
@@ -339,7 +339,7 @@
     "message": "weiter"
   },
   "backToOverview": {
-    "message": "zurück zur Übersicht"
+    "message": "zurück zur Auswahl"
   },
   "helpCluster_1": {
     "message": "In dieser Ansicht hast du die Möglichkeit die einzelnen Cluster genauer zu untersuchen. Klicke auf ein Cluster um alle darin enthaltenen Accounts angezeigt zu bekommen."
@@ -513,7 +513,7 @@
     "message": "<span>(6)</span> Wenn man einen Account auswählt, visualisieren die nächsten Screens das Netzwerk dieses Accounts. Exploriere die verschiedenen Visualisierungen, bei Fragen findest du in der unteren linken Ecke weitere Hinweise zu jeder Ansicht."
   },
   "howToCopy8": {
-    "message": "<span>(7)</span> Crossfoam versucht Blasen im Netzwerk des ausgewählten Accounts zu erkennen. Hierzu werden die Verbindungen zwischen Personen in einer bestimmten Gruppe mit den Verbindungen des Gesamtnetzwerks verglichen. Gibt es eine solche Gruppe die viele interne Verbindungen hat, wird dies als Cluster markiert. Solch ein Cluster kann eine potentiale Blase darstellen."
+    "message": "<span>(7)</span> Crossfoam versucht Cluster (Blasen) im Netzwerk des ausgewählten Accounts zu erkennen. Hierzu werden die Verbindungen zwischen Personen in einer bestimmten Gruppe mit den Verbindungen des Gesamtnetzwerks verglichen. Gibt es eine solche Gruppe die viele interne Verbindungen hat, wird dies als Cluster markiert. Solch ein Cluster kann eine potentiale Blase darstellen."
   },
   "howToCopy9": {
     "message": "<span>(8)</span> Ein Account, welcher als Mitglied einer Blase identifziert wurde, kann auf Twitter entsprechend hervorgehoben werden. Diese Funktion lässt sich in den Einstellungen ein- und ausschalten."
