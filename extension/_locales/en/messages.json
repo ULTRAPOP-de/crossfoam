@@ -471,7 +471,7 @@
     "message": "Data visualisation"
   },
   "helpPageSlowCopy1":{
-    "message": "For a correct display you need a current browser that supports WebGL. If this is not the case, only the cluster and list view are available."
+    "message": "The data is being aggregated directly from the social media services. The servers of those services have limits on how much data can be collected in a certain timeframe. This makes the download take so long. But you can keep the download running in the background. The download is even kept alive across browser or computer restarts."
   },
   "helpPageSlowCopy2":{
     "message": "We have taken great pains to ensure that even large networks can be displayed smoothly. Depending on the size of the network, the initial loading can take a few seconds. The quality of the display also depends heavily on the resources of the computer. On old browsers that do not support WebGL, the large amount of data can unfortunately not be displayed correctly. In such cases, we recommend using only the cluster and list view."
