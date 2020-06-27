@@ -53,6 +53,10 @@ declare var FontFace: any;
   };
 
   const updateElement = (item: {0: HTMLLinkElement, 1: string, 2: string}): void => {
+    if ("altNodes" in dict[item[1]] && item[2] in dict[item[1]].altNodes) {
+      item[2] = dict[item[1]].altNodes[item[2]];
+    }
+
     if (item[2] in dict[item[1]].nodes) {
       dict[item[1]].nodes[item[2]].forEach((clusterIds) => {
         const clusterData = dict[item[1]].cluster[clusterIds];

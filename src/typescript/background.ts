@@ -368,8 +368,6 @@ browser.runtime.onMessage.addListener(browserMessage);
 // When the extension is installed or updated let the user know...
 
 const handleInstalled = (details) => {
-  console.log(details);
-
   // Don't notify user's if in dev mode
   if (!details.temporary) {
     switch (details.reason) {
@@ -419,6 +417,12 @@ const installData = () => {
               })
               .then(() => {
                 return cfData.set("s--twitter--a--wikidata-d1f6b7b3--nw", data["s--twitter--a--wikidata-d1f6b7b3--nw"]);
+              })
+              .then(() => {
+                return updateNetworkDictionary("twitter", "wikidata", "d1f6b7b3");
+              })
+              .then(() => {
+                updateDictionary();
               })
               .catch((err) => {
                 throw err;

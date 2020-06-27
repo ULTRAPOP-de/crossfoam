@@ -802,7 +802,18 @@ var visualizeNetwork = function (serviceKey, centralNode, nUuid, timestamp, uniq
 };
 exports.visualizeNetwork = visualizeNetwork;
 var updateNetworkDictionary = function (serviceKey, centralNode, nUuid, timestamp, uniqueID, queue) {
-    return Promise.all([cfData.get("s--" + serviceKey + "--a--" + centralNode + "-" + nUuid + "--nw", {}), cfData.get("s--" + serviceKey + "--d", { cluster: [], nodes: {} })]).then(function (data) {
+    return Promise.all([cfData.get("s--" + serviceKey + "--a--" + centralNode + "-" + nUuid + "--nw", {}), cfData.get("s--" + serviceKey + "--d", { cluster: [], nodes: {}, altNodes: {} })]).then(function (data) {
+        // migration
+        if (!("altNodes" in data[1])) {
+            data[1].altNodes = {};
+        }
+        var reverseKeyMap = [{}, {}];
+        Object.keys(data[0].nodeKeys).forEach(function (nodeId) {
+            reverseKeyMap[0][data[0].nodeKeys[nodeId]] = nodeId;
+        });
+        Object.keys(data[0].proxyKeys).forEach(function (nodeId) {
+            reverseKeyMap[1][data[0].nodeKeys[nodeId]] = nodeId;
+        });
         var clusterKeys = {};
         data[1].cluster.forEach(function (cluster, ci) {
             clusterKeys[cluster.id.join("-")] = ci;
@@ -822,13 +833,17 @@ var updateNetworkDictionary = function (serviceKey, centralNode, nUuid, timestam
                     }
                 }
             });
-            // TODO: Apply Clusters to proxies [, data[0].proxies]
-            [data[0].nodes].forEach(function (nodes) {
-                nodes.forEach(function (node) {
+            [data[0].nodes, data[0].proxies].forEach(function (nodes, ni) {
+                nodes.forEach(function (node, nodeIndex) {
                     var userCluster = node[6][clusterAlgoId];
                     userCluster.forEach(function (clusterId) {
                         if (!(node[1] in data[1].nodes)) {
                             data[1].nodes[node[1]] = [];
+                        }
+                        if (nodeIndex in reverseKeyMap[ni]) {
+                            if (!(reverseKeyMap[ni][nodeIndex] in data[1].altNodes)) {
+                                data[1].altNodes[reverseKeyMap[ni][nodeIndex]] = node[1];
+                            }
                         }
                         var tId = nUuid + "-" + clusterAlgoId + "-" + clusterId;
                         if (tId in clusterKeys && data[1].nodes[node[1]].indexOf(clusterKeys[tId]) === -1) {
@@ -838,8 +853,12 @@ var updateNetworkDictionary = function (serviceKey, centralNode, nUuid, timestam
                 });
             });
         }
-        queue.call("updateDictionary", [], timestamp, uniqueID);
         return cfData.set("s--" + serviceKey + "--d", data[1]);
+    }).then(function () {
+        if (queue) {
+            queue.call("updateDictionary", [], timestamp, uniqueID);
+        }
+        return Promise.resolve();
     });
 };
 exports.updateNetworkDictionary = updateNetworkDictionary;
@@ -39613,7 +39632,7 @@ __webpack_require__.r(__webpack_exports__);
   "service_name": "Twitter",
   "service_key": "twitter",
   "queue_functions": [{ "name": "getUser", "paramCount": [1, 1], "skip": false, "passDown": true, "timeout": 60000 }, { "name": "getUsers", "paramCount": [2, 2], "skip": true, "passDown": true, "timeout": 1000 }, { "name": "getFriendsIds", "paramCount": [5, 5], "skip": true, "passDown": true, "timeout": 60000 }, { "name": "getFriends", "paramCount": [5, 5], "skip": true, "passDown": true, "timeout": 60000 }],
-  "regex": /http[s]*:\/\/[wwww.]*twitter\.com\/((?!(settings|hashtag|status|hashtags|explore|notifications|messages|home|compose|search|tos))[^\/]{3,})/,
+  "regex": /http[s]*:\/\/[wwww.]*twitter\.com[\/i\/user]*\/((?!(settings|hashtag|status|hashtags|explore|notifications|messages|home|compose|search|tos))[^\/]{3,})/,
   "regex_exclude": /http[s]*:\/\/[wwww.]*twitter\.com\/([^\/]{3,})\/(status|followers_you_follow|following|followers)/
 });
 
@@ -71083,7 +71102,6 @@ browser.runtime.onMessage.addListener(browserMessage);
 /* --------------------------------- */
 // When the extension is installed or updated let the user know...
 var handleInstalled = function (details) {
-    console.log(details);
     // Don't notify user's if in dev mode
     if (!details.temporary) {
         switch (details.reason) {
@@ -71131,6 +71149,12 @@ var installData = function () {
                 })
                     .then(function () {
                     return _crossfoam_data__WEBPACK_IMPORTED_MODULE_0__["set"]("s--twitter--a--wikidata-d1f6b7b3--nw", data["s--twitter--a--wikidata-d1f6b7b3--nw"]);
+                })
+                    .then(function () {
+                    return Object(_crossfoam_network__WEBPACK_IMPORTED_MODULE_1__["updateNetworkDictionary"])("twitter", "wikidata", "d1f6b7b3");
+                })
+                    .then(function () {
+                    updateDictionary();
                 })
                     .catch(function (err) {
                     throw err;
