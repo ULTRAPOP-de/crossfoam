@@ -300,6 +300,9 @@ const startScrape = (found: [string, string], tab: any) => {
                 return cfData.set(`s--${found[0]}--u`, data);
               }
             });
+            // .then(() => {
+            //   return cfData.get();
+            // });
         }
       })
       .catch((error) => {

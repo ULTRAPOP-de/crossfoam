@@ -64,7 +64,7 @@ const updateList = () => {
         if (d.callCount === null) {
           return browser.i18n.getMessage("popupPending");
         }
-        return ((d.callCount === null) ? 0 : d.callCount) + "<span>/</span>" + d.completeCount;
+        return d.completeCount + "<span>/</span>" + ((d.callCount === null) ? 0 : d.callCount);
       });
 
   } else {
@@ -78,7 +78,14 @@ let destroySpinner: () => {};
 const loadUpdate = () => {
   getScrapes()
     .then((tempScrapes) => {
-      scrapes = tempScrapes.filter((scrape) => !scrape.completed);
+      scrapes = tempScrapes.filter((scrape) => {
+        if ("completed" in scrape && scrape.completed) {
+          return false;
+        } else if ("state" in scrape && scrape.state === "complete") {
+          return false;
+        }
+        return true;
+      });
       updateList();
       if (!spinnerDestroyed) {
         spinnerDestroyed = true;

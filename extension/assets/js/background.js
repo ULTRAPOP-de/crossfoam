@@ -301,13 +301,21 @@ var jLouvain = __webpack_require__(/*! jlouvain */ "../crossfoam-network/node_mo
 // TODO: Move this to something centralized or even config, so people can switch cluster-algos
 var clusterAlgoId = 0;
 var estimateCompletion = function (service, centralNode, nUuid, timestamp, uniqueID, queue) {
-    return cfData.get("s--" + service + "--nw--" + centralNode).then(function (networkData) {
+    return cfData.get("s--" + service + "--nw--" + centralNode, {}).then(function (networkData) {
+        if (!(nUuid in networkData)) {
+            networkData[nUuid] = {};
+        }
         return cfData.get("s--" + service + "--a--" + centralNode + "-" + nUuid + "--n", {}).then(function (nodes) {
             var callCount = 0;
             var completeCount = 0;
             var completedNodes = 0;
             Object.keys(nodes).forEach(function (node) {
                 var tCallCount = Math.ceil(nodes[node].friends_count / 5000);
+                // TODO: Move to configs
+                // Current Limit is 20.000 friends of friends 
+                if (tCallCount > 4) {
+                    tCallCount = 4;
+                }
                 callCount += tCallCount;
                 if (nodes[node].protected) {
                     completeCount += tCallCount;
@@ -319,7 +327,6 @@ var estimateCompletion = function (service, centralNode, nUuid, timestamp, uniqu
                     }
                 }
             });
-            networkData[nUuid].completed = completedNodes === Object.keys(nodes).length ? true : false;
             networkData[nUuid].callCount = callCount;
             networkData[nUuid].nodeCount = Object.keys(nodes).length;
             networkData[nUuid].completeCount = completeCount;
@@ -333,7 +340,12 @@ var estimateCompletion = function (service, centralNode, nUuid, timestamp, uniqu
 };
 exports.estimateCompletion = estimateCompletion;
 var buildNetwork = function (service, centralNode, nUuid, timestamp, uniqueID, queue) {
-    return cfData.get("s--" + service + "--a--" + centralNode + "-" + nUuid + "--n").then(function (network) {
+    return cfData.get("s--" + service + "--nw--" + centralNode, {}).then(function (networkObject) {
+        networkObject[nUuid].state = "network";
+        return cfData.set("s--" + service + "--nw--" + centralNode, networkObject);
+    }).then(function () {
+        return cfData.get("s--" + service + "--a--" + centralNode + "-" + nUuid + "--n");
+    }).then(function (network) {
         var edges = [];
         var edgesMap = {};
         var nodes = [];
@@ -854,6 +866,11 @@ var updateNetworkDictionary = function (serviceKey, centralNode, nUuid, timestam
             });
         }
         return cfData.set("s--" + serviceKey + "--d", data[1]);
+    }).then(function () {
+        return cfData.get("s--" + serviceKey + "--nw--" + centralNode, {});
+    }).then(function (networkObject) {
+        networkObject[nUuid].state = "complete";
+        return cfData.set("s--" + serviceKey + "--nw--" + centralNode, networkObject);
     }).then(function () {
         if (queue) {
             queue.call("updateDictionary", [], timestamp, uniqueID);
@@ -39893,6 +39910,7 @@ var getUser = function (screenName, timestamp, uniqueID, queue) {
                         name: result.reply.name
                     });
                 }).then(function () {
+                    console.log("added");
                     queue.call(config_js_1.default.service_key + "--getFriendsIds", [screenName, undefined, screenName, nUuid, -1], timestamp, uniqueID);
                     // queue.call("getFollowersIds", [screenName, true, nUuid, -1]);
                     return Promise.resolve();
@@ -39914,8 +39932,12 @@ var scrapeAble = function (screenName, userId, centralNode, nUuid) {
     });
 };
 var getFriendsIds = function (screenName, userId, centralNode, nUuid, cursor, timestamp, uniqueID, queue) {
-    // Check if this user is scrape-able
-    return scrapeAble(screenName, userId, centralNode, nUuid).then(function (isScrapeAble) {
+    return cfData.get("s--" + config_js_1.default.service_key + "--nw--" + centralNode, {}).then(function (networkObject) {
+        networkObject[nUuid].state = "loading";
+        return cfData.set("s--" + config_js_1.default.service_key + "--nw--" + centralNode, networkObject);
+    }).then(function () {
+        return scrapeAble(screenName, userId, centralNode, nUuid);
+    }).then(function (isScrapeAble) {
         if (!isScrapeAble && screenName !== centralNode) {
             return Promise.resolve();
         } else {
@@ -40365,9 +40387,11 @@ var getScrapes = function () {
                             completeCount: screenNameNetworkData[scrapeID].completeCount,
                             completed: screenNameNetworkData[scrapeID].completed,
                             date: screenNameNetworkData[scrapeID].date,
+                            nodeCount: screenNameNetworkData[scrapeID].nodeCount,
                             nUuid: scrapeID,
                             screenName: screenNamesList[serviceID][screenNameID],
-                            service: Object.keys(services)[serviceID]
+                            service: Object.keys(services)[serviceID],
+                            state: screenNameNetworkData[scrapeID].state
                         });
                     });
                 });
@@ -71044,6 +71068,9 @@ var startScrape = function (found, tab) {
                         return _crossfoam_data__WEBPACK_IMPORTED_MODULE_0__["set"]("s--" + found[0] + "--u", data);
                     }
                 });
+                // .then(() => {
+                //   return cfData.get();
+                // });
             }
         })
             .catch(function (error) {

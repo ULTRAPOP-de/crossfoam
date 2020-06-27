@@ -352,7 +352,7 @@ svg.logoSpinner {
 #scrape-container, #exportContainer {
   margin: 100px auto 0 auto;
   width: 80%;
-  max-width: 600px;
+  max-width: 960px;
   /* TODO: rename to listItem, etc. */ }
   #scrape-container ul, #scrape-container li, #exportContainer ul, #exportContainer li {
     list-style: none;

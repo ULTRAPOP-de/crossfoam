@@ -110,13 +110,21 @@ var jLouvain = __webpack_require__(/*! jlouvain */ "../crossfoam-network/node_mo
 // TODO: Move this to something centralized or even config, so people can switch cluster-algos
 var clusterAlgoId = 0;
 var estimateCompletion = function (service, centralNode, nUuid, timestamp, uniqueID, queue) {
-    return cfData.get("s--" + service + "--nw--" + centralNode).then(function (networkData) {
+    return cfData.get("s--" + service + "--nw--" + centralNode, {}).then(function (networkData) {
+        if (!(nUuid in networkData)) {
+            networkData[nUuid] = {};
+        }
         return cfData.get("s--" + service + "--a--" + centralNode + "-" + nUuid + "--n", {}).then(function (nodes) {
             var callCount = 0;
             var completeCount = 0;
             var completedNodes = 0;
             Object.keys(nodes).forEach(function (node) {
                 var tCallCount = Math.ceil(nodes[node].friends_count / 5000);
+                // TODO: Move to configs
+                // Current Limit is 20.000 friends of friends 
+                if (tCallCount > 4) {
+                    tCallCount = 4;
+                }
                 callCount += tCallCount;
                 if (nodes[node].protected) {
                     completeCount += tCallCount;
@@ -128,7 +136,6 @@ var estimateCompletion = function (service, centralNode, nUuid, timestamp, uniqu
                     }
                 }
             });
-            networkData[nUuid].completed = completedNodes === Object.keys(nodes).length ? true : false;
             networkData[nUuid].callCount = callCount;
             networkData[nUuid].nodeCount = Object.keys(nodes).length;
             networkData[nUuid].completeCount = completeCount;
@@ -142,7 +149,12 @@ var estimateCompletion = function (service, centralNode, nUuid, timestamp, uniqu
 };
 exports.estimateCompletion = estimateCompletion;
 var buildNetwork = function (service, centralNode, nUuid, timestamp, uniqueID, queue) {
-    return cfData.get("s--" + service + "--a--" + centralNode + "-" + nUuid + "--n").then(function (network) {
+    return cfData.get("s--" + service + "--nw--" + centralNode, {}).then(function (networkObject) {
+        networkObject[nUuid].state = "network";
+        return cfData.set("s--" + service + "--nw--" + centralNode, networkObject);
+    }).then(function () {
+        return cfData.get("s--" + service + "--a--" + centralNode + "-" + nUuid + "--n");
+    }).then(function (network) {
         var edges = [];
         var edgesMap = {};
         var nodes = [];
@@ -663,6 +675,11 @@ var updateNetworkDictionary = function (serviceKey, centralNode, nUuid, timestam
             });
         }
         return cfData.set("s--" + serviceKey + "--d", data[1]);
+    }).then(function () {
+        return cfData.get("s--" + serviceKey + "--nw--" + centralNode, {});
+    }).then(function (networkObject) {
+        networkObject[nUuid].state = "complete";
+        return cfData.set("s--" + serviceKey + "--nw--" + centralNode, networkObject);
     }).then(function () {
         if (queue) {
             queue.call("updateDictionary", [], timestamp, uniqueID);

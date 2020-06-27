@@ -282,7 +282,11 @@ const selectionView = () => {
       const scrapeRight = li.append("span")
         .classed("scrapeMeta", true);
 
-      if (!scrape.completed) {
+      console.log(scrape);
+
+      if (
+        (scrape.state !== "complete" && scrape.completed === undefined) ||
+        (scrape.state !== "complete" && !scrape.completed)) {
         scrapeRight.append("span")
           .text(browser.i18n.getMessage("selectionInProgress"))
           .classed("scrapeState", true);
@@ -297,7 +301,7 @@ const selectionView = () => {
       scrapeRight.append("br");
 
       scrapeRight.append("span")
-        .text(scrape.completeCount + " Nodes")
+        .text(scrape.nodeCount + " Nodes")
         .classed("scrapeCount", true);
 
       li.append("hr");

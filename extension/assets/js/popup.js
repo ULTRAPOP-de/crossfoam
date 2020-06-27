@@ -363,6 +363,7 @@ var getUser = function (screenName, timestamp, uniqueID, queue) {
                         name: result.reply.name
                     });
                 }).then(function () {
+                    console.log("added");
                     queue.call(config_js_1.default.service_key + "--getFriendsIds", [screenName, undefined, screenName, nUuid, -1], timestamp, uniqueID);
                     // queue.call("getFollowersIds", [screenName, true, nUuid, -1]);
                     return Promise.resolve();
@@ -384,8 +385,12 @@ var scrapeAble = function (screenName, userId, centralNode, nUuid) {
     });
 };
 var getFriendsIds = function (screenName, userId, centralNode, nUuid, cursor, timestamp, uniqueID, queue) {
-    // Check if this user is scrape-able
-    return scrapeAble(screenName, userId, centralNode, nUuid).then(function (isScrapeAble) {
+    return cfData.get("s--" + config_js_1.default.service_key + "--nw--" + centralNode, {}).then(function (networkObject) {
+        networkObject[nUuid].state = "loading";
+        return cfData.set("s--" + config_js_1.default.service_key + "--nw--" + centralNode, networkObject);
+    }).then(function () {
+        return scrapeAble(screenName, userId, centralNode, nUuid);
+    }).then(function (isScrapeAble) {
         if (!isScrapeAble && screenName !== centralNode) {
             return Promise.resolve();
         } else {
@@ -835,9 +840,11 @@ var getScrapes = function () {
                             completeCount: screenNameNetworkData[scrapeID].completeCount,
                             completed: screenNameNetworkData[scrapeID].completed,
                             date: screenNameNetworkData[scrapeID].date,
+                            nodeCount: screenNameNetworkData[scrapeID].nodeCount,
                             nUuid: scrapeID,
                             screenName: screenNamesList[serviceID][screenNameID],
-                            service: Object.keys(services)[serviceID]
+                            service: Object.keys(services)[serviceID],
+                            state: screenNameNetworkData[scrapeID].state
                         });
                     });
                 });
@@ -60361,7 +60368,7 @@ var updateList = function () {
             if (d.callCount === null) {
                 return browser.i18n.getMessage("popupPending");
             }
-            return ((d.callCount === null) ? 0 : d.callCount) + "<span>/</span>" + d.completeCount;
+            return d.completeCount + "<span>/</span>" + ((d.callCount === null) ? 0 : d.callCount);
         });
     }
     else {
@@ -60373,7 +60380,15 @@ var destroySpinner;
 var loadUpdate = function () {
     Object(_crossfoam_services__WEBPACK_IMPORTED_MODULE_0__["getScrapes"])()
         .then(function (tempScrapes) {
-        scrapes = tempScrapes.filter(function (scrape) { return !scrape.completed; });
+        scrapes = tempScrapes.filter(function (scrape) {
+            if ("completed" in scrape && scrape.completed) {
+                return false;
+            }
+            else if ("state" in scrape && scrape.state === "complete") {
+                return false;
+            }
+            return true;
+        });
         updateList();
         if (!spinnerDestroyed) {
             spinnerDestroyed = true;
