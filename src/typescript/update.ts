@@ -1,14 +1,15 @@
+import { setHTML } from "@crossfoam/ui-helpers";
 import { setupFooter, setupVersion } from "./nav";
 
-document.querySelector("#versionControl").innerHTML = browser.i18n.getMessage(
+setHTML("#versionControl", browser.i18n.getMessage(
   "updateVersion",
   [
     window.location.href.split("=")[1],
     browser.runtime.getManifest().version,
   ],
-);
+));
 
-document.querySelector("#githubPromote").innerHTML = browser.i18n.getMessage("githubPromote");
+setHTML("#githubPromote", browser.i18n.getMessage("githubPromote"));
 
 const list = document.querySelector("#updateMessage ul");
 

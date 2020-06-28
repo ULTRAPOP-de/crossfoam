@@ -1,3 +1,4 @@
+import { setHTML } from "@crossfoam/ui-helpers";
 import * as d3 from "d3";
 import { history } from "d3-history";
 
@@ -25,8 +26,8 @@ const setupVersion = () => {
 };
 
 const setupFooter = () => {
-  d3.select("#footer--legalLink").html(browser.i18n.getMessage("legal"));
-  d3.select("#footer--contactLink").html(browser.i18n.getMessage("contact"));
+  setHTML("#footer--legalLink", browser.i18n.getMessage("legal"));
+  setHTML("#footer--contactLink", browser.i18n.getMessage("contact"));
 };
 
 /*---------- D3-HISTORY ----------*/

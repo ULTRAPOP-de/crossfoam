@@ -5579,9 +5579,7 @@ var EOL = {},
     RETURN = 13;
 
 function objectConverter(columns) {
-  return new Function("d", "return {" + columns.map(function(name, i) {
-    return JSON.stringify(name) + ": d[" + i + "] || \"\"";
-  }).join(",") + "}");
+  return function (d) {var col = {};columns.forEach(function(name, i) {col[JSON.stringify(name)] = d[i] || "";});return col;};
 }
 
 function customConverter(columns, f) {
@@ -20534,14 +20532,14 @@ function htmlRemove() {
 
 function htmlConstant(value) {
   return function() {
-    this.innerHTML = value;
+    var that = this; this.textContent = ""; var parser = new DOMParser(); var parsed = parser.parseFromString(value, "text/html"); var tags = Array.from(parsed.getElementsByTagName("body")[0].childNodes); tags.forEach(function (tag) { that.append(tag); });
   };
 }
 
 function htmlFunction(value) {
   return function() {
     var v = value.apply(this, arguments);
-    this.innerHTML = v == null ? "" : v;
+    var that = this; this.textContent = ""; if (v != null) { var parser = new DOMParser(); var parsed = parser.parseFromString(v, "text/html"); var tags = Array.from(parsed.getElementsByTagName("body")[0].childNodes); tags.forEach(function (tag) { that.append(tag); }); }
   };
 }
 

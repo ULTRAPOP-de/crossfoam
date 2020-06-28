@@ -45,8 +45,30 @@ module.exports = {
       { test: /\.ts$/, loader: "awesome-typescript-loader" },
 
       // All output '.js' files will have any sourcemaps re-processed by 'source-map-loader'.
-      { enforce: "pre", test: /\.js$/, loader: "source-map-loader" }
-      
+      { enforce: "pre", test: /\.js$/, loader: "source-map-loader" },
+
+      {
+        test: /\.js$/,
+        loader: 'string-replace-loader',
+        options: {
+          multiple: [
+             // remove d3's usage of innerHTML
+            {
+              search: `this.innerHTML = value;`,
+              replace: `var that = this; this.textContent = ""; var parser = new DOMParser(); var parsed = parser.parseFromString(value, "text/html"); var tags = Array.from(parsed.getElementsByTagName("body")[0].childNodes); tags.forEach(function (tag) { that.append(tag); });`,
+            },
+            {
+              search: `this.innerHTML = v == null ? "" : v;`,
+              replace: `var that = this; this.textContent = ""; if (v != null) { var parser = new DOMParser(); var parsed = parser.parseFromString(v, "text/html"); var tags = Array.from(parsed.getElementsByTagName("body")[0].childNodes); tags.forEach(function (tag) { that.append(tag); }); }`,
+            },
+            // remove the DSVs parse usage of new Function > eval
+            {
+              search: /(return new Function\("d", "return {" \+ columns.map\(function\(name, i\) {)(\r\n|\r|\n)*(\t|\s)*(return JSON\.stringify\(name\) \+ ": d\[" \+ i \+ "\] \|\| \\"\\"";)(\r\n|\r|\n)*(\t|\s)*(\}\)\.join\(","\) \+ "\}"\);)/,
+              replace: `return function (d) {var col = {};columns.forEach(function(name, i) {col[JSON.stringify(name)] = d[i] || "";});return col;};`,
+            },
+          ]
+        }
+      }
     ]
   },
 
@@ -58,10 +80,10 @@ module.exports = {
     }),
     new CopyWebpackPlugin({
       patterns: [
-        { from: 'node_modules/webextension-polyfill/dist/browser-polyfill.js', to: 'extension/assets/js/browser-polyfill.js' },
-        { from: 'node_modules/webextension-polyfill/dist/browser-polyfill.js.map', to: 'extension/assets/js/browser-polyfill.js.map' },
-        { from: 'node_modules/q/q.js', to: 'extension/assets/js/q.js' },
-        { from: 'node_modules/codebird/codebird.js', to: 'extension/assets/js/codebird.js' },
+        { from: 'node_modules/webextension-polyfill/dist/browser-polyfill.js', to: 'browser-polyfill.js' },
+        { from: 'node_modules/webextension-polyfill/dist/browser-polyfill.js.map', to: 'browser-polyfill.js.map' },
+        { from: 'node_modules/q/q.js', to: 'q.js' },
+        { from: 'node_modules/codebird/codebird.js', to: 'codebird.js' },
       ]
     })
   ],

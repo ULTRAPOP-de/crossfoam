@@ -1,3 +1,4 @@
+import { setHTML } from "@crossfoam/ui-helpers";
 import { setupFooter, setupVersion } from "./nav";
 
 const translateInstall = [
@@ -18,7 +19,7 @@ const translateInstall = [
 ];
 
 translateInstall.forEach((t) => {
-  document.querySelector("#" + t).innerHTML = browser.i18n.getMessage(t);
+  setHTML("#" + t, browser.i18n.getMessage(t));
 });
 
 setupVersion();

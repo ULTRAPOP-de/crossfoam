@@ -1,3 +1,4 @@
+import { setHTML } from "@crossfoam/ui-helpers";
 import { setupFooter, setupVersion } from "./nav";
 
 const translates = [
@@ -36,7 +37,7 @@ const translates = [
 ];
 
 translates.forEach((t: [string, string]) => {
-  document.querySelector("#" + t[0]).innerHTML = browser.i18n.getMessage(t[1]);
+  setHTML("#" + t[0], browser.i18n.getMessage(t[1]));
 });
 
 setupVersion();

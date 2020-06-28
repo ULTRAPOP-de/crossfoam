@@ -875,6 +875,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var cfData = __webpack_require__(/*! @crossfoam/data */ "./node_modules/@crossfoam/data/dst/index.js");
+var ui_helpers_1 = __webpack_require__(/*! @crossfoam/ui-helpers */ "./node_modules/@crossfoam/ui-helpers/dst/index.js");
 var config_js_1 = __webpack_require__(/*! ../config.js */ "./node_modules/@crossfoam/service-twitter/config.js");
 exports.config = config_js_1.default;
 // Allow content_scripts to include the services module without codebird
@@ -924,14 +925,14 @@ var createOptions = function (htmlContainer) {
     authRequired()
         .then(function (required) {
         if (required) {
-            htmlContainer.innerHTML = "<p>" + browser.i18n.getMessage("servicesTwitterAuthorizeNote") + "</p><br /><button id='twitter--auth-button'>" + browser.i18n.getMessage("servicesTwitterAuthorize") + "</button>";
+            ui_helpers_1.addHTML(htmlContainer, "<p>" + browser.i18n.getMessage("servicesTwitterAuthorizeNote") + "</p><br /><button id='twitter--auth-button'>" + browser.i18n.getMessage("servicesTwitterAuthorize") + "</button>");
             document.getElementById("twitter--auth-button")
                 .addEventListener("click", function () {
                 auth(htmlContainer);
             });
         }
         else {
-            htmlContainer.innerHTML = browser.i18n.getMessage("servicesTwitterAuthorized");
+            ui_helpers_1.addHTML(htmlContainer, browser.i18n.getMessage("servicesTwitterAuthorized"));
         }
     })
         .catch(function (err) {
@@ -997,7 +998,7 @@ var auth = function (htmlContainer) {
     })
         .then(function () {
         // Modify the html add a click listener with connection to new function
-        htmlContainer.innerHTML = "<p>" + browser.i18n.getMessage("servicesTwitterAuthorizeNote") + "</p><br />              <input                 type='text'                 placeholder='Twitter PIN'                 id='twitter--auth-pin' />              <button                 id='twitter--auth-button'>                " + browser.i18n.getMessage("servicesTwitterAuthorizeFinish") + "              </button>";
+        ui_helpers_1.addHTML(htmlContainer, "<p>" + browser.i18n.getMessage("servicesTwitterAuthorizeNote") + "</p><br />              <input                 type='text'                 placeholder='Twitter PIN'                 id='twitter--auth-pin' />              <button                 id='twitter--auth-button'>                " + browser.i18n.getMessage("servicesTwitterAuthorizeFinish") + "              </button>");
         document.getElementById("twitter--auth-button")
             .addEventListener("click", function () {
             var value = document.getElementById("twitter--auth-pin").value;
@@ -1014,7 +1015,7 @@ exports.auth = auth;
 var auth2 = function (htmlContainer, pin) {
     return cb.__call("oauth_accessToken", { oauth_verifier: pin }).then(function (reply) {
         cfData.set(authTokenKey, reply.reply);
-        htmlContainer.innerHTML = browser.i18n.getMessage("servicesTwitterAuthorized");
+        ui_helpers_1.addHTML(htmlContainer, browser.i18n.getMessage("servicesTwitterAuthorized"));
     });
 };
 var getBiggerPicture = function (url) {
@@ -1429,7 +1430,7 @@ exports.getScrapes = getScrapes;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-var utils_1 = __webpack_require__(/*! @crossfoam/utils */ "./node_modules/@crossfoam/ui-helpers/node_modules/@crossfoam/utils/dst/index.js");
+var utils_1 = __webpack_require__(/*! @crossfoam/utils */ "./node_modules/@crossfoam/utils/dst/index.js");
 var d3 = __webpack_require__(/*! d3 */ "./node_modules/d3/index.js");
 var modalButtons = function (buttons) {
     var buttonStr = "";
@@ -1465,9 +1466,8 @@ var modal = function (content) {
         .setAttribute("class", "cf--modal-container");
     modalContainer
         .setAttribute("id", "cf--modal-container-" + modalUUID);
-    modalContainer
-        .innerHTML = "<div class=\"cf--modal-box\">\n    <div class=\"cf--modal-header\"\n      style=\"background-image:url(" + browser.runtime.getURL("assets/images/modal-header" +
-        ((isRetinaDisplay) ? "@2x" : "") + ".png") + ");\"></div>\n    <div class=\"cf--modal-title\">" + (content.title || "") + "</div>\n    <div class=\"cf--modal-message\">" + (content.message || "") + "</div>\n    <div class=\"cf--modal-buttons\">\n      " + modalButtons(content.buttons) + "\n    </div>\n</div>";
+    addHTML(modalContainer, "<div class=\"cf--modal-box\">\n    <div class=\"cf--modal-header\"\n      style=\"background-image:url(" + browser.runtime.getURL("assets/images/modal-header" +
+        ((isRetinaDisplay) ? "@2x" : "") + ".png") + ");\"></div>\n    <div class=\"cf--modal-title\">" + (content.title || "") + "</div>\n    <div class=\"cf--modal-message\">" + (content.message || "") + "</div>\n    <div class=\"cf--modal-buttons\">\n      " + modalButtons(content.buttons) + "\n    </div>\n</div>");
     document.body.appendChild(modalContainer);
     return new Promise(function (resolve, reject) {
         content.buttons.forEach(function (button, bi) {
@@ -1787,8 +1787,7 @@ var blockSplash = function (message) {
         .setAttribute("class", "cf--modal-container");
     modalContainer
         .setAttribute("id", "cf--modal-container-" + modalUUID);
-    modalContainer
-        .innerHTML = "<div class=\"cf--modal-box cf--modal-box-transparent\">\n    <div class=\"cf--modal-spinner\"></div>\n    <div class=\"cf--modal-message\">v3 " + (message || "") + "</div>\n</div>";
+    addHTML(modalContainer, "<div class=\"cf--modal-box cf--modal-box-transparent\">\n    <div class=\"cf--modal-spinner\"></div>\n    <div class=\"cf--modal-message\">v3 " + (message || "") + "</div>\n</div>");
     document.body.appendChild(modalContainer);
     var destroySpinner = logoSpinner("#cf--modal-container-" + modalUUID + " .cf--modal-spinner", 50, "#ffffff");
     return function () {
@@ -1803,153 +1802,20 @@ var formatNumber = function (n, lang) {
     return parts.join((lang === "de") ? "," : ".");
 };
 exports.formatNumber = formatNumber;
-
-
-/***/ }),
-
-/***/ "./node_modules/@crossfoam/ui-helpers/node_modules/@crossfoam/utils/dst/index.js":
-/*!***************************************************************************************!*\
-  !*** ./node_modules/@crossfoam/ui-helpers/node_modules/@crossfoam/utils/dst/index.js ***!
-  \***************************************************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", { value: true });
-var throttle = function (t) {
-    return new Promise(function (resolve) {
-        setTimeout(resolve, t);
+var setHTML = function (selector, html) {
+    var node = document.querySelector(selector);
+    addHTML(node, html);
+};
+exports.setHTML = setHTML;
+var addHTML = function (node, html) {
+    node.textContent = "";
+    var parser = new DOMParser();
+    var parsed = parser.parseFromString(html, "text/html");
+    var tags = Array.from(parsed.getElementsByTagName("body")[0].childNodes);
+    tags.forEach(function (tag) {
+        node.append(tag);
     });
 };
-exports.throttle = throttle;
-// inspired by uuid v4 (shortened) https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
-/* tslint:disable:no-bitwise */
-var uuid = function () {
-    return "xxxxxxxx".replace(/[xy]/g, function (c) {
-        var r = Math.random() * 16 | 0;
-        var v = c === "x" ? r : (r & 0x3 | 0x8);
-        return v.toString(16);
-    });
-};
-exports.uuid = uuid;
-/* tslint:enable:no-bitwise */
-var formatDate = function (date, withTime) {
-    if (withTime === void 0) { withTime = false; }
-    // TODO: Language based formatting of dates
-    var lang = "en";
-    switch (lang) {
-        case "de":
-            return dateNull(date.getDate())
-                + "." + dateNull((date.getMonth() + 1))
-                + "." + dateNull(date.getFullYear())
-                + ((withTime) ? " " + dateNull(date.getHours()) + ":" + dateNull(date.getMinutes()) : "");
-            break;
-        default:
-            return dateNull(date.getFullYear())
-                + "/" + dateNull((date.getMonth() + 1))
-                + "/" + dateNull(date.getDate())
-                + ((withTime) ? " " + dateNull(date.getHours()) + ":" + dateNull(date.getMinutes()) : "");
-            break;
-    }
-};
-exports.formatDate = formatDate;
-var dateNull = function (num) {
-    return (num < 10) ? "0" + num : "" + num;
-};
-var cleanNumber = function (duration) {
-    if (duration === Math.floor(duration)) {
-        return duration;
-    }
-    else if (parseFloat(duration.toFixed(1)) === parseFloat(duration.toFixed(2))) {
-        return duration.toFixed(1);
-    }
-    else {
-        return duration.toFixed(2);
-    }
-};
-var formatDuration = function (duration) {
-    duration = duration / 1000;
-    if (duration < 60) {
-        return Math.floor(duration) +
-            " " + browser.i18n.getMessage("secondsShort");
-    }
-    else {
-        duration = duration / 60;
-        if (duration < 60) {
-            return cleanNumber(duration) +
-                " " + browser.i18n.getMessage("minutesShort");
-        }
-        else {
-            duration = duration / 60;
-            if (duration < 24) {
-                return cleanNumber(duration) +
-                    " " + browser.i18n.getMessage("hoursShort");
-            }
-            else {
-                duration = duration / 24;
-                return cleanNumber(duration) +
-                    " " + browser.i18n.getMessage("daysShort");
-            }
-        }
-    }
-};
-exports.formatDuration = formatDuration;
-var objEmpty = function (obj) {
-    for (var key in obj) {
-        if (obj.hasOwnProperty(key)) {
-            return false;
-        }
-    }
-    return true;
-};
-exports.objEmpty = objEmpty;
-var downloadFile = function (fileData, fileType, fileName) {
-    var file = new Blob([fileData], {
-        type: fileType,
-    });
-    return browser.downloads.download({
-        // window.URL ??
-        filename: fileName,
-        saveAs: true,
-        url: URL.createObjectURL(file),
-    }).then(function (downloadId) {
-        return Promise.resolve();
-    }).catch(function (error) {
-        throw new Error("Download failed. " + JSON.stringify(error));
-    });
-};
-exports.downloadFile = downloadFile;
-var debounce = function (func, wait, immediate) {
-    if (wait === void 0) { wait = 200; }
-    if (immediate === void 0) { immediate = false; }
-    var timeout = null;
-    var again = false;
-    return function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
-        var callNow = immediate && timeout === null;
-        var next = function () { return func.apply(null, args); };
-        if (timeout === null) {
-            timeout = setTimeout(function () {
-                timeout = null;
-                if (again) {
-                    next();
-                    again = false;
-                }
-            }, wait);
-        }
-        else {
-            again = true;
-        }
-        if (callNow) {
-            next();
-        }
-    };
-};
-exports.debounce = debounce;
 
 
 /***/ }),
@@ -3483,7 +3349,7 @@ var __spreadArrays = (this && this.__spreadArrays) || function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.OverviewVis = void 0;
 var ui_helpers_1 = __webpack_require__(/*! @crossfoam/ui-helpers */ "./node_modules/@crossfoam/ui-helpers/dst/index.js");
-var utils_1 = __webpack_require__(/*! @crossfoam/utils */ "./node_modules/@crossfoam/vis/node_modules/@crossfoam/utils/dst/index.js");
+var utils_1 = __webpack_require__(/*! @crossfoam/utils */ "./node_modules/@crossfoam/utils/dst/index.js");
 var d3 = __webpack_require__(/*! d3 */ "./node_modules/d3/index.js");
 var REGL = __webpack_require__(/*! regl */ "./node_modules/regl/dist/regl.js");
 var vis_1 = __webpack_require__(/*! ./vis */ "./node_modules/@crossfoam/vis/dst/vis.js");
@@ -3889,7 +3755,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Vis = void 0;
 var cfData = __webpack_require__(/*! @crossfoam/data */ "./node_modules/@crossfoam/data/dst/index.js");
 var ui_helpers_1 = __webpack_require__(/*! @crossfoam/ui-helpers */ "./node_modules/@crossfoam/ui-helpers/dst/index.js");
-var utils_1 = __webpack_require__(/*! @crossfoam/utils */ "./node_modules/@crossfoam/vis/node_modules/@crossfoam/utils/dst/index.js");
+var utils_1 = __webpack_require__(/*! @crossfoam/utils */ "./node_modules/@crossfoam/utils/dst/index.js");
 var d3 = __webpack_require__(/*! d3 */ "./node_modules/d3/index.js");
 var Vis = /** @class */ (function () {
     function Vis(stateManager) {
@@ -4269,8 +4135,7 @@ var Vis = /** @class */ (function () {
             .setAttribute("class", "cf--modal-container");
         modalContainer
             .setAttribute("id", "cf--modal-container-" + modalUUID);
-        modalContainer
-            .innerHTML = "<div class=\"cf--modal-box\">\n      <div class=\"cf--modal-title\">" + browser.i18n.getMessage("clusterModifyTitle") + "</div>\n      <div class=\"cf--modal-message\">\n        <form>\n          <label for=\"clusterForm-name\">" + browser.i18n.getMessage("clusterModifyName") + ":</label>\n          <input type=\"text\" value=\"" + data.info.name + "\" id=\"clusterForm-name\" />\n          <input type=\"hidden\" value=\"" + data.info.color + "\" id=\"clusterForm-color\" />\n          <div id=\"colorPickerContainer\" style=\"width:300px;\"></div>\n        </form>\n      </div>\n      <div class=\"cf--modal-buttons\">\n        <button class='cf--modal-button-0' data-value='cancel'>" + browser.i18n.getMessage("cancel") + "</button>\n        <button class='cf--modal-button-1' data-value='save'>" + browser.i18n.getMessage("save") + "</button>\n      </div>\n  </div>";
+        ui_helpers_1.addHTML(modalContainer, "<div class=\"cf--modal-box\">\n      <div class=\"cf--modal-title\">" + browser.i18n.getMessage("clusterModifyTitle") + "</div>\n      <div class=\"cf--modal-message\">\n        <form>\n          <label for=\"clusterForm-name\">" + browser.i18n.getMessage("clusterModifyName") + ":</label>\n          <input type=\"text\" value=\"" + data.info.name + "\" id=\"clusterForm-name\" />\n          <input type=\"hidden\" value=\"" + data.info.color + "\" id=\"clusterForm-color\" />\n          <div id=\"colorPickerContainer\" style=\"width:300px;\"></div>\n        </form>\n      </div>\n      <div class=\"cf--modal-buttons\">\n        <button class='cf--modal-button-0' data-value='cancel'>" + browser.i18n.getMessage("cancel") + "</button>\n        <button class='cf--modal-button-1' data-value='save'>" + browser.i18n.getMessage("save") + "</button>\n      </div>\n  </div>");
         document.body.appendChild(modalContainer);
         ui_helpers_1.colorPicker("colorPickerContainer", "clusterForm-color", 370, data.info.color);
         var removeModal = function () {
@@ -4354,153 +4219,6 @@ var Vis = /** @class */ (function () {
     return Vis;
 }());
 exports.Vis = Vis;
-
-
-/***/ }),
-
-/***/ "./node_modules/@crossfoam/vis/node_modules/@crossfoam/utils/dst/index.js":
-/*!********************************************************************************!*\
-  !*** ./node_modules/@crossfoam/vis/node_modules/@crossfoam/utils/dst/index.js ***!
-  \********************************************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", { value: true });
-var throttle = function (t) {
-    return new Promise(function (resolve) {
-        setTimeout(resolve, t);
-    });
-};
-exports.throttle = throttle;
-// inspired by uuid v4 (shortened) https://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
-/* tslint:disable:no-bitwise */
-var uuid = function () {
-    return "xxxxxxxx".replace(/[xy]/g, function (c) {
-        var r = Math.random() * 16 | 0;
-        var v = c === "x" ? r : (r & 0x3 | 0x8);
-        return v.toString(16);
-    });
-};
-exports.uuid = uuid;
-/* tslint:enable:no-bitwise */
-var formatDate = function (date, withTime) {
-    if (withTime === void 0) { withTime = false; }
-    // TODO: Language based formatting of dates
-    var lang = "en";
-    switch (lang) {
-        case "de":
-            return dateNull(date.getDate())
-                + "." + dateNull((date.getMonth() + 1))
-                + "." + dateNull(date.getFullYear())
-                + ((withTime) ? " " + dateNull(date.getHours()) + ":" + dateNull(date.getMinutes()) : "");
-            break;
-        default:
-            return dateNull(date.getFullYear())
-                + "/" + dateNull((date.getMonth() + 1))
-                + "/" + dateNull(date.getDate())
-                + ((withTime) ? " " + dateNull(date.getHours()) + ":" + dateNull(date.getMinutes()) : "");
-            break;
-    }
-};
-exports.formatDate = formatDate;
-var dateNull = function (num) {
-    return (num < 10) ? "0" + num : "" + num;
-};
-var cleanNumber = function (duration) {
-    if (duration === Math.floor(duration)) {
-        return duration;
-    }
-    else if (parseFloat(duration.toFixed(1)) === parseFloat(duration.toFixed(2))) {
-        return duration.toFixed(1);
-    }
-    else {
-        return duration.toFixed(2);
-    }
-};
-var formatDuration = function (duration) {
-    duration = duration / 1000;
-    if (duration < 60) {
-        return Math.floor(duration) +
-            " " + browser.i18n.getMessage("secondsShort");
-    }
-    else {
-        duration = duration / 60;
-        if (duration < 60) {
-            return cleanNumber(duration) +
-                " " + browser.i18n.getMessage("minutesShort");
-        }
-        else {
-            duration = duration / 60;
-            if (duration < 24) {
-                return cleanNumber(duration) +
-                    " " + browser.i18n.getMessage("hoursShort");
-            }
-            else {
-                duration = duration / 24;
-                return cleanNumber(duration) +
-                    " " + browser.i18n.getMessage("daysShort");
-            }
-        }
-    }
-};
-exports.formatDuration = formatDuration;
-var objEmpty = function (obj) {
-    for (var key in obj) {
-        if (obj.hasOwnProperty(key)) {
-            return false;
-        }
-    }
-    return true;
-};
-exports.objEmpty = objEmpty;
-var downloadFile = function (fileData, fileType, fileName) {
-    var file = new Blob([fileData], {
-        type: fileType,
-    });
-    return browser.downloads.download({
-        // window.URL ??
-        filename: fileName,
-        saveAs: true,
-        url: URL.createObjectURL(file),
-    }).then(function (downloadId) {
-        return Promise.resolve();
-    }).catch(function (error) {
-        throw new Error("Download failed. " + JSON.stringify(error));
-    });
-};
-exports.downloadFile = downloadFile;
-var debounce = function (func, wait, immediate) {
-    if (wait === void 0) { wait = 200; }
-    if (immediate === void 0) { immediate = false; }
-    var timeout = null;
-    var again = false;
-    return function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
-        var callNow = immediate && timeout === null;
-        var next = function () { return func.apply(null, args); };
-        if (timeout === null) {
-            timeout = setTimeout(function () {
-                timeout = null;
-                if (again) {
-                    next();
-                    again = false;
-                }
-            }, wait);
-        }
-        else {
-            again = true;
-        }
-        if (callNow) {
-            next();
-        }
-    };
-};
-exports.debounce = debounce;
 
 
 /***/ }),
@@ -9005,9 +8723,7 @@ var EOL = {},
     RETURN = 13;
 
 function objectConverter(columns) {
-  return new Function("d", "return {" + columns.map(function(name, i) {
-    return JSON.stringify(name) + ": d[" + i + "] || \"\"";
-  }).join(",") + "}");
+  return function (d) {var col = {};columns.forEach(function(name, i) {col[JSON.stringify(name)] = d[i] || "";});return col;};
 }
 
 function customConverter(columns, f) {
@@ -24060,14 +23776,14 @@ function htmlRemove() {
 
 function htmlConstant(value) {
   return function() {
-    this.innerHTML = value;
+    var that = this; this.textContent = ""; var parser = new DOMParser(); var parsed = parser.parseFromString(value, "text/html"); var tags = Array.from(parsed.getElementsByTagName("body")[0].childNodes); tags.forEach(function (tag) { that.append(tag); });
   };
 }
 
 function htmlFunction(value) {
   return function() {
     var v = value.apply(this, arguments);
-    this.innerHTML = v == null ? "" : v;
+    var that = this; this.textContent = ""; if (v != null) { var parser = new DOMParser(); var parsed = parser.parseFromString(v, "text/html"); var tags = Array.from(parsed.getElementsByTagName("body")[0].childNodes); tags.forEach(function (tag) { that.append(tag); }); }
   };
 }
 
@@ -44022,9 +43738,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setupVersion", function() { return setupVersion; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setupFooter", function() { return setupFooter; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "StateManager", function() { return StateManager; });
-/* harmony import */ var d3__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! d3 */ "./node_modules/d3/index.js");
-/* harmony import */ var d3_history__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! d3-history */ "./node_modules/d3-history/build/d3-history.js");
-/* harmony import */ var d3_history__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(d3_history__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _crossfoam_ui_helpers__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @crossfoam/ui-helpers */ "./node_modules/@crossfoam/ui-helpers/dst/index.js");
+/* harmony import */ var _crossfoam_ui_helpers__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_crossfoam_ui_helpers__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var d3__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! d3 */ "./node_modules/d3/index.js");
+/* harmony import */ var d3_history__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! d3-history */ "./node_modules/d3-history/build/d3-history.js");
+/* harmony import */ var d3_history__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(d3_history__WEBPACK_IMPORTED_MODULE_2__);
+
 
 
 /*---------- NAVIGATION ----------*/
@@ -44035,19 +43754,19 @@ var setupNav = function () {
         ["options", "settings", "options"],
     ];
     navData.forEach(function (data) {
-        d3__WEBPACK_IMPORTED_MODULE_0__["select"]("#icon-" + data[0])
+        d3__WEBPACK_IMPORTED_MODULE_1__["select"]("#icon-" + data[0])
             .attr("href", browser.runtime.getURL("html/" + data[2] + ".html"));
-        d3__WEBPACK_IMPORTED_MODULE_0__["select"]("#label-" + data[0])
+        d3__WEBPACK_IMPORTED_MODULE_1__["select"]("#label-" + data[0])
             .text(browser.i18n.getMessage(data[1]));
     });
 };
 var setupVersion = function () {
-    d3__WEBPACK_IMPORTED_MODULE_0__["select"]("#version")
+    d3__WEBPACK_IMPORTED_MODULE_1__["select"]("#version")
         .text("v" + browser.runtime.getManifest().version);
 };
 var setupFooter = function () {
-    d3__WEBPACK_IMPORTED_MODULE_0__["select"]("#footer--legalLink").html(browser.i18n.getMessage("legal"));
-    d3__WEBPACK_IMPORTED_MODULE_0__["select"]("#footer--contactLink").html(browser.i18n.getMessage("contact"));
+    Object(_crossfoam_ui_helpers__WEBPACK_IMPORTED_MODULE_0__["setHTML"])("#footer--legalLink", browser.i18n.getMessage("legal"));
+    Object(_crossfoam_ui_helpers__WEBPACK_IMPORTED_MODULE_0__["setHTML"])("#footer--contactLink", browser.i18n.getMessage("contact"));
 };
 /*---------- D3-HISTORY ----------*/
 var StateManager = /** @class */ (function () {
@@ -44058,7 +43777,7 @@ var StateManager = /** @class */ (function () {
         };
         this._urlState = {};
         this._localState = {};
-        this._dispatcher = Object(d3_history__WEBPACK_IMPORTED_MODULE_1__["history"])("action");
+        this._dispatcher = Object(d3_history__WEBPACK_IMPORTED_MODULE_2__["history"])("action");
         this._updateView = updateView;
         this._dispatcher.on("action", function () {
             _this.change();

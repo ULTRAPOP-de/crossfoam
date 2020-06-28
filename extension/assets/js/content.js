@@ -355,6 +355,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var cfData = __webpack_require__(/*! @crossfoam/data */ "./node_modules/@crossfoam/data/dst/index.js");
+var ui_helpers_1 = __webpack_require__(/*! @crossfoam/ui-helpers */ "./node_modules/@crossfoam/ui-helpers/dst/index.js");
 var config_js_1 = __webpack_require__(/*! ../config.js */ "./node_modules/@crossfoam/service-twitter/config.js");
 exports.config = config_js_1.default;
 // Allow content_scripts to include the services module without codebird
@@ -404,14 +405,14 @@ var createOptions = function (htmlContainer) {
     authRequired()
         .then(function (required) {
         if (required) {
-            htmlContainer.innerHTML = "<p>" + browser.i18n.getMessage("servicesTwitterAuthorizeNote") + "</p><br /><button id='twitter--auth-button'>" + browser.i18n.getMessage("servicesTwitterAuthorize") + "</button>";
+            ui_helpers_1.addHTML(htmlContainer, "<p>" + browser.i18n.getMessage("servicesTwitterAuthorizeNote") + "</p><br /><button id='twitter--auth-button'>" + browser.i18n.getMessage("servicesTwitterAuthorize") + "</button>");
             document.getElementById("twitter--auth-button")
                 .addEventListener("click", function () {
                 auth(htmlContainer);
             });
         }
         else {
-            htmlContainer.innerHTML = browser.i18n.getMessage("servicesTwitterAuthorized");
+            ui_helpers_1.addHTML(htmlContainer, browser.i18n.getMessage("servicesTwitterAuthorized"));
         }
     })
         .catch(function (err) {
@@ -477,7 +478,7 @@ var auth = function (htmlContainer) {
     })
         .then(function () {
         // Modify the html add a click listener with connection to new function
-        htmlContainer.innerHTML = "<p>" + browser.i18n.getMessage("servicesTwitterAuthorizeNote") + "</p><br />              <input                 type='text'                 placeholder='Twitter PIN'                 id='twitter--auth-pin' />              <button                 id='twitter--auth-button'>                " + browser.i18n.getMessage("servicesTwitterAuthorizeFinish") + "              </button>";
+        ui_helpers_1.addHTML(htmlContainer, "<p>" + browser.i18n.getMessage("servicesTwitterAuthorizeNote") + "</p><br />              <input                 type='text'                 placeholder='Twitter PIN'                 id='twitter--auth-pin' />              <button                 id='twitter--auth-button'>                " + browser.i18n.getMessage("servicesTwitterAuthorizeFinish") + "              </button>");
         document.getElementById("twitter--auth-button")
             .addEventListener("click", function () {
             var value = document.getElementById("twitter--auth-pin").value;
@@ -494,7 +495,7 @@ exports.auth = auth;
 var auth2 = function (htmlContainer, pin) {
     return cb.__call("oauth_accessToken", { oauth_verifier: pin }).then(function (reply) {
         cfData.set(authTokenKey, reply.reply);
-        htmlContainer.innerHTML = browser.i18n.getMessage("servicesTwitterAuthorized");
+        ui_helpers_1.addHTML(htmlContainer, browser.i18n.getMessage("servicesTwitterAuthorized"));
     });
 };
 var getBiggerPicture = function (url) {
@@ -909,7 +910,7 @@ exports.getScrapes = getScrapes;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-var utils_1 = __webpack_require__(/*! @crossfoam/utils */ "./node_modules/@crossfoam/ui-helpers/node_modules/@crossfoam/utils/dst/index.js");
+var utils_1 = __webpack_require__(/*! @crossfoam/utils */ "./node_modules/@crossfoam/utils/dst/index.js");
 var d3 = __webpack_require__(/*! d3 */ "./node_modules/d3/index.js");
 var modalButtons = function (buttons) {
     var buttonStr = "";
@@ -945,9 +946,8 @@ var modal = function (content) {
         .setAttribute("class", "cf--modal-container");
     modalContainer
         .setAttribute("id", "cf--modal-container-" + modalUUID);
-    modalContainer
-        .innerHTML = "<div class=\"cf--modal-box\">\n    <div class=\"cf--modal-header\"\n      style=\"background-image:url(" + browser.runtime.getURL("assets/images/modal-header" +
-        ((isRetinaDisplay) ? "@2x" : "") + ".png") + ");\"></div>\n    <div class=\"cf--modal-title\">" + (content.title || "") + "</div>\n    <div class=\"cf--modal-message\">" + (content.message || "") + "</div>\n    <div class=\"cf--modal-buttons\">\n      " + modalButtons(content.buttons) + "\n    </div>\n</div>";
+    addHTML(modalContainer, "<div class=\"cf--modal-box\">\n    <div class=\"cf--modal-header\"\n      style=\"background-image:url(" + browser.runtime.getURL("assets/images/modal-header" +
+        ((isRetinaDisplay) ? "@2x" : "") + ".png") + ");\"></div>\n    <div class=\"cf--modal-title\">" + (content.title || "") + "</div>\n    <div class=\"cf--modal-message\">" + (content.message || "") + "</div>\n    <div class=\"cf--modal-buttons\">\n      " + modalButtons(content.buttons) + "\n    </div>\n</div>");
     document.body.appendChild(modalContainer);
     return new Promise(function (resolve, reject) {
         content.buttons.forEach(function (button, bi) {
@@ -1267,8 +1267,7 @@ var blockSplash = function (message) {
         .setAttribute("class", "cf--modal-container");
     modalContainer
         .setAttribute("id", "cf--modal-container-" + modalUUID);
-    modalContainer
-        .innerHTML = "<div class=\"cf--modal-box cf--modal-box-transparent\">\n    <div class=\"cf--modal-spinner\"></div>\n    <div class=\"cf--modal-message\">v3 " + (message || "") + "</div>\n</div>";
+    addHTML(modalContainer, "<div class=\"cf--modal-box cf--modal-box-transparent\">\n    <div class=\"cf--modal-spinner\"></div>\n    <div class=\"cf--modal-message\">v3 " + (message || "") + "</div>\n</div>");
     document.body.appendChild(modalContainer);
     var destroySpinner = logoSpinner("#cf--modal-container-" + modalUUID + " .cf--modal-spinner", 50, "#ffffff");
     return function () {
@@ -1283,14 +1282,28 @@ var formatNumber = function (n, lang) {
     return parts.join((lang === "de") ? "," : ".");
 };
 exports.formatNumber = formatNumber;
+var setHTML = function (selector, html) {
+    var node = document.querySelector(selector);
+    addHTML(node, html);
+};
+exports.setHTML = setHTML;
+var addHTML = function (node, html) {
+    node.textContent = "";
+    var parser = new DOMParser();
+    var parsed = parser.parseFromString(html, "text/html");
+    var tags = Array.from(parsed.getElementsByTagName("body")[0].childNodes);
+    tags.forEach(function (tag) {
+        node.append(tag);
+    });
+};
 
 
 /***/ }),
 
-/***/ "./node_modules/@crossfoam/ui-helpers/node_modules/@crossfoam/utils/dst/index.js":
-/*!***************************************************************************************!*\
-  !*** ./node_modules/@crossfoam/ui-helpers/node_modules/@crossfoam/utils/dst/index.js ***!
-  \***************************************************************************************/
+/***/ "./node_modules/@crossfoam/utils/dst/index.js":
+/*!****************************************************!*\
+  !*** ./node_modules/@crossfoam/utils/dst/index.js ***!
+  \****************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -5934,9 +5947,7 @@ var EOL = {},
     RETURN = 13;
 
 function objectConverter(columns) {
-  return new Function("d", "return {" + columns.map(function(name, i) {
-    return JSON.stringify(name) + ": d[" + i + "] || \"\"";
-  }).join(",") + "}");
+  return function (d) {var col = {};columns.forEach(function(name, i) {col[JSON.stringify(name)] = d[i] || "";});return col;};
 }
 
 function customConverter(columns, f) {
@@ -20889,14 +20900,14 @@ function htmlRemove() {
 
 function htmlConstant(value) {
   return function() {
-    this.innerHTML = value;
+    var that = this; this.textContent = ""; var parser = new DOMParser(); var parsed = parser.parseFromString(value, "text/html"); var tags = Array.from(parsed.getElementsByTagName("body")[0].childNodes); tags.forEach(function (tag) { that.append(tag); });
   };
 }
 
 function htmlFunction(value) {
   return function() {
     var v = value.apply(this, arguments);
-    this.innerHTML = v == null ? "" : v;
+    var that = this; this.textContent = ""; if (v != null) { var parser = new DOMParser(); var parsed = parser.parseFromString(v, "text/html"); var tags = Array.from(parsed.getElementsByTagName("body")[0].childNodes); tags.forEach(function (tag) { that.append(tag); }); }
   };
 }
 

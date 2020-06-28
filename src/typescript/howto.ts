@@ -1,3 +1,4 @@
+import { setHTML } from "@crossfoam/ui-helpers";
 import { setupFooter, setupVersion } from "./nav";
 
 const translateHowTo = [
@@ -18,7 +19,7 @@ const translateHowTo = [
 ];
 
 translateHowTo.forEach((t) => {
-  document.querySelector("#" + t[0]).innerHTML = browser.i18n.getMessage(t[1]);
+  setHTML("#" + t[0], browser.i18n.getMessage(t[1]));
 });
 
 const imageSrcs = [

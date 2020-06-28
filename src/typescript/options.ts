@@ -1,5 +1,6 @@
 import * as cfData from "@crossfoam/data";
 import { services } from "@crossfoam/services";
+import { setHTML } from "@crossfoam/ui-helpers";
 import { setupFooter, setupVersion } from "./nav";
 
 const translates = [
@@ -13,16 +14,16 @@ const translates = [
 ];
 
 translates.forEach((t: [string, string]) => {
-  document.querySelector("#" + t[0]).innerHTML = browser.i18n.getMessage(t[1]);
+  setHTML("#" + t[0], browser.i18n.getMessage(t[1]));
 });
 
 Object.keys(services).forEach((serviceKey) => {
 
-    document.getElementById("options--services").innerHTML = `<div class='services--service-container'>\
-        <h3>${services[serviceKey].config.service_name}</h3>\
-        <div id='services--service-${serviceKey}'></div>`;
+  setHTML("#options--services", `<div class='services--service-container'>\
+    <h3>${services[serviceKey].config.service_name}</h3>\
+    <div id='services--service-${serviceKey}'></div>`);
 
-    services[serviceKey].createOptions(document.getElementById(`services--service-${serviceKey}`));
+  services[serviceKey].createOptions(document.getElementById(`services--service-${serviceKey}`));
 
 });
 
