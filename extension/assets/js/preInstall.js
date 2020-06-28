@@ -86,28 +86,30 @@
 /************************************************************************/
 /******/ ({
 
-/***/ "../crossfoam-data/dst/index.js":
-/*!***************************!*\
-  !*** .-data/dst/index.js ***!
-  \***************************/
+/***/ "./node_modules/@crossfoam/data/dst/index.js":
+/*!***************************************************!*\
+  !*** ./node_modules/@crossfoam/data/dst/index.js ***!
+  \***************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-
 Object.defineProperty(exports, "__esModule", { value: true });
-var utils_1 = __webpack_require__(/*! @crossfoam/utils */ "../crossfoam-data/node_modules/@crossfoam/utils/dst/index.js");
+var utils_1 = __webpack_require__(/*! @crossfoam/utils */ "./node_modules/@crossfoam/data/node_modules/@crossfoam/utils/dst/index.js");
 var get = function (key, defaultValue) {
-    return browser.storage.local.get(key).then(function (data) {
+    return browser.storage.local.get(key)
+        .then(function (data) {
         if (data && data !== null && data !== undefined && !utils_1.objEmpty(data)) {
             if (typeof data === "object" && key in data) {
                 return data[key];
             }
             return data;
-        } else if (defaultValue) {
+        }
+        else if (defaultValue) {
             return set(key, defaultValue);
-        } else {
+        }
+        else {
             return null;
         }
     });
@@ -115,7 +117,8 @@ var get = function (key, defaultValue) {
 exports.get = get;
 var set = function (key, value) {
     var _a;
-    return browser.storage.local.set((_a = {}, _a[key] = value, _a)).then(function () {
+    return browser.storage.local.set((_a = {}, _a[key] = value, _a))
+        .then(function () {
         if (typeof value === "object" && key in value) {
             return value[key];
         }
@@ -128,12 +131,13 @@ var remove = function (key) {
 };
 exports.remove = remove;
 
+
 /***/ }),
 
-/***/ "../crossfoam-data/node_modules/@crossfoam/utils/dst/index.js":
-/*!*********************************************************!*\
-  !*** .-data/node_modules/@crossfoam/utils/dst/index.js ***!
-  \*********************************************************/
+/***/ "./node_modules/@crossfoam/data/node_modules/@crossfoam/utils/dst/index.js":
+/*!*********************************************************************************!*\
+  !*** ./node_modules/@crossfoam/data/node_modules/@crossfoam/utils/dst/index.js ***!
+  \*********************************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -29846,7 +29850,7 @@ var StateManager = /** @class */ (function () {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _crossfoam_data__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @crossfoam/data */ "../crossfoam-data/dst/index.js");
+/* harmony import */ var _crossfoam_data__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @crossfoam/data */ "./node_modules/@crossfoam/data/dst/index.js");
 /* harmony import */ var _crossfoam_data__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_crossfoam_data__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var _nav__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./nav */ "./src/typescript/nav.ts");
 

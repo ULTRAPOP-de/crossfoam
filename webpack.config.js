@@ -56,12 +56,14 @@ module.exports = {
     new webpack.DefinePlugin({
       'process.env.NODE_ENV': JSON.stringify('development'),
     }),
-    new CopyWebpackPlugin([
-      { from: 'node_modules/webextension-polyfill/dist/browser-polyfill.js' },
-      { from: 'node_modules/webextension-polyfill/dist/browser-polyfill.js.map' },
-      { from: 'node_modules/q/q.js' },
-      { from: 'node_modules/codebird/codebird.js' },
-    ])
+    new CopyWebpackPlugin({
+      patterns: [
+        { from: 'node_modules/webextension-polyfill/dist/browser-polyfill.js', to: 'extension/assets/js/browser-polyfill.js' },
+        { from: 'node_modules/webextension-polyfill/dist/browser-polyfill.js.map', to: 'extension/assets/js/browser-polyfill.js.map' },
+        { from: 'node_modules/q/q.js', to: 'extension/assets/js/q.js' },
+        { from: 'node_modules/codebird/codebird.js', to: 'extension/assets/js/codebird.js' },
+      ]
+    })
   ],
 
   // When importing a module whose path matches one of the following, just
