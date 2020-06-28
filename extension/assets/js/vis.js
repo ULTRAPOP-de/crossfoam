@@ -44090,7 +44090,6 @@ var selectionView = function () {
             // meta data
             var scrapeRight = li.append("span")
                 .classed("scrapeMeta", true);
-            console.log(scrape);
             if ((scrape.state !== "complete" && scrape.completed === undefined) ||
                 (scrape.state !== "complete" && !scrape.completed)) {
                 scrapeRight.append("span")

@@ -285,8 +285,6 @@ const selectionView = () => {
       const scrapeRight = li.append("span")
         .classed("scrapeMeta", true);
 
-      console.log(scrape);
-
       if (
         (scrape.state !== "complete" && scrape.completed === undefined) ||
         (scrape.state !== "complete" && !scrape.completed)) {

@@ -41774,10 +41774,8 @@ var handleUpdated = function (tabId, changeInfo, tabInfo) {
     _crossfoam_data__WEBPACK_IMPORTED_MODULE_0__["get"]("config--siteAnalysis", "false")
         .then(function (data) {
         if (data === "true") {
-            console.log("handleUpdated");
             // Only inject script after page is loaded and complete
             if ("status" in changeInfo && changeInfo.status === "complete") {
-                console.log("status good");
                 /*
                   For obvious reasons it is not allowed to inject code
                   into the pages listed below, if we try, our dom manipulation
@@ -41801,7 +41799,6 @@ var handleUpdated = function (tabId, changeInfo, tabInfo) {
                     });
                 }
                 if (goodToGo_1) {
-                    console.log("goodToGo");
                     /*
                       For some misterious reason onUpdate with a complete message
                       gets fired when someone closes this tab, so we need to
@@ -41809,27 +41806,23 @@ var handleUpdated = function (tabId, changeInfo, tabInfo) {
                     */
                     browser.tabs.get(tabId)
                         .then(function (result) {
-                        console.log("does script already exist?");
                         return browser.tabs.executeScript(tabId, {
                             code: "typeof updateSite === 'function';",
                         });
                     })
                         .then(function (result) {
                         if (!result || result[0] !== true) {
-                            console.log("add poly");
                             return browser.tabs.executeScript(tabId, {
                                 allFrames: true,
                                 file: "assets/js/browser-polyfill.js",
                                 matchAboutBlank: false,
                             }).then(function () {
-                                console.log("add content");
                                 return browser.tabs.executeScript(tabId, {
                                     allFrames: true,
                                     file: "assets/js/content.js",
                                     matchAboutBlank: false,
                                 });
                             }).then(function () {
-                                console.log("add css");
                                 return browser.tabs.insertCSS(tabId, {
                                     allFrames: true,
                                     file: "assets/css/content.css",
@@ -42140,7 +42133,7 @@ var installData = function () {
             });
         }
         else {
-            console.log("already exists");
+            // console.log("already exists");
         }
     })
         .catch(function (err) {
