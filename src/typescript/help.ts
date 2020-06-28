@@ -3,6 +3,7 @@ import { setupFooter, setupVersion } from "./nav";
 const translates = [
   ["help--headline", "navHelp"],
   ["help--howto-link", "helpPageHowToLink"],
+  ["help--install-link", "helpPageInstallLink"],
   ["help--faq1", "helpPageFaqLink1"],
   ["faq--privacy", "helpPageFaqLink1"],
   ["help--faq2", "helpPageFaqLink2"],

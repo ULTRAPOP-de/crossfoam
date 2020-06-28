@@ -153,6 +153,9 @@
   "selectionInProgress":{
     "message": "Die Datensammlung läuft noch."
   },
+  "selectionOutro":{
+    "message": "Mit Crossfoam können Accounts mit mehreren Tausend Freunden heruntergeladen und anschließend exportiert werden. Die Visualisierungen sind für übliche private Account-Größen von mehreren hundert Freunden ausgelegt. Darüber hinaus ist die Performance der Visualisierungen stark von der Rechenleistung des jeweiligen Computers abhängig. Die Listenansicht funktioniert auch mit sehr großen Accounts. Die kostenlose Open Source Software <a href=\"https://gephi.org/\">Gephi</a> eignet sich auch für Anfänger um größere Netzwerke zu visualisieren."
+  },
   "selectionIntro":{
     "message": "Wähle einen der Datensätze aus, um die Visualisierungen des Netzwerk zu erforschen ($IMG1$ Übersicht, $IMG2$ Netzwerk und $IMG3$ Cluster) oder ändere die Namen und Farben der Cluster in der $IMG4$ Listenansicht, $IMG5$ die Netzwerkdaten zu exportieren oder $IMG6$ alle zugehörigen Daten zu löschen.",
     "placeholders":{
@@ -412,6 +415,9 @@
   },
   "helpNetwork_7": {
     "message": "Wir versuchen jedem Nutzer ein Cluster zuzuweisen. Diese Zuweisung ist aber nicht absolut. Nutz den Knopf oben links um zu sehen, mit welchen anderen Clustern die Nutzer auch Verbindungen haben."
+  },
+  "helpPageInstallLink":{
+    "message": "Einführung noch einmal lesen &raquo;"
   },
   "helpPageHowToLink":{
     "message": "Anleitung erneut anschauen &raquo;"

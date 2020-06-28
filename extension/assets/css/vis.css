@@ -424,6 +424,10 @@ svg.logoSpinner {
   .scrapeVisCluster:hover, .scrapeVisNetwork:hover,
   .scrapeExport:hover, .scrapeDelete:hover {
     background-color: rgba(0, 0, 0, 0.2); }
+  .scrapeVisList.notRecommended, .scrapeVisOverview.notRecommended,
+  .scrapeVisCluster.notRecommended, .scrapeVisNetwork.notRecommended,
+  .scrapeExport.notRecommended, .scrapeDelete.notRecommended {
+    opacity: 0.5; }
 
 .scrapeDivider {
   float: right;

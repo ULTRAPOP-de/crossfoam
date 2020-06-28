@@ -236,6 +236,7 @@ const selectionView = () => {
 
       li.append("a")
         .classed("scrapeVisCluster", true)
+        .classed("notRecommended", (scrape.nodeCount >= 1000) ? true : false)
         .html(`<img src="../assets/images/navbar--icon-vis-goto-cluster.png" \
     srcset="../assets/images/navbar--icon-vis-goto-cluster.png 1x, \
     ../assets/images/navbar--icon-vis-goto-cluster@2x.png 2x" >`)
@@ -249,6 +250,7 @@ const selectionView = () => {
 
       li.append("a")
         .classed("scrapeVisNetwork", true)
+        .classed("notRecommended", (scrape.nodeCount >= 1000) ? true : false)
         .html(`<img src="../assets/images/navbar--icon-vis-goto-network.png" \
     srcset="../assets/images/navbar--icon-vis-goto-network.png 1x, \
     ../assets/images/navbar--icon-vis-goto-network@2x.png 2x" >`)
@@ -262,6 +264,7 @@ const selectionView = () => {
 
       li.append("a")
         .classed("scrapeVisOverview", true)
+        .classed("notRecommended", (scrape.nodeCount >= 1000) ? true : false)
         .html(`<img src="../assets/images/navbar--icon-vis-goto-overview.png" \
     srcset="../assets/images/navbar--icon-vis-goto-overview.png 1x, \
     ../assets/images/navbar--icon-vis-goto-overview@2x.png 2x" >`)
@@ -308,6 +311,10 @@ const selectionView = () => {
 
     });
   }
+
+  container.append("p")
+    .classed("outro", true)
+    .html(browser.i18n.getMessage("selectionOutro"));
 };
 
 const setupBackButton = () => {

@@ -153,6 +153,9 @@
   "selectionInProgress":{
     "message": "Data collection is still in progress."
   },
+  "selectionOutro":{
+    "message": "Crossfoam allows you to even download accounts with thousands of friends and then export the collected data. The visualisations on the other hand work best for accounts with a few hundred friends or less. The performance for bigger networks strongly relies on the performance of your computer. The list view also works for bigger accounts. The free and open source software <a href=\"https://gephi.org/\">Gephi</a> is a good starting point for network visualisation."
+  },
   "selectionIntro":{
     "message": "Select one of the accounts below to explore the account's network visualisations ($IMG1$ Overview, $IMG2$ Network and $IMG3$ Cluster) or edit the cluster-labels and colors from the $IMG4$ list-view, $IMG5$ export the network data or $IMG6$ delete all data connected to that account.",
     "placeholders":{
@@ -412,6 +415,9 @@
   },
   "helpNetwork_7": {
     "message": "While we assign a cluster to each user, this is not absoulte. Use the toggle in the upper right to see, if users are also connected to other clusters."
+  },
+  "helpPageInstallLink":{
+    "message": "Read the introduction again &raquo;"
   },
   "helpPageHowToLink":{
     "message": "Read the instructions again &raquo;"

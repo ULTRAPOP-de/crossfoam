@@ -29538,6 +29538,7 @@ var translateInstall = [
     "installParagraph2",
     "installParagraph3",
     "installParagraph4",
+    "selectionOutro",
     "installParagraph5",
     "fundingTitle",
     "fundingDescription",
