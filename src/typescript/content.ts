@@ -1,9 +1,6 @@
 import { identifyService, services } from "@crossfoam/services";
 import { modal } from "@crossfoam/ui-helpers";
 
-// TODO: No fonts, use Helvetica/Arial
-declare var FontFace: any;
-
 (() => {
 
   let dict;
@@ -83,10 +80,6 @@ declare var FontFace: any;
   });
   observer.observe(document.body, mConfig);
 
-  // Testing the content_script injection for seb_meier
-  // browser.storage.local.set({"s--twitter--nodes--seb_meier": [["seb_meier", 0]]});
-  // browser.storage.local.set({"s--twitter--seb_meier--clusters--0": {name: "Cluster#1", color: "red"}});
-
   browser.runtime.sendMessage({
     type: "getConfigLabel",
   }).then((config) => {
@@ -112,36 +105,6 @@ declare var FontFace: any;
   };
 
   browser.runtime.onMessage.addListener(browserMessage);
-
-  const fonts = [
-    ["Inter", "normal", 400, "Inter-Regular"],
-    ["Inter", "italic", 400, "Inter-Italic"],
-    ["Inter", "normal", 500, "Inter-Medium"],
-    ["Inter", "italic", 500, "Inter-MediumItalic"],
-    ["Inter", "normal", 600, "Inter-SemiBold"],
-    ["Inter", "italic", 600, "Inter-SemiBoldItalic"],
-    ["Inter", "normal", 700, "Inter-Bold"],
-    ["Inter", "italic", 700, "Inter-BoldItalic"],
-    ["Inter", "normal", 800, "Inter-ExtraBold"],
-    ["Inter", "italic", 800, "Inter-ExtraBoldItalic"],
-    ["Inter", "normal", 900, "Inter-Black"],
-    ["Inter", "italic", 900, "Inter-BlackItalic"],
-  ];
-
-  fonts.forEach((font) => {
-    const nFont = new FontFace(font[0],
-      `url('${browser.runtime.getURL("assets/fonts/Inter/Inter/" + font[3] + ".woff")}')`,
-      {
-        family: font[0],
-        style: font[1],
-        weight: font[2],
-      });
-
-    nFont.load()
-      .then(() => {
-        (document as any).fonts.add(nFont);
-      });
-  });
 
   return true;
 

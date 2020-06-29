@@ -2437,6 +2437,7 @@ var addHTML = function (node, html) {
         node.append(tag);
     });
 };
+exports.addHTML = addHTML;
 
 
 /***/ }),
@@ -41771,47 +41772,52 @@ __webpack_require__.r(__webpack_exports__);
 
 // Modify dom
 var handleUpdated = function (tabId, changeInfo, tabInfo) {
-    _crossfoam_data__WEBPACK_IMPORTED_MODULE_0__["get"]("config--siteAnalysis", "false")
-        .then(function (data) {
-        if (data === "true") {
-            // Only inject script after page is loaded and complete
-            if ("status" in changeInfo && changeInfo.status === "complete") {
-                /*
-                  For obvious reasons it is not allowed to inject code
-                  into the pages listed below, if we try, our dom manipulation
-                  will produce errors, so the safest thing is to not even try
-                */
-                var ignore = [
-                    "chrome-extension://",
-                    "chrome://",
-                    "about:newtab",
-                    "about:home",
-                ];
-                var goodToGo_1 = true;
-                if (!("url" in tabInfo)) {
+    // Only inject script after page is loaded and complete
+    if ("status" in changeInfo && changeInfo.status === "complete") {
+        /*
+          For obvious reasons it is not allowed to inject code
+          into the pages listed below, if we try, our dom manipulation
+          will produce errors, so the safest thing is to not even try
+        */
+        var ignore = [
+            "chrome-extension://",
+            "chrome://",
+            "edge-extension://",
+            "edge://",
+            "about:newtab",
+            "about:home",
+            "about:addons",
+            "about:debugging",
+            "about:devtools-toolbox",
+        ];
+        var goodToGo_1 = true;
+        if (!("url" in tabInfo)) {
+            goodToGo_1 = false;
+        }
+        else {
+            ignore.forEach(function (i) {
+                if (tabInfo.url.indexOf(i) !== -1) {
                     goodToGo_1 = false;
                 }
-                else {
-                    ignore.forEach(function (i) {
-                        if (tabInfo.url.indexOf(i) !== -1) {
-                            goodToGo_1 = false;
-                        }
-                    });
-                }
-                if (goodToGo_1) {
-                    /*
-                      For some misterious reason onUpdate with a complete message
-                      gets fired when someone closes this tab, so we need to
-                      check if the tab still exists
-                    */
-                    browser.tabs.get(tabId)
-                        .then(function (result) {
-                        return browser.tabs.executeScript(tabId, {
-                            code: "typeof updateSite === 'function';",
-                        });
-                    })
-                        .then(function (result) {
-                        if (!result || result[0] !== true) {
+            });
+        }
+        if (goodToGo_1) {
+            /*
+              For some misterious reason onUpdate with a complete message
+              gets fired when someone closes this tab, so we need to
+              check if the tab still exists
+            */
+            browser.tabs.get(tabId)
+                .then(function (result) {
+                return browser.tabs.executeScript(tabId, {
+                    code: "typeof browserMessage === 'function';",
+                });
+            })
+                .then(function (result) {
+                if (!result || result[0] !== true) {
+                    return _crossfoam_data__WEBPACK_IMPORTED_MODULE_0__["get"]("config--siteAnalysis", "false")
+                        .then(function (data) {
+                        if (data === "true") {
                             return browser.tabs.executeScript(tabId, {
                                 allFrames: true,
                                 file: "assets/js/browser-polyfill.js",
@@ -41831,20 +41837,39 @@ var handleUpdated = function (tabId, changeInfo, tabInfo) {
                             });
                         }
                         else {
-                            return Promise.resolve();
+                            return browser.tabs.executeScript(tabId, {
+                                allFrames: true,
+                                file: "assets/js/browser-polyfill.js",
+                                matchAboutBlank: false,
+                            }).then(function () {
+                                return browser.tabs.executeScript(tabId, {
+                                    allFrames: true,
+                                    file: "assets/js/content-light.js",
+                                    matchAboutBlank: false,
+                                });
+                            }).then(function () {
+                                return browser.tabs.insertCSS(tabId, {
+                                    allFrames: true,
+                                    file: "assets/css/content-light.css",
+                                    matchAboutBlank: false,
+                                });
+                            });
                         }
-                    }).catch(function (err) {
-                        /*
-                          we can ignore this.
-                          this means the tab we were supposed to inject into
-                          does not exists anymore.
-                        */
-                        throw err;
                     });
                 }
-            }
+                else {
+                    return Promise.resolve();
+                }
+            }).catch(function (err) {
+                /*
+                  we can ignore this.
+                  this means the tab we were supposed to inject into
+                  does not exists anymore.
+                */
+                throw err;
+            });
         }
-    });
+    }
 };
 browser.tabs.onUpdated.addListener(handleUpdated);
 /* --------------------------------- */

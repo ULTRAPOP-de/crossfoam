@@ -482,6 +482,7 @@ var addHTML = function (node, html) {
         node.append(tag);
     });
 };
+exports.addHTML = addHTML;
 
 
 /***/ }),
@@ -30111,6 +30112,7 @@ var legalTranslate = [
 legalTranslate.forEach(function (t) {
     Object(_crossfoam_ui_helpers__WEBPACK_IMPORTED_MODULE_0__["setHTML"])("#" + t[0], browser.i18n.getMessage(t[1]));
 });
+Object(_nav__WEBPACK_IMPORTED_MODULE_1__["setupNav"])();
 Object(_nav__WEBPACK_IMPORTED_MODULE_1__["setupVersion"])();
 Object(_nav__WEBPACK_IMPORTED_MODULE_1__["setupFooter"])();
 

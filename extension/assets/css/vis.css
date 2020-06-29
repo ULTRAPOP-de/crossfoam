@@ -115,7 +115,8 @@ body, html {
   border: none;
   min-width: 200px;
   font-family: 'Inter', Helvetica, Arial, sans-serif;
-  background-color: white; }
+  background-color: white;
+  font-size: 12px; }
 
 #navbar {
   z-index: 5;
@@ -313,7 +314,7 @@ svg.logoSpinner {
 .helpButton {
   float: left;
   margin-right: 5px;
-  min-height: 38px;
+  height: 38px;
   color: white;
   border-radius: 5px;
   background-color: #338498;
@@ -352,7 +353,7 @@ svg.logoSpinner {
 #scrape-container, #exportContainer {
   margin: 100px auto 0 auto;
   width: 80%;
-  max-width: 900px;
+  max-width: 750px;
   /* TODO: rename to listItem, etc. */ }
   #scrape-container ul, #scrape-container li, #exportContainer ul, #exportContainer li {
     list-style: none;
@@ -451,6 +452,10 @@ p.intro {
     background-color: rgba(0, 0, 0, 0.1);
     border-radius: 2px;
     display: inline-block; }
+
+p.outro a {
+  color: #004D61;
+  text-decoration: underline; }
 
 #visNav {
   position: absolute;
@@ -551,10 +556,16 @@ p.intro {
     font-size: 40px;
     display: inline;
     background: #004D61;
-    box-shadow: 10px 0 0 #004D61, -10px 0 0 #004D61; }
+    box-decoration-break: clone;
+    box-shadow: 10px 0 0 #004D61, -10px 0 0 #004D61;
+    -webkit-box-shadow: 10px 0 0 #004D61, -10px 0 0 #004D61;
+    -moz-box-shadow: 10px 0 0 #004D61, -10px 0 0 #004D61; }
   #ixMessage a {
     background: #004D61;
+    box-decoration-break: clone;
     box-shadow: 10px 0 0 #004D61, -10px 0 0 #004D61;
+    -webkit-box-shadow: 10px 0 0 #004D61, -10px 0 0 #004D61;
+    -moz-box-shadow: 10px 0 0 #004D61, -10px 0 0 #004D61;
     padding-top: 29px; }
     #ixMessage a img {
       width: 33px;
@@ -652,6 +663,9 @@ circle.overview-navigation-indicator {
 
 .overview-navigation-buttons line {
   stroke: black; }
+
+#overview-navigation svg > line {
+  stroke: #338498; }
 
 .overview-navigation-buttons:hover,
 .overview-navigation-buttons.active {
@@ -800,7 +814,7 @@ circle.network-nav-circle {
 #clusterList-search {
   position: absolute;
   top: 55px;
-  left: 160px;
+  left: 170px;
   z-index: 4; }
 
 #clusterList-search-field {

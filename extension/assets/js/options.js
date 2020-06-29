@@ -1296,6 +1296,7 @@ var addHTML = function (node, html) {
         node.append(tag);
     });
 };
+exports.addHTML = addHTML;
 
 
 /***/ }),
@@ -31080,6 +31081,7 @@ _crossfoam_data__WEBPACK_IMPORTED_MODULE_0__["get"]("config--showLabels", "true"
         }
     });
 });
+Object(_nav__WEBPACK_IMPORTED_MODULE_3__["setupNav"])();
 Object(_nav__WEBPACK_IMPORTED_MODULE_3__["setupVersion"])();
 Object(_nav__WEBPACK_IMPORTED_MODULE_3__["setupFooter"])();
 

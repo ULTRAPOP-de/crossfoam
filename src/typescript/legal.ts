@@ -1,5 +1,5 @@
 import { setHTML } from "@crossfoam/ui-helpers";
-import { setupFooter, setupVersion } from "./nav";
+import { setupNav, setupFooter, setupVersion } from "./nav";
 
 const legalTranslate = [
   ["legal--title", "legalTitle"],
@@ -37,5 +37,6 @@ legalTranslate.forEach((t) => {
   setHTML("#" + t[0], browser.i18n.getMessage(t[1]));
 });
 
+setupNav();
 setupVersion();
 setupFooter();

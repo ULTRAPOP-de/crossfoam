@@ -32,7 +32,7 @@
 #scrape-container, #exportContainer{
   margin:100px auto 0 auto;
   width:80%;
-  max-width: 900px;
+  max-width: 750px;
 
   ul, li{
     list-style: none;
@@ -149,6 +149,11 @@ p.intro{
     border-radius:2px;
     display: inline-block;
   }
+}
+
+p.outro a{
+  color: #004D61;
+  text-decoration: underline;
 }
 
 #visNav{
@@ -278,11 +283,17 @@ p.intro{
     font-size: 40px;
     display: inline;
     background: #004D61;
+    box-decoration-break: clone;
     box-shadow: 10px 0 0 #004D61, -10px 0 0 #004D61;
+    -webkit-box-shadow: 10px 0 0 #004D61, -10px 0 0 #004D61;
+    -moz-box-shadow: 10px 0 0 #004D61, -10px 0 0 #004D61;
   }
   a {
     background: #004D61;
+    box-decoration-break: clone;
     box-shadow: 10px 0 0 #004D61, -10px 0 0 #004D61;
+    -webkit-box-shadow: 10px 0 0 #004D61, -10px 0 0 #004D61;
+    -moz-box-shadow: 10px 0 0 #004D61, -10px 0 0 #004D61;
     padding-top: 29px;
     img{
       width: 33px;
@@ -410,6 +421,10 @@ circle.overview-navigation-indicator{
 
 .overview-navigation-buttons line{
   stroke: black;
+}
+
+#overview-navigation svg>line{
+  stroke: #338498;
 }
 
 .overview-navigation-buttons:hover,
@@ -542,7 +557,7 @@ circle.network-nav-circle{
 #clusterList-search{
   position: absolute;
   top: 55px;
-  left: 160px;
+  left: 170px;
   z-index: 4;
 }
 

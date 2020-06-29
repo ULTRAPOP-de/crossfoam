@@ -482,6 +482,7 @@ var addHTML = function (node, html) {
         node.append(tag);
     });
 };
+exports.addHTML = addHTML;
 
 
 /***/ }),
@@ -30220,6 +30221,7 @@ browser.i18n.getMessage("updateMessage").split(";").forEach(function (item) {
     li.appendChild(text);
     list.appendChild(li);
 });
+Object(_nav__WEBPACK_IMPORTED_MODULE_1__["setupNav"])();
 Object(_nav__WEBPACK_IMPORTED_MODULE_1__["setupVersion"])();
 Object(_nav__WEBPACK_IMPORTED_MODULE_1__["setupFooter"])();
 

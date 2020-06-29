@@ -1,7 +1,7 @@
 import * as cfData from "@crossfoam/data";
 import { services } from "@crossfoam/services";
 import { setHTML } from "@crossfoam/ui-helpers";
-import { setupFooter, setupVersion } from "./nav";
+import { setupNav, setupFooter, setupVersion } from "./nav";
 
 const translates = [
   ["settings--title", "settings"],
@@ -61,5 +61,6 @@ cfData.get("config--showLabels", "true")
     });
   });
 
+setupNav();
 setupVersion();
 setupFooter();

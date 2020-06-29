@@ -1,5 +1,5 @@
 import { setHTML } from "@crossfoam/ui-helpers";
-import { setupFooter, setupVersion } from "./nav";
+import { setupNav, setupFooter, setupVersion } from "./nav";
 
 const translateHowTo = [
   ["howto--title", "howToTitle"],
@@ -34,5 +34,6 @@ for (let i = 1; i <= 3; i += 1) {
   img.setAttribute("src", imageSrcs[i - 1] + lang + "@2x.png");
 }
 
+setupNav();
 setupVersion();
 setupFooter();

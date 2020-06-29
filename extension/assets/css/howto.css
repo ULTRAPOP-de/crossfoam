@@ -115,7 +115,8 @@ body, html {
   border: none;
   min-width: 200px;
   font-family: 'Inter', Helvetica, Arial, sans-serif;
-  background-color: white; }
+  background-color: white;
+  font-size: 12px; }
 
 #navbar {
   z-index: 5;

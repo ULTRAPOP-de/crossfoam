@@ -482,6 +482,7 @@ var addHTML = function (node, html) {
         node.append(tag);
     });
 };
+exports.addHTML = addHTML;
 
 
 /***/ }),

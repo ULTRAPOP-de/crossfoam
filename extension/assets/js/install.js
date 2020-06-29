@@ -482,6 +482,7 @@ var addHTML = function (node, html) {
         node.append(tag);
     });
 };
+exports.addHTML = addHTML;
 
 
 /***/ }),
@@ -30096,6 +30097,7 @@ var translateInstall = [
 translateInstall.forEach(function (t) {
     Object(_crossfoam_ui_helpers__WEBPACK_IMPORTED_MODULE_0__["setHTML"])("#" + t, browser.i18n.getMessage(t));
 });
+Object(_nav__WEBPACK_IMPORTED_MODULE_1__["setupNav"])();
 Object(_nav__WEBPACK_IMPORTED_MODULE_1__["setupVersion"])();
 Object(_nav__WEBPACK_IMPORTED_MODULE_1__["setupFooter"])();
 

@@ -677,6 +677,7 @@ var addHTML = function (node, html) {
         node.append(tag);
     });
 };
+exports.addHTML = addHTML;
 
 
 /***/ }),
@@ -30428,6 +30429,7 @@ var updateState = function () {
     });
 };
 updateState();
+Object(_nav__WEBPACK_IMPORTED_MODULE_2__["setupNav"])();
 Object(_nav__WEBPACK_IMPORTED_MODULE_2__["setupVersion"])();
 Object(_nav__WEBPACK_IMPORTED_MODULE_2__["setupFooter"])();
 

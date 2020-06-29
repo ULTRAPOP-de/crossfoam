@@ -1,6 +1,6 @@
 import * as cfData from "@crossfoam/data";
 import { setHTML } from "@crossfoam/ui-helpers";
-import { setupFooter, setupVersion } from "./nav";
+import { setupNav, setupFooter, setupVersion } from "./nav";
 
 const translateInstall = [
   "installTitle",
@@ -27,5 +27,6 @@ const updateState = () => {
 
 updateState();
 
+setupNav();
 setupVersion();
 setupFooter();

@@ -131,6 +131,14 @@ const selectionView = () => {
 
     cache.scrapes.forEach((scrape) => {
 
+      let incomplete = false;
+      if (
+        (scrape.state !== "complete" && scrape.completed === undefined) ||
+        (scrape.state !== "complete" && !scrape.completed)
+      ) {
+        incomplete = true;
+      }
+
       if (scrape.service !== lastService) {
         list.append("li")
           .classed("scrapeTitle", true)
@@ -141,6 +149,7 @@ const selectionView = () => {
 
       const li = list.append("li")
         .classed("scrapeItem", true)
+        .classed("incomplete", incomplete)
         .on("click", () => {
           stateManager.urlState.nUuid = scrape.nUuid;
           stateManager.urlState.view = "overview";
@@ -202,92 +211,93 @@ const selectionView = () => {
           }
         });
 
-      li.append("a")
-        .classed("scrapeExport", true)
-        .html(`<img src="../assets/images/navbar--icon-vis-download.png" \
-    srcset="../assets/images/navbar--icon-vis-download.png 1x, \
-    ../assets/images/navbar--icon-vis-download@2x.png 2x" >`)
-        .on("click", () => {
-          d3.event.stopPropagation();
+      if (!incomplete) {
 
-          stateManager.urlState.nUuid = scrape.nUuid;
-          stateManager.urlState.view = "export";
-          stateManager.update();
-        });
+        li.append("a")
+          .classed("scrapeExport", true)
+          .html(`<img src="../assets/images/navbar--icon-vis-download.png" \
+      srcset="../assets/images/navbar--icon-vis-download.png 1x, \
+      ../assets/images/navbar--icon-vis-download@2x.png 2x" >`)
+          .on("click", () => {
+            d3.event.stopPropagation();
 
-      li.append("span")
-        .attr("class", "scrapeDivider")
-        .append("span");
+            stateManager.urlState.nUuid = scrape.nUuid;
+            stateManager.urlState.view = "export";
+            stateManager.update();
+          });
 
-      // visualisation direct links
+        li.append("span")
+          .attr("class", "scrapeDivider")
+          .append("span");
 
-      li.append("a")
-        .classed("scrapeVisList", true)
-        .html(`<img src="../assets/images/navbar--icon-vis-goto-list.png" \
-    srcset="../assets/images/navbar--icon-vis-goto-list.png 1x, \
-    ../assets/images/navbar--icon-vis-goto-list@2x.png 2x" >`)
-        .on("click", () => {
-          d3.event.stopPropagation();
+        // visualisation direct links
 
-          stateManager.urlState.nUuid = scrape.nUuid;
-          stateManager.urlState.view = "list";
-          stateManager.update();
-        });
+        li.append("a")
+          .classed("scrapeVisList", true)
+          .html(`<img src="../assets/images/navbar--icon-vis-goto-list.png" \
+      srcset="../assets/images/navbar--icon-vis-goto-list.png 1x, \
+      ../assets/images/navbar--icon-vis-goto-list@2x.png 2x" >`)
+          .on("click", () => {
+            d3.event.stopPropagation();
 
-      li.append("a")
-        .classed("scrapeVisCluster", true)
-        .classed("notRecommended", (scrape.nodeCount >= 1000) ? true : false)
-        .html(`<img src="../assets/images/navbar--icon-vis-goto-cluster.png" \
-    srcset="../assets/images/navbar--icon-vis-goto-cluster.png 1x, \
-    ../assets/images/navbar--icon-vis-goto-cluster@2x.png 2x" >`)
-        .on("click", () => {
-          d3.event.stopPropagation();
+            stateManager.urlState.nUuid = scrape.nUuid;
+            stateManager.urlState.view = "list";
+            stateManager.update();
+          });
 
-          stateManager.urlState.nUuid = scrape.nUuid;
-          stateManager.urlState.view = "cluster";
-          stateManager.update();
-        });
+        li.append("a")
+          .classed("scrapeVisCluster", true)
+          .classed("notRecommended", (scrape.nodeCount >= 1000) ? true : false)
+          .html(`<img src="../assets/images/navbar--icon-vis-goto-cluster.png" \
+      srcset="../assets/images/navbar--icon-vis-goto-cluster.png 1x, \
+      ../assets/images/navbar--icon-vis-goto-cluster@2x.png 2x" >`)
+          .on("click", () => {
+            d3.event.stopPropagation();
 
-      li.append("a")
-        .classed("scrapeVisNetwork", true)
-        .classed("notRecommended", (scrape.nodeCount >= 1000) ? true : false)
-        .html(`<img src="../assets/images/navbar--icon-vis-goto-network.png" \
-    srcset="../assets/images/navbar--icon-vis-goto-network.png 1x, \
-    ../assets/images/navbar--icon-vis-goto-network@2x.png 2x" >`)
-        .on("click", () => {
-          d3.event.stopPropagation();
+            stateManager.urlState.nUuid = scrape.nUuid;
+            stateManager.urlState.view = "cluster";
+            stateManager.update();
+          });
 
-          stateManager.urlState.nUuid = scrape.nUuid;
-          stateManager.urlState.view = "network";
-          stateManager.update();
-        });
+        li.append("a")
+          .classed("scrapeVisNetwork", true)
+          .classed("notRecommended", (scrape.nodeCount >= 1000) ? true : false)
+          .html(`<img src="../assets/images/navbar--icon-vis-goto-network.png" \
+      srcset="../assets/images/navbar--icon-vis-goto-network.png 1x, \
+      ../assets/images/navbar--icon-vis-goto-network@2x.png 2x" >`)
+          .on("click", () => {
+            d3.event.stopPropagation();
 
-      li.append("a")
-        .classed("scrapeVisOverview", true)
-        .classed("notRecommended", (scrape.nodeCount >= 1000) ? true : false)
-        .html(`<img src="../assets/images/navbar--icon-vis-goto-overview.png" \
-    srcset="../assets/images/navbar--icon-vis-goto-overview.png 1x, \
-    ../assets/images/navbar--icon-vis-goto-overview@2x.png 2x" >`)
-        .on("click", () => {
-          d3.event.stopPropagation();
+            stateManager.urlState.nUuid = scrape.nUuid;
+            stateManager.urlState.view = "network";
+            stateManager.update();
+          });
 
-          stateManager.urlState.nUuid = scrape.nUuid;
-          stateManager.urlState.view = "overview";
-          stateManager.update();
-        });
+        li.append("a")
+          .classed("scrapeVisOverview", true)
+          .classed("notRecommended", (scrape.nodeCount >= 1000) ? true : false)
+          .html(`<img src="../assets/images/navbar--icon-vis-goto-overview.png" \
+      srcset="../assets/images/navbar--icon-vis-goto-overview.png 1x, \
+      ../assets/images/navbar--icon-vis-goto-overview@2x.png 2x" >`)
+          .on("click", () => {
+            d3.event.stopPropagation();
 
-      li.append("span")
-        .attr("class", "scrapeDivider")
-        .append("span");
+            stateManager.urlState.nUuid = scrape.nUuid;
+            stateManager.urlState.view = "overview";
+            stateManager.update();
+          });
+
+        li.append("span")
+          .attr("class", "scrapeDivider")
+          .append("span");
+      }
 
       // meta data
 
       const scrapeRight = li.append("span")
         .classed("scrapeMeta", true);
 
-      if (
-        (scrape.state !== "complete" && scrape.completed === undefined) ||
-        (scrape.state !== "complete" && !scrape.completed)) {
+      if (incomplete) {
         scrapeRight.append("span")
           .text(browser.i18n.getMessage("selectionInProgress"))
           .classed("scrapeState", true);

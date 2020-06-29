@@ -482,6 +482,7 @@ var addHTML = function (node, html) {
         node.append(tag);
     });
 };
+exports.addHTML = addHTML;
 
 
 /***/ }),
@@ -30106,6 +30107,7 @@ for (var i = 1; i <= 3; i += 1) {
     var lang = browser.i18n.getUILanguage().split("-")[0].toLowerCase();
     img.setAttribute("src", imageSrcs[i - 1] + lang + "@2x.png");
 }
+Object(_nav__WEBPACK_IMPORTED_MODULE_1__["setupNav"])();
 Object(_nav__WEBPACK_IMPORTED_MODULE_1__["setupVersion"])();
 Object(_nav__WEBPACK_IMPORTED_MODULE_1__["setupFooter"])();
 

@@ -157,7 +157,7 @@
     "message": "Mit Crossfoam können Accounts mit mehreren Tausend Freunden heruntergeladen und anschließend exportiert werden. Die Visualisierungen sind für übliche private Account-Größen von mehreren hundert Freunden ausgelegt. Darüber hinaus ist die Performance der Visualisierungen stark von der Rechenleistung des jeweiligen Computers abhängig. Die Listenansicht funktioniert auch mit sehr großen Accounts. Die kostenlose Open Source Software <a href=\"https://gephi.org/\">Gephi</a> eignet sich auch für Anfänger um größere Netzwerke zu visualisieren."
   },
   "selectionIntro":{
-    "message": "Wähle einen der Datensätze aus, um die Visualisierungen des Netzwerk zu erforschen ($IMG1$ Übersicht, $IMG2$ Netzwerk und $IMG3$ Cluster) oder ändere die Namen und Farben der Cluster in der $IMG4$ Listenansicht, $IMG5$ die Netzwerkdaten zu exportieren oder $IMG6$ alle zugehörigen Daten zu löschen.",
+    "message": "Wähle einen der Datensätze aus, um die Visualisierungen des Netzwerk zu erforschen ($IMG1$&nbsp;Übersicht, $IMG2$&nbsp;Netzwerk und $IMG3$&nbsp;Cluster) oder ändere die Namen und Farben der Cluster in der $IMG4$&nbsp;Listenansicht, $IMG5$ die Netzwerkdaten zu exportieren oder $IMG6$ alle zugehörigen Daten zu löschen.",
     "placeholders":{
       "IMG1": {
         "content": "$1",
@@ -219,16 +219,17 @@
     "message": "Erkennung von Clustern"
   },
   "settingsClusterDescription": {
-    "message": "While browsing the web, the web-extension can identify people that are within one of the clusters labeled in one of your data collections. When you go into each data collection (list view) you can turn the highlighting for specific clusters on (and off). The default is, that all clusters are off."
+    "message": "Während man Websites besucht, kann Crossfoam Accounts markieren, welche sich in den Clustern einer der durch die Erweiterungen gesammelten Netzwerke befindet. Wenn man in einen der Datensätze geht (Listenansicht), kann man für einzelne Cluster das Erkennen ein- und ausschalten. Zu Beginn ist dies für alle Cluster ausgeschaltet."
   },
   "settingsClusterNote": {
-    "message": "Browser-extensions are individual processes running in the background of your browser. Thereby, they consume ressources. We generally recommend you turn this feature or even the extension on, only if you need it."
+    "message": "Browser-Erweiterungen (Add-ons) sind Prozesse die im Hintergrund des Browsers verarbeitet werden. Hierdruch werden Ressourcen verbraucht. Wir empfehlen jegliche Erweiterungen grundsätzlich auszuschalten, wenn man diese nicht benötigt."
   },
   "settingsClusterSwitch1": {
-    "message": "Show clusters on Social Media"
+    "message": "Clusters auf Social Media anzeigen"
+
   },
   "settingsClusterSwitch2": {
-    "message": "Show labels"
+    "message": "Namen anzeigen"
   },
   "secondsShort": {
     "message": "Sek."

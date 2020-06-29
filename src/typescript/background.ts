@@ -8,49 +8,54 @@ import * as d3 from "d3";
 
 // Modify dom
 const handleUpdated = (tabId, changeInfo, tabInfo) => {
-  cfData.get("config--siteAnalysis", "false")
-    .then((data) => {
-      if (data === "true") {
-        // Only inject script after page is loaded and complete
-        if ("status" in changeInfo && changeInfo.status === "complete") {
-          /*
-            For obvious reasons it is not allowed to inject code
-            into the pages listed below, if we try, our dom manipulation
-            will produce errors, so the safest thing is to not even try
-          */
-          const ignore = [
-            "chrome-extension://",
-            "chrome://",
-            "about:newtab",
-            "about:home",
-          ];
+  // Only inject script after page is loaded and complete
+  if ("status" in changeInfo && changeInfo.status === "complete") {
+    /*
+      For obvious reasons it is not allowed to inject code
+      into the pages listed below, if we try, our dom manipulation
+      will produce errors, so the safest thing is to not even try
+    */
+    const ignore = [
+      "chrome-extension://",
+      "chrome://",
+      "edge-extension://",
+      "edge://",
+      "about:newtab",
+      "about:home",
+      "about:addons",
+      "about:debugging",
+      "about:devtools-toolbox",
+    ];
 
-          let goodToGo = true;
+    let goodToGo = true;
 
-          if (!("url" in tabInfo)) {
-            goodToGo = false;
-          } else {
-            ignore.forEach((i) => {
-              if (tabInfo.url.indexOf(i) !== -1) {
-                goodToGo = false;
-              }
-            });
-          }
+    if (!("url" in tabInfo)) {
+      goodToGo = false;
+    } else {
+      ignore.forEach((i) => {
+        if (tabInfo.url.indexOf(i) !== -1) {
+          goodToGo = false;
+        }
+      });
+    }
 
-          if (goodToGo) {
-            /*
-              For some misterious reason onUpdate with a complete message
-              gets fired when someone closes this tab, so we need to
-              check if the tab still exists
-            */
-            browser.tabs.get(tabId)
-              .then((result) => {
-                return browser.tabs.executeScript(tabId, {
-                  code: "typeof updateSite === 'function';",
-                });
-              })
-              .then((result: any): Promise<any> => {
-                if (!result || result[0] !== true) {
+    if (goodToGo) {
+      /*
+        For some misterious reason onUpdate with a complete message
+        gets fired when someone closes this tab, so we need to
+        check if the tab still exists
+      */
+      browser.tabs.get(tabId)
+        .then((result) => {
+          return browser.tabs.executeScript(tabId, {
+            code: "typeof browserMessage === 'function';",
+          });
+        })
+        .then((result: any): Promise<any> => {
+          if (!result || result[0] !== true) {
+            return cfData.get("config--siteAnalysis", "false")
+              .then((data) => {
+                if (data === "true") {
                   return browser.tabs.executeScript(tabId, {
                     allFrames: true,
                     file: "assets/js/browser-polyfill.js",
@@ -68,21 +73,39 @@ const handleUpdated = (tabId, changeInfo, tabInfo) => {
                       matchAboutBlank: false,
                     });
                   });
-              } else {
-                return Promise.resolve();
-              }
-              }).catch((err) => {
-                /*
-                  we can ignore this.
-                  this means the tab we were supposed to inject into
-                  does not exists anymore.
-                */
-                throw err;
+                } else {
+                  return browser.tabs.executeScript(tabId, {
+                    allFrames: true,
+                    file: "assets/js/browser-polyfill.js",
+                    matchAboutBlank: false,
+                  }).then(() => {
+                    return browser.tabs.executeScript(tabId, {
+                      allFrames: true,
+                      file: "assets/js/content-light.js",
+                      matchAboutBlank: false,
+                    });
+                  }).then(() => {
+                    return browser.tabs.insertCSS(tabId, {
+                      allFrames: true,
+                      file: "assets/css/content-light.css",
+                      matchAboutBlank: false,
+                    });
+                  });
+                }
               });
+          } else {
+            return Promise.resolve();
           }
-        }
-      }
-    });
+        }).catch((err) => {
+          /*
+            we can ignore this.
+            this means the tab we were supposed to inject into
+            does not exists anymore.
+          */
+          throw err;
+        });
+    }
+  }
 };
 
 browser.tabs.onUpdated.addListener(handleUpdated);

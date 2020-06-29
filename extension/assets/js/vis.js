@@ -1816,6 +1816,7 @@ var addHTML = function (node, html) {
         node.append(tag);
     });
 };
+exports.addHTML = addHTML;
 
 
 /***/ }),
@@ -3242,6 +3243,9 @@ var NetworkVis = /** @class */ (function (_super) {
         });
         this.time = 1;
         this.update(false);
+        setTimeout(function () {
+            _this_1.update(false);
+        }, 100);
     };
     NetworkVis.prototype.glAnimate = function () {
         var _this_1 = this;
@@ -3622,6 +3626,9 @@ var OverviewVis = /** @class */ (function (_super) {
         });
         this.time = 1;
         this.update(false);
+        setTimeout(function () {
+            _this_1.update(false);
+        }, 100);
     };
     OverviewVis.prototype.glAnimate = function () {
         var _this_1 = this;
@@ -3782,21 +3789,30 @@ var Vis = /** @class */ (function () {
             var _this = this;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, cfData.get("ixTooltip--" + this.visType, "false")
-                            .then(function (alreadyShown) {
-                            if (alreadyShown === "true") {
-                                _this.showIxTooltip = false;
-                                d3.selectAll("#ixTooltip").remove();
-                            }
-                            return cfData.get("ixMessage--" + _this.visType, "false");
-                        })
-                            .then(function (alreadyShown) {
-                            if (alreadyShown === "true") {
-                                _this.showIxMessage = false;
-                                d3.selectAll("#ixMessage").remove();
-                            }
-                            return "true";
-                        })];
+                    case 0:
+                        d3.selectAll("#ixTooltip").style("opacity", 0);
+                        d3.selectAll("#ixMessage").style("opacity", 0);
+                        return [4 /*yield*/, cfData.get("ixTooltip--" + this.visType, "false")
+                                .then(function (alreadyShown) {
+                                if (alreadyShown === "true") {
+                                    _this.showIxTooltip = false;
+                                    d3.selectAll("#ixTooltip").remove();
+                                }
+                                else {
+                                    d3.selectAll("#ixTooltip").style("opacity", 1);
+                                }
+                                return cfData.get("ixMessage--" + _this.visType, "false");
+                            })
+                                .then(function (alreadyShown) {
+                                if (alreadyShown === "true") {
+                                    _this.showIxMessage = false;
+                                    d3.selectAll("#ixMessage").remove();
+                                }
+                                else {
+                                    d3.selectAll("#ixMessage").style("opacity", 1);
+                                }
+                                return "true";
+                            })];
                     case 1:
                         r = _a.sent();
                         return [2 /*return*/, r];
@@ -3953,6 +3969,7 @@ var Vis = /** @class */ (function () {
             .attr("id", "ixTooltip")
             .style("left", x + "px")
             .style("top", y + "px")
+            .style("opacity", 0)
             .append("img")
             .attr("src", "../assets/images/vis--overview--interaction-pointer@2x.png");
     };
@@ -3966,6 +3983,7 @@ var Vis = /** @class */ (function () {
         this.container.selectAll("#ixMessage").remove();
         var message = this.container.append("div")
             .attr("id", "ixMessage")
+            .style("opacity", 0)
             .html("<a><img src=\"../assets/images/vis--closeButton@2x.png\" /></a><br /><p>" + text + "</p>")
             .on("click", function () {
             d3.selectAll("#ixMessage").remove();
@@ -43972,6 +43990,11 @@ var selectionView = function () {
         var list_1 = container.append("ul");
         var lastService_1 = "";
         cache.scrapes.forEach(function (scrape) {
+            var incomplete = false;
+            if ((scrape.state !== "complete" && scrape.completed === undefined) ||
+                (scrape.state !== "complete" && !scrape.completed)) {
+                incomplete = true;
+            }
             if (scrape.service !== lastService_1) {
                 list_1.append("li")
                     .classed("scrapeTitle", true)
@@ -43980,6 +44003,7 @@ var selectionView = function () {
             }
             var li = list_1.append("li")
                 .classed("scrapeItem", true)
+                .classed("incomplete", incomplete)
                 .on("click", function () {
                 stateManager.urlState.nUuid = scrape.nUuid;
                 stateManager.urlState.view = "overview";
@@ -44032,66 +44056,67 @@ var selectionView = function () {
                     });
                 }
             });
-            li.append("a")
-                .classed("scrapeExport", true)
-                .html("<img src=\"../assets/images/navbar--icon-vis-download.png\"     srcset=\"../assets/images/navbar--icon-vis-download.png 1x,     ../assets/images/navbar--icon-vis-download@2x.png 2x\" >")
-                .on("click", function () {
-                d3__WEBPACK_IMPORTED_MODULE_5__["event"].stopPropagation();
-                stateManager.urlState.nUuid = scrape.nUuid;
-                stateManager.urlState.view = "export";
-                stateManager.update();
-            });
-            li.append("span")
-                .attr("class", "scrapeDivider")
-                .append("span");
-            // visualisation direct links
-            li.append("a")
-                .classed("scrapeVisList", true)
-                .html("<img src=\"../assets/images/navbar--icon-vis-goto-list.png\"     srcset=\"../assets/images/navbar--icon-vis-goto-list.png 1x,     ../assets/images/navbar--icon-vis-goto-list@2x.png 2x\" >")
-                .on("click", function () {
-                d3__WEBPACK_IMPORTED_MODULE_5__["event"].stopPropagation();
-                stateManager.urlState.nUuid = scrape.nUuid;
-                stateManager.urlState.view = "list";
-                stateManager.update();
-            });
-            li.append("a")
-                .classed("scrapeVisCluster", true)
-                .classed("notRecommended", (scrape.nodeCount >= 1000) ? true : false)
-                .html("<img src=\"../assets/images/navbar--icon-vis-goto-cluster.png\"     srcset=\"../assets/images/navbar--icon-vis-goto-cluster.png 1x,     ../assets/images/navbar--icon-vis-goto-cluster@2x.png 2x\" >")
-                .on("click", function () {
-                d3__WEBPACK_IMPORTED_MODULE_5__["event"].stopPropagation();
-                stateManager.urlState.nUuid = scrape.nUuid;
-                stateManager.urlState.view = "cluster";
-                stateManager.update();
-            });
-            li.append("a")
-                .classed("scrapeVisNetwork", true)
-                .classed("notRecommended", (scrape.nodeCount >= 1000) ? true : false)
-                .html("<img src=\"../assets/images/navbar--icon-vis-goto-network.png\"     srcset=\"../assets/images/navbar--icon-vis-goto-network.png 1x,     ../assets/images/navbar--icon-vis-goto-network@2x.png 2x\" >")
-                .on("click", function () {
-                d3__WEBPACK_IMPORTED_MODULE_5__["event"].stopPropagation();
-                stateManager.urlState.nUuid = scrape.nUuid;
-                stateManager.urlState.view = "network";
-                stateManager.update();
-            });
-            li.append("a")
-                .classed("scrapeVisOverview", true)
-                .classed("notRecommended", (scrape.nodeCount >= 1000) ? true : false)
-                .html("<img src=\"../assets/images/navbar--icon-vis-goto-overview.png\"     srcset=\"../assets/images/navbar--icon-vis-goto-overview.png 1x,     ../assets/images/navbar--icon-vis-goto-overview@2x.png 2x\" >")
-                .on("click", function () {
-                d3__WEBPACK_IMPORTED_MODULE_5__["event"].stopPropagation();
-                stateManager.urlState.nUuid = scrape.nUuid;
-                stateManager.urlState.view = "overview";
-                stateManager.update();
-            });
-            li.append("span")
-                .attr("class", "scrapeDivider")
-                .append("span");
+            if (!incomplete) {
+                li.append("a")
+                    .classed("scrapeExport", true)
+                    .html("<img src=\"../assets/images/navbar--icon-vis-download.png\"       srcset=\"../assets/images/navbar--icon-vis-download.png 1x,       ../assets/images/navbar--icon-vis-download@2x.png 2x\" >")
+                    .on("click", function () {
+                    d3__WEBPACK_IMPORTED_MODULE_5__["event"].stopPropagation();
+                    stateManager.urlState.nUuid = scrape.nUuid;
+                    stateManager.urlState.view = "export";
+                    stateManager.update();
+                });
+                li.append("span")
+                    .attr("class", "scrapeDivider")
+                    .append("span");
+                // visualisation direct links
+                li.append("a")
+                    .classed("scrapeVisList", true)
+                    .html("<img src=\"../assets/images/navbar--icon-vis-goto-list.png\"       srcset=\"../assets/images/navbar--icon-vis-goto-list.png 1x,       ../assets/images/navbar--icon-vis-goto-list@2x.png 2x\" >")
+                    .on("click", function () {
+                    d3__WEBPACK_IMPORTED_MODULE_5__["event"].stopPropagation();
+                    stateManager.urlState.nUuid = scrape.nUuid;
+                    stateManager.urlState.view = "list";
+                    stateManager.update();
+                });
+                li.append("a")
+                    .classed("scrapeVisCluster", true)
+                    .classed("notRecommended", (scrape.nodeCount >= 1000) ? true : false)
+                    .html("<img src=\"../assets/images/navbar--icon-vis-goto-cluster.png\"       srcset=\"../assets/images/navbar--icon-vis-goto-cluster.png 1x,       ../assets/images/navbar--icon-vis-goto-cluster@2x.png 2x\" >")
+                    .on("click", function () {
+                    d3__WEBPACK_IMPORTED_MODULE_5__["event"].stopPropagation();
+                    stateManager.urlState.nUuid = scrape.nUuid;
+                    stateManager.urlState.view = "cluster";
+                    stateManager.update();
+                });
+                li.append("a")
+                    .classed("scrapeVisNetwork", true)
+                    .classed("notRecommended", (scrape.nodeCount >= 1000) ? true : false)
+                    .html("<img src=\"../assets/images/navbar--icon-vis-goto-network.png\"       srcset=\"../assets/images/navbar--icon-vis-goto-network.png 1x,       ../assets/images/navbar--icon-vis-goto-network@2x.png 2x\" >")
+                    .on("click", function () {
+                    d3__WEBPACK_IMPORTED_MODULE_5__["event"].stopPropagation();
+                    stateManager.urlState.nUuid = scrape.nUuid;
+                    stateManager.urlState.view = "network";
+                    stateManager.update();
+                });
+                li.append("a")
+                    .classed("scrapeVisOverview", true)
+                    .classed("notRecommended", (scrape.nodeCount >= 1000) ? true : false)
+                    .html("<img src=\"../assets/images/navbar--icon-vis-goto-overview.png\"       srcset=\"../assets/images/navbar--icon-vis-goto-overview.png 1x,       ../assets/images/navbar--icon-vis-goto-overview@2x.png 2x\" >")
+                    .on("click", function () {
+                    d3__WEBPACK_IMPORTED_MODULE_5__["event"].stopPropagation();
+                    stateManager.urlState.nUuid = scrape.nUuid;
+                    stateManager.urlState.view = "overview";
+                    stateManager.update();
+                });
+                li.append("span")
+                    .attr("class", "scrapeDivider")
+                    .append("span");
+            }
             // meta data
             var scrapeRight = li.append("span")
                 .classed("scrapeMeta", true);
-            if ((scrape.state !== "complete" && scrape.completed === undefined) ||
-                (scrape.state !== "complete" && !scrape.completed)) {
+            if (incomplete) {
                 scrapeRight.append("span")
                     .text(browser.i18n.getMessage("selectionInProgress"))
                     .classed("scrapeState", true);
