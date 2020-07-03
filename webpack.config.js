@@ -66,6 +66,33 @@ module.exports = {
               search: /(return new Function\("d", "return {" \+ columns.map\(function\(name, i\) {)(\r\n|\r|\n)*(\t|\s)*(return JSON\.stringify\(name\) \+ ": d\[" \+ i \+ "\] \|\| \\"\\"";)(\r\n|\r|\n)*(\t|\s)*(\}\)\.join\(","\) \+ "\}"\);)/,
               replace: `return function (d) {var col = {};columns.forEach(function(name, i) {col[JSON.stringify(name)] = d[i] || "";});return col;};`,
             },
+            // remove Function > eval from REGL
+            {
+              search: `callback = new Function("" + callback);`,
+              replace: `callback = null;`
+            },
+            // WEBPACK
+            {
+              search: `g = g || new Function("return this")();`,
+              replace: `if (typeof window === "object") g = window;`
+            },
+            // Graphology > FF-Validation thinks this is an evil import, but its not, its a custom function named import
+            {
+              search: `Graph.prototype.import = function _import(data) {`,
+              replace: `Graph.prototype.importer = function _import(data) {`
+            },
+            {
+              search: `this.import(data.export(), merge);`,
+              replace: `this.importer(data.export(), merge);`
+            },
+            {
+              search: `graph.import(this);`,
+              replace: `graph.importer(this);`
+            },
+            {
+              search: `instance.import(data);`,
+              replace: `instance.importer(data);`
+            }
           ]
         }
       }
@@ -83,7 +110,6 @@ module.exports = {
         { from: 'node_modules/webextension-polyfill/dist/browser-polyfill.js', to: 'browser-polyfill.js' },
         { from: 'node_modules/webextension-polyfill/dist/browser-polyfill.js.map', to: 'browser-polyfill.js.map' },
         { from: 'node_modules/q/q.js', to: 'q.js' },
-        { from: 'node_modules/codebird/codebird.js', to: 'codebird.js' },
       ]
     })
   ],

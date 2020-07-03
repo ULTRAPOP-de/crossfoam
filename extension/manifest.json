@@ -2,7 +2,7 @@
 
   "manifest_version": 2,
   "name": "crossfoam",
-  "version": "1.0",
+  "version": "1.1",
   "default_locale": "en",
   "description": "__MSG_extensionDescription__",
   "options_ui": {
@@ -29,7 +29,6 @@
     "scripts": [
       "assets/js/browser-polyfill.js",
       "assets/js/q.js",
-      "assets/js/codebird.js",
       "assets/js/background.js"
     ],
     "persistent": true

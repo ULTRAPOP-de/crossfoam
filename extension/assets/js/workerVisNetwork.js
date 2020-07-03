@@ -571,7 +571,6 @@ var buildNetwork = function (service, centralNode, nUuid, timestamp, uniqueID, q
             return Promise.resolve();
         });
     });
-    return Promise.resolve();
 };
 exports.buildNetwork = buildNetwork;
 var cycleIndex = function (max, index) {
@@ -30878,307 +30877,2130 @@ function unwrapListeners(arr) {
  * Graphology Louvain Algorithm
  * =============================
  *
- * JavaScript implementation of the Louvain algorithm for community detection
- * using the `graphology` Graph library.
+ * JavaScript implementation of the famous Louvain community detection
+ * algorithms for graphology.
  *
- * [Reference]:
- * https://arxiv.org/pdf/0803.0476v2.pdf
+ * [Articles]
+ * M. E. J. Newman, « Modularity and community structure in networks »,
+ * Proc. Natl. Acad. Sci. USA, vol. 103, no 23,‎ 2006, p. 8577–8582
+ * https://dx.doi.org/10.1073%2Fpnas.0601602103
  *
- * [Article]:
- * Fast unfolding of communities in large networks
- * Vincent D. Blondel, Jean-Loup Guillaume, Renaud Lambiotte, Etienne Lefebvre
+ * Newman, M. E. J. « Community detection in networks: Modularity optimization
+ * and maximum likelihood are equivalent ». Physical Review E, vol. 94, no 5,
+ * novembre 2016, p. 052315. arXiv.org, doi:10.1103/PhysRevE.94.052315.
+ * https://arxiv.org/pdf/1606.02319.pdf
  *
- * [Notes]:
- * 'altered' set heuristic:
- * A set of altered communities is stored and used at each iteration of the
- * phase 1.
- * Indeed, every time a movement is made from C1 to C2
- * Then for the next iteration through every node each movement from a
- * not-altered to another not-altered community is pointless to check
- * because the ∆Q would be the same (negative movement then).
- * A old set is used to store the altered comm. from the previous phase 1 iteration
- * A new set is used to store the altered comm. of the current phase 1 iteration
- * A flag is used to handle the first phase-1 iteration
+ * Blondel, Vincent D., et al. « Fast unfolding of communities in large
+ * networks ». Journal of Statistical Mechanics: Theory and Experiment,
+ * vol. 2008, no 10, octobre 2008, p. P10008. DOI.org (Crossref),
+ * doi:10.1088/1742-5468/2008/10/P10008.
+ * https://arxiv.org/pdf/0803.0476.pdf
+ *
+ * Nicolas Dugué, Anthony Perez. Directed Louvain: maximizing modularity in
+ * directed networks. [Research Report] Université d’Orléans. 2015. hal-01231784
+ * https://hal.archives-ouvertes.fr/hal-01231784
+ *
+ * R. Lambiotte, J.-C. Delvenne and M. Barahona. Laplacian Dynamics and
+ * Multiscale Modular Structure in Networks,
+ * doi:10.1109/TNSE.2015.2391998.
+ * https://arxiv.org/abs/0812.1770
+ *
+ * Traag, V. A., et al. « From Louvain to Leiden: Guaranteeing Well-Connected
+ * Communities ». Scientific Reports, vol. 9, no 1, décembre 2019, p. 5233.
+ * DOI.org (Crossref), doi:10.1038/s41598-019-41695-z.
+ * https://arxiv.org/abs/1810.08473
  */
-var defaults = __webpack_require__(/*! lodash/defaultsDeep */ "./node_modules/lodash/defaultsDeep.js"),
-    isGraph = __webpack_require__(/*! graphology-utils/is-graph */ "./node_modules/graphology-utils/is-graph.js");
+var isGraph = __webpack_require__(/*! graphology-utils/is-graph */ "./node_modules/graphology-utils/is-graph.js"),
+    inferType = __webpack_require__(/*! graphology-utils/infer-type */ "./node_modules/graphology-utils/infer-type.js"),
+    SparseMap = __webpack_require__(/*! mnemonist/sparse-map */ "./node_modules/mnemonist/sparse-map.js"),
+    SparseQueueSet = __webpack_require__(/*! mnemonist/sparse-queue-set */ "./node_modules/mnemonist/sparse-queue-set.js"),
+    createRandomIndex = __webpack_require__(/*! pandemonium/random-index */ "./node_modules/pandemonium/random-index.js").createRandomIndex;
+
+var indices = __webpack_require__(/*! graphology-indices/neighborhood/louvain */ "./node_modules/graphology-indices/neighborhood/louvain.js");
+
+var UndirectedLouvainIndex = indices.UndirectedLouvainIndex,
+    DirectedLouvainIndex = indices.DirectedLouvainIndex;
 
 var DEFAULTS = {
   attributes: {
     community: 'community',
     weight: 'weight'
-  }
+  },
+  fastLocalMoves: true,
+  randomWalk: true,
+  resolution: 1,
+  rng: Math.random,
+  weighted: false
 };
+
+function addWeightToCommunity(map, community, weight) {
+  var currentWeight = map.get(community);
+
+  if (typeof currentWeight === 'undefined')
+    currentWeight = 0;
+
+  currentWeight += weight;
+
+  map.set(community, currentWeight);
+}
+
+function tieBreaker(bestCommunity, currentCommunity, targetCommunity, delta, bestDelta) {
+  if (delta === bestDelta) {
+    if (bestCommunity === currentCommunity) {
+      return false;
+    }
+    else {
+      return targetCommunity > bestCommunity;
+    }
+  }
+  else if (delta > bestDelta) {
+    return true;
+  }
+}
+
+function undirectedLouvain(detailed, graph, options) {
+  var index = new UndirectedLouvainIndex(graph, {
+    attributes: {
+      weight: options.attributes.weight
+    },
+    keepDendrogram: detailed,
+    resolution: options.resolution,
+    weighted: options.weighted
+  });
+
+  var randomIndex = createRandomIndex(options.rng);
+
+  // State variables
+  var moveWasMade = true,
+      localMoveWasMade = true;
+
+  // Communities
+  var currentCommunity, targetCommunity, singletonCommunity;
+  var communities = new SparseMap(Float64Array, index.C);
+
+  // Traversal
+  var queue,
+      start,
+      end,
+      weight,
+      ci,
+      ri,
+      s,
+      i,
+      j,
+      l;
+
+  // Metrics
+  var degree,
+      targetCommunityDegree;
+
+  // Moves
+  var bestCommunity,
+      bestDelta,
+      deltaIsBetter,
+      delta;
+
+  // Details
+  var deltaComputations = 0,
+      nodesVisited = 0,
+      moves = [],
+      localMoves,
+      currentMoves;
+
+  if (options.fastLocalMoves)
+    queue = new SparseQueueSet(index.C);
+
+  while (moveWasMade) {
+    l = index.C;
+
+    moveWasMade = false;
+    localMoveWasMade = true;
+
+    if (options.fastLocalMoves) {
+      currentMoves = 0;
+
+      // Traversal of the graph
+      ri = options.randomWalk ? randomIndex(l) : 0;
+
+      for (s = 0; s < l; s++, ri++) {
+        i = ri % l;
+        queue.enqueue(i);
+      }
+
+      while (queue.size !== 0) {
+        i = queue.dequeue();
+        nodesVisited++;
+
+        degree = 0;
+        communities.clear();
+
+        currentCommunity = index.belongings[i];
+
+        start = index.starts[i];
+        end = index.starts[i + 1];
+
+        // Traversing neighbors
+        for (; start < end; start++) {
+          j = index.neighborhood[start];
+          weight = index.weights[start];
+
+          targetCommunity = index.belongings[j];
+
+          // Incrementing metrics
+          degree += weight;
+          addWeightToCommunity(communities, targetCommunity, weight);
+        }
+
+        singletonCommunity = index.isolate(i, degree);
+
+        if (singletonCommunity !== currentCommunity)
+          communities.set(singletonCommunity, 0);
+
+        // Finding best community to move to
+        bestDelta = index.fastDelta(
+          i,
+          degree,
+          communities.get(currentCommunity) || 0,
+          currentCommunity
+        );
+        bestCommunity = currentCommunity;
+
+        for (ci = 0; ci < communities.size; ci++) {
+          targetCommunity = communities.dense[ci];
+
+          if (targetCommunity === currentCommunity)
+            continue;
+
+          targetCommunityDegree = communities.vals[ci];
+
+          deltaComputations++;
+
+          delta = index.fastDelta(
+            i,
+            degree,
+            targetCommunityDegree,
+            targetCommunity
+          );
+
+          deltaIsBetter = tieBreaker(
+            bestCommunity,
+            currentCommunity,
+            targetCommunity,
+            delta,
+            bestDelta
+          );
+
+          if (deltaIsBetter) {
+            bestDelta = delta;
+            bestCommunity = targetCommunity;
+          }
+        }
+
+        // Should we move the node back into its community or into a
+        // different community?
+        if (bestCommunity === currentCommunity || bestDelta <= 0) {
+          if (currentCommunity !== singletonCommunity)
+            index.move(i, degree, currentCommunity);
+        }
+
+        else if (bestCommunity !== singletonCommunity)
+          index.move(i, degree, bestCommunity);
+
+        if (bestDelta > 0 && bestCommunity !== currentCommunity) {
+          moveWasMade = true;
+          currentMoves++;
+
+          // Adding neighbors from other communities to the queue
+          start = index.starts[i];
+          end = index.starts[i + 1];
+
+          for (; start < end; start++) {
+            j = index.neighborhood[start];
+            targetCommunity = index.belongings[j];
+
+            if (targetCommunity !== bestCommunity)
+              queue.enqueue(j);
+          }
+        }
+      }
+
+      moves.push(currentMoves);
+    }
+    else {
+
+      localMoves = [];
+      moves.push(localMoves);
+
+      // Traditional Louvain iterative traversal of the graph
+      while (localMoveWasMade) {
+
+        localMoveWasMade = false;
+        currentMoves = 0;
+
+        ri = options.randomWalk ? randomIndex(l) : 0;
+
+        for (s = 0; s < l; s++, ri++) {
+          i = ri % l;
+
+          nodesVisited++;
+
+          degree = 0;
+          communities.clear();
+
+          currentCommunity = index.belongings[i];
+
+          start = index.starts[i];
+          end = index.starts[i + 1];
+
+          // Traversing neighbors
+          for (; start < end; start++) {
+            j = index.neighborhood[start];
+            weight = index.weights[start];
+
+            targetCommunity = index.belongings[j];
+
+            // Incrementing metrics
+            degree += weight;
+            addWeightToCommunity(communities, targetCommunity, weight);
+          }
+
+          singletonCommunity = index.isolate(i, degree);
+
+          if (singletonCommunity !== currentCommunity)
+            communities.set(singletonCommunity, 0);
+
+          // Finding best community to move to
+          bestDelta = index.fastDelta(
+            i,
+            degree,
+            communities.get(currentCommunity) || 0,
+            currentCommunity
+          );
+          bestCommunity = currentCommunity;
+
+          for (ci = 0; ci < communities.size; ci++) {
+            targetCommunity = communities.dense[ci];
+
+            if (targetCommunity === currentCommunity)
+              continue;
+
+            targetCommunityDegree = communities.vals[ci];
+
+            deltaComputations++;
+
+            delta = index.fastDelta(
+              i,
+              degree,
+              targetCommunityDegree,
+              targetCommunity
+            );
+
+            deltaIsBetter = tieBreaker(
+              bestCommunity,
+              currentCommunity,
+              targetCommunity,
+              delta,
+              bestDelta
+            );
+
+            if (deltaIsBetter) {
+              bestDelta = delta;
+              bestCommunity = targetCommunity;
+            }
+          }
+
+          // Should we move the node back into its community or into a
+          // different community?
+          if (bestCommunity === currentCommunity || bestDelta <= 0) {
+            if (currentCommunity !== singletonCommunity)
+              index.move(i, degree, currentCommunity);
+          }
+
+          else if (bestCommunity !== singletonCommunity)
+            index.move(i, degree, bestCommunity);
+
+          if (bestDelta > 0 && bestCommunity !== currentCommunity) {
+            localMoveWasMade = true;
+            currentMoves++;
+          }
+        }
+
+        localMoves.push(currentMoves);
+
+        moveWasMade = localMoveWasMade || moveWasMade;
+      }
+    }
+
+    // We continue working on the induced graph
+    if (moveWasMade)
+      index.zoomOut();
+  }
+
+  var results = {
+    index: index,
+    deltaComputations: deltaComputations,
+    nodesVisited: nodesVisited,
+    moves: moves
+  };
+
+  return results;
+}
+
+function directedLouvain(detailed, graph, options) {
+  var index = new DirectedLouvainIndex(graph, {
+    attributes: {
+      weight: options.attributes.weight
+    },
+    keepDendrogram: detailed,
+    resolution: options.resolution,
+    weighted: options.weighted
+  });
+
+  var randomIndex = createRandomIndex(options.rng);
+
+  // State variables
+  var moveWasMade = true,
+      localMoveWasMade = true;
+
+  // Communities
+  var currentCommunity, targetCommunity, singletonCommunity;
+  var communities = new SparseMap(Float64Array, index.C);
+
+  // Traversal
+  var queue,
+      start,
+      end,
+      offset,
+      out,
+      weight,
+      ci,
+      ri,
+      s,
+      i,
+      j,
+      l;
+
+  // Metrics
+  var inDegree,
+      outDegree,
+      targetCommunityDegree;
+
+  // Moves
+  var bestCommunity,
+      bestDelta,
+      deltaIsBetter,
+      delta;
+
+  // Details
+  var deltaComputations = 0,
+      nodesVisited = 0,
+      moves = [],
+      localMoves,
+      currentMoves;
+
+  if (options.fastLocalMoves)
+    queue = new SparseQueueSet(index.C);
+
+  while (moveWasMade) {
+    l = index.C;
+
+    moveWasMade = false;
+    localMoveWasMade = true;
+
+    if (options.fastLocalMoves) {
+      currentMoves = 0;
+
+      // Traversal of the graph
+      ri = options.randomWalk ? randomIndex(l) : 0;
+
+      for (s = 0; s < l; s++, ri++) {
+        i = ri % l;
+        queue.enqueue(i);
+      }
+
+      while (queue.size !== 0) {
+        i = queue.dequeue();
+        nodesVisited++;
+
+        inDegree = 0;
+        outDegree = 0;
+        communities.clear();
+
+        currentCommunity = index.belongings[i];
+
+        start = index.starts[i];
+        end = index.starts[i + 1];
+        offset = index.offsets[i];
+
+        // Traversing neighbors
+        for (; start < end; start++) {
+          out = start < offset;
+          j = index.neighborhood[start];
+          weight = index.weights[start];
+
+          targetCommunity = index.belongings[j];
+
+          // Incrementing metrics
+          if (out)
+            outDegree += weight;
+          else
+            inDegree += weight;
+
+          addWeightToCommunity(communities, targetCommunity, weight);
+        }
+
+        singletonCommunity = index.isolate(i, inDegree, outDegree);
+
+        if (singletonCommunity !== currentCommunity)
+          communities.set(singletonCommunity, 0);
+
+        // Finding best community to move to
+        bestDelta = index.delta(
+          i,
+          inDegree,
+          outDegree,
+          communities.get(currentCommunity) || 0,
+          currentCommunity
+        );
+        bestCommunity = currentCommunity;
+
+        for (ci = 0; ci < communities.size; ci++) {
+          targetCommunity = communities.dense[ci];
+
+          if (targetCommunity === currentCommunity)
+            continue;
+
+          targetCommunityDegree = communities.vals[ci];
+
+          deltaComputations++;
+
+          delta = index.delta(
+            i,
+            inDegree,
+            outDegree,
+            targetCommunityDegree,
+            targetCommunity
+          );
+
+          deltaIsBetter = tieBreaker(
+            bestCommunity,
+            currentCommunity,
+            targetCommunity,
+            delta,
+            bestDelta
+          );
+
+          if (deltaIsBetter) {
+            bestDelta = delta;
+            bestCommunity = targetCommunity;
+          }
+        }
+
+        // Should we move the node back into its community or into a
+        // different community?
+        if (bestCommunity === currentCommunity || bestDelta <= 0) {
+          if (currentCommunity !== singletonCommunity)
+            index.move(i, inDegree, outDegree, currentCommunity);
+        }
+
+        else if (bestCommunity !== singletonCommunity)
+          index.move(i, inDegree, outDegree, bestCommunity);
+
+        if (bestDelta > 0 && bestCommunity !== currentCommunity) {
+          moveWasMade = true;
+          currentMoves++;
+
+          // Adding neighbors from other communities to the queue
+          start = index.starts[i];
+          end = index.starts[i + 1];
+
+          for (; start < end; start++) {
+            j = index.neighborhood[start];
+            targetCommunity = index.belongings[j];
+
+            if (targetCommunity !== bestCommunity)
+              queue.enqueue(j);
+          }
+        }
+      }
+
+      moves.push(currentMoves);
+    }
+    else {
+
+      localMoves = [];
+      moves.push(localMoves);
+
+      // Traditional Louvain iterative traversal of the graph
+      while (localMoveWasMade) {
+
+        localMoveWasMade = false;
+        currentMoves = 0;
+
+        ri = options.randomWalk ? randomIndex(l) : 0;
+
+        for (s = 0; s < l; s++, ri++) {
+          i = ri % l;
+
+          nodesVisited++;
+
+          inDegree = 0;
+          outDegree = 0;
+          communities.clear();
+
+          currentCommunity = index.belongings[i];
+
+          start = index.starts[i];
+          end = index.starts[i + 1];
+          offset = index.offsets[i];
+
+          // Traversing neighbors
+          for (; start < end; start++) {
+            out = start < offset;
+            j = index.neighborhood[start];
+            weight = index.weights[start];
+
+            targetCommunity = index.belongings[j];
+
+            // Incrementing metrics
+            if (out)
+              outDegree += weight;
+            else
+              inDegree += weight;
+
+            addWeightToCommunity(communities, targetCommunity, weight);
+          }
+
+          singletonCommunity = index.isolate(i, inDegree, outDegree);
+
+          if (singletonCommunity !== currentCommunity)
+            communities.set(singletonCommunity, 0);
+
+          // Finding best community to move to
+          bestDelta = index.delta(
+            i,
+            inDegree,
+            outDegree,
+            communities.get(currentCommunity) || 0,
+            currentCommunity
+          );
+          bestCommunity = currentCommunity;
+
+          for (ci = 0; ci < communities.size; ci++) {
+            targetCommunity = communities.dense[ci];
+
+            if (targetCommunity === currentCommunity)
+              continue;
+
+            targetCommunityDegree = communities.vals[ci];
+
+            deltaComputations++;
+
+            delta = index.delta(
+              i,
+              inDegree,
+              outDegree,
+              targetCommunityDegree,
+              targetCommunity
+            );
+
+            deltaIsBetter = tieBreaker(
+              bestCommunity,
+              currentCommunity,
+              targetCommunity,
+              delta,
+              bestDelta
+            );
+
+            if (deltaIsBetter) {
+              bestDelta = delta;
+              bestCommunity = targetCommunity;
+            }
+          }
+
+          // Should we move the node back into its community or into a
+          // different community?
+          if (bestCommunity === currentCommunity || bestDelta <= 0) {
+            if (currentCommunity !== singletonCommunity)
+              index.move(i, inDegree, outDegree, currentCommunity);
+          }
+
+          else if (bestCommunity !== singletonCommunity)
+            index.move(i, inDegree, outDegree, bestCommunity);
+
+          if (bestDelta > 0 && bestCommunity !== currentCommunity) {
+            localMoveWasMade = true;
+            currentMoves++;
+          }
+        }
+
+        localMoves.push(currentMoves);
+
+        moveWasMade = localMoveWasMade || moveWasMade;
+      }
+    }
+
+    // We continue working on the induced graph
+    if (moveWasMade)
+      index.zoomOut();
+  }
+
+  var results = {
+    index: index,
+    deltaComputations: deltaComputations,
+    nodesVisited: nodesVisited,
+    moves: moves
+  };
+
+  return results;
+}
 
 /**
  * Function returning the communities mapping of the graph.
  *
- * @param  {boolean} assign        - Assign communities to nodes attributes?
- * @param  {Graph}   graph         - Target graph.
- * @param  {object}  options       - Options:
- * @param  {object}    attributes  - Attribute names:
- * @param  {string}      community - Community node attribute name.
- * @param  {string}      weight    - Weight edge attribute name.
+ * @param  {boolean} assign             - Assign communities to nodes attributes?
+ * @param  {boolean} detailed           - Whether to return detailed information.
+ * @param  {Graph}   graph              - Target graph.
+ * @param  {object}  options            - Options:
+ * @param  {object}    attributes         - Attribute names:
+ * @param  {string}      community          - Community node attribute name.
+ * @param  {string}      weight             - Weight edge attribute name.
+ * @param  {string}    deltaComputation   - Method to use to compute delta computations.
+ * @param  {boolean}   fastLocalMoves     - Whether to use the fast local move optimization.
+ * @param  {boolean}   randomWalk         - Whether to traverse the graph in random order.
+ * @param  {number}    resolution         - Resolution parameter.
+ * @param  {function}  rng                - RNG function to use.
+ * @param  {boolean}   weighted           - Whether to compute the weighted version.
  * @return {object}
  */
-function louvain(assign, graph, options) {
+function louvain(assign, detailed, graph, options) {
   if (!isGraph(graph))
     throw new Error('graphology-communities-louvain: the given graph is not a valid graphology instance.');
 
   if (graph.multi)
-    throw new Error('graphology-communities-louvain: multi graphs are not handled.');
+    throw new Error('graphology-communities-louvain: cannot run the algorithm on a multi graph. Cast it to a simple one before (graphology-operators/to-simple).');
 
-  if (!graph.size)
-    throw new Error('graphology-communities-louvain: the graph has no edges.');
+  var type = inferType(graph);
+
+  if (type === 'mixed')
+    throw new Error('graphology-communities-louvain: cannot run the algorithm on a true mixed graph.');
 
   // Attributes name
-  options = defaults({}, options, DEFAULTS);
+  var _options = {};
+  Object.keys(DEFAULTS).forEach(function (dKey) {
+    _options[dKey] = DEFAULTS[dKey];
 
-  var nodes = graph.nodes(),
-      edges,
-      dendogram = {};
-
-  // Pass variables
-  var pgraph = graph,
-      bgraph,
-      M,
-      belongings,
-      indegree,
-      outdegree,
-      altered,
-      enhancingPass,
-      possessions,
-      w, weight, weights;
-
-  // Phase 1 variables
-  var bufferDQ,
-      deltaQ,
-      moveMade,
-      neighbors,
-      nextCommunity,
-      between,
-      oldc, newc,
-      stack,
-      visited;
-
-  // Iterations variables
-  var i, l1,
-      j, l2,
-      k, l3,
-      keys,
-      node, node2, edge, edge2, bounds,
-      community, community2;
-
-  for (i = 0, l1 = nodes.length; i < l1; i++)
-    dendogram[nodes[i]] = [nodes[i]];
-
-  /**
-   * Starting passes
-   * ***************
-   */
-  do {
-    // Pass initialization
-    enhancingPass = false;
-    nodes = pgraph.nodes();
-    edges = pgraph.edges();
-    M = 0;
-    belongings = {};
-    possessions = {};
-    weights = {};
-    indegree = {};
-    outdegree = {};
-    altered = {prev: {}, curr: {}, flag: false}; // see top notes
-    for (i = 0, l1 = nodes.length; i < l1; i++) {
-      node = nodes[i];
-      belongings[node] = node;
-      possessions[node] = {};
-      possessions[node][node] = true;
-      indegree[node] = 0;
-      outdegree[node] = 0;
-    }
-    for (i = 0, l1 = edges.length; i < l1; i++) {
-      edge = edges[i];
-      bounds = pgraph.extremities(edge);
-      w = pgraph.getEdgeAttribute(edge, options.attributes.weight);
-      weight = isNaN(w) ? 1 : w;
-      weights[edge] = weight;
-
-      outdegree[bounds[0]] += weight;
-      indegree[bounds[1]] += weight;
-      if (pgraph.undirected(edge) && bounds[0] !== bounds[1]) {
-        indegree[bounds[0]] += weight;
-        outdegree[bounds[1]] += weight;
-        M += 2 * weight;
+    if (typeof _options[dKey] === 'object') {
+      if (options && dKey in options) {
+        Object.keys(_options[dKey]).forEach(function (subDKey) {
+          if (subDKey in options[dKey]) {
+            _options[dKey][subDKey] = options[dKey][subDKey];
+          }
+        });
       }
-      else
-        M += weight;
+    }
+    else {
+      if (options && dKey in options) {
+        _options[dKey] = options[dKey];
+      }
+    }
+  });
+  options = _options;
+
+  // Empty graph case
+  var c = 0;
+
+  if (graph.size === 0) {
+    if (assign) {
+      graph.forEachNode(function(node) {
+        graph.setNodeAttribute(node, options.attributes.communities, c++);
+      });
+
+      return;
     }
 
-    /**
-     * Phase 1 :
-     * For each node, it looks for the best move to one if its neighbors' community
-     * and it does the best one - according to the modularity addition value
-     *
-     * After every node has been visited and each respective move - or not - has been done,
-     * it iterates again until no enhancing move has been done through any node
-     * -------------------------------------------------------------------------------------
-     */
-    do {
-      moveMade = false;
+    var communities = {};
 
-      // see top notes
-      altered.prev = altered.curr;
-      altered.curr = {};
+    graph.forEachNode(function(node) {
+      communities[node] = c++;
+    });
 
-      for (i = 0, l1 = nodes.length; i < l1; i++) {
-        node = nodes[i];
-        community = belongings[node];
-        deltaQ = 0;
-        bufferDQ = 0;
-        visited = {};
-        visited[community] = true;
-        between = {old: 0, new: 0};
-        oldc = {in: 0, out: 0};
+    if (!detailed)
+      return communities;
 
-        // Computing current community values
-        stack = Object.keys(possessions[community]);
-        for (j = 0, l2 = stack.length; j < l2; j++) {
-          node2 = stack[j];
-          if (node !== node2) {
-            oldc.in += indegree[node2];
-            oldc.out += outdegree[node2];
-            between.old += weights[pgraph.edge(node, node2)] || 0;
-            between.old += weights[pgraph.edge(node2, node)] || 0;
-          }
-        }
+    return {
+      communities: communities,
+      count: graph.order,
+      deltaComputations: 0,
+      dendrogram: null,
+      level: 0,
+      modularity: NaN,
+      moves: null,
+      nodesVisited: 0,
+      resolution: options.resolution
+    };
+  }
 
-        // Iterating through neighbors
-        neighbors = pgraph.neighbors(node);
-        for (j = 0, l2 = neighbors.length; j < l2; j++) {
-          community2 = belongings[neighbors[j]];
-          if (visited[community2])
-            continue;
-          visited[community2] = true;
-          // see top notes
-          if (altered.flag && !altered.prev[community] && !altered.prev[community2])
-            continue;
+  var fn = type === 'undirected' ? undirectedLouvain : directedLouvain;
 
-          between.new = 0;
-          newc = {in: 0, out: 0};
+  var results = fn(detailed, graph, options);
 
-          stack = Object.keys(possessions[community2]);
-          for (k = 0, l3 = stack.length; k < l3; k++) {
-            node2 = stack[k];
-            newc.in += indegree[node2];
-            newc.out += outdegree[node2];
-            between.new += weights[pgraph.edge(node, node2)] || 0;
-            between.new += weights[pgraph.edge(node2, node)] || 0;
-          }
+  var index = results.index;
 
-          deltaQ = (between.new - between.old) / M;
-          deltaQ += indegree[node] * (oldc.out - newc.out) / (M * M);
-          deltaQ += outdegree[node] * (oldc.in - newc.in) / (M * M);
-          if (deltaQ > bufferDQ) {
-            bufferDQ = deltaQ;
-            nextCommunity = community2;
-          }
-        }
-
-        // If a positive mode has been found
-        if (bufferDQ > 0) {
-          moveMade = true;
-          enhancingPass = true;
-          altered.curr[community] = true; // see top notes
-          altered.curr[nextCommunity] = true;
-          delete possessions[community][node];
-          if (Object.keys(possessions[community]).length === 0)
-            delete possessions[community];
-
-          belongings[node] = nextCommunity;
-          possessions[nextCommunity][node] = node;
-        }
-      }
-      altered.flag = true; // SEE NOTES AT THE TOP
-    } while (moveMade);
-
-    /**
-     * Phase 2 :
-     * If a move has been made, we create a new graph,
-     * nodes being communities and edges the links betweem them
-     * -------------------------------------------------------------------------------------
-     */
-    if (enhancingPass) {
-      bgraph = pgraph.emptyCopy();
-      bgraph.upgradeToMixed();
-
-      // Adding the nodes
-      keys = Object.keys(possessions);
-      for (i = 0, l1 = keys.length; i < l1; i++)
-        bgraph.addNode(keys[i]);
-
-      // Adding the edges
-      for (i = 0, l1 = edges.length; i < l1; i++) {
-        edge = edges[i];
-        bounds = pgraph.extremities(edge);
-        community = belongings[bounds[0]];
-        community2 = belongings[bounds[1]];
-        w = weights[edge];
-
-        edge2 = bgraph.directedEdge(community, community2);
-        if (edge2 === undefined)
-          bgraph.addDirectedEdge(community, community2, {weight: w});
-        else {
-          weight = bgraph.getEdgeAttribute(edge2, options.attributes.weight);
-          bgraph.setEdgeAttribute(edge2, options.attributes.weight, weight + w);
-        }
-
-        if (pgraph.undirected(edge) && bounds[0] !== bounds[1]) {
-          edge2 = bgraph.directedEdge(community2, community);
-          if (edge2 === undefined)
-            bgraph.addDirectedEdge(community2, community, {weight: w});
-          else {
-            weight = bgraph.getEdgeAttribute(edge2, options.attributes.weight);
-            bgraph.setEdgeAttribute(edge2, options.attributes.weight, weight + w);
-          }
-        }
-      }
-
-      // Updating the dendogram
-      nodes = Object.keys(dendogram);
-      for (i = 0, l1 = nodes.length; i < l1; i++) {
-        node = nodes[i];
-        community = belongings[dendogram[node][dendogram[node].length - 1]];
-        dendogram[node].push(community);
-      }
-
-      // Now using the new graph
-      pgraph = bgraph;
-    }
-  } while (enhancingPass);
-
-  nodes = Object.keys(dendogram);
-
-  // Assigning
-  if (assign)
-    for (i = 0, l1 = nodes.length; i < l1; i ++) {
-      node = nodes[i];
-      graph.setNodeAttribute(node, options.attributes.community, dendogram[node][dendogram[node].length - 1]);
+  // Standard output
+  if (!detailed) {
+    if (assign) {
+      index.assign(options.attributes.community);
+      return;
     }
 
-  // Standard case ; getting the final partitions from the dendogram
-  for (node in dendogram)
-    dendogram[node] = dendogram[node][dendogram[node].length - 1];
+    return index.collect();
+  }
 
-  return dendogram;
+  // Detailed output
+  var output = {
+    count: index.C,
+    deltaComputations: results.deltaComputations,
+    dendrogram: index.dendrogram,
+    level: index.level,
+    modularity: index.modularity(),
+    moves: results.moves,
+    nodesVisited: results.nodesVisited,
+    resolution: options.resolution
+  };
+
+  if (assign) {
+    index.assign(options.attributes.community);
+    return output;
+  }
+
+  output.communities = index.collect();
+
+  return output;
 }
 
 /**
  * Exporting.
  */
-var fn = louvain.bind(null, false);
-fn.assign = louvain.bind(null, true);
+var fn = louvain.bind(null, false, false);
+fn.assign = louvain.bind(null, true, false);
+fn.detailed = louvain.bind(null, false, true);
+fn.defaults = DEFAULTS;
 
 module.exports = fn;
+
+
+/***/ }),
+
+/***/ "./node_modules/graphology-indices/neighborhood/louvain.js":
+/*!*****************************************************************!*\
+  !*** ./node_modules/graphology-indices/neighborhood/louvain.js ***!
+  \*****************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+/**
+ * Graphology Louvain Indices
+ * ===========================
+ *
+ * Undirected & Directed Louvain Index structures used to compute the famous
+ * Louvain community detection algorithm.
+ *
+ * Most of the rationale is explained in `graphology-metrics`.
+ *
+ * Note that this index shares a lot with the classic Union-Find data
+ * structure. It also relies on a unused id stack to make sure we can
+ * increase again the number of communites when isolating nodes.
+ *
+ * [Articles]
+ * M. E. J. Newman, « Modularity and community structure in networks »,
+ * Proc. Natl. Acad. Sci. USA, vol. 103, no 23,‎ 2006, p. 8577–8582
+ * https://dx.doi.org/10.1073%2Fpnas.0601602103
+ *
+ * Newman, M. E. J. « Community detection in networks: Modularity optimization
+ * and maximum likelihood are equivalent ». Physical Review E, vol. 94, no 5,
+ * novembre 2016, p. 052315. arXiv.org, doi:10.1103/PhysRevE.94.052315.
+ * https://arxiv.org/pdf/1606.02319.pdf
+ *
+ * Blondel, Vincent D., et al. « Fast unfolding of communities in large
+ * networks ». Journal of Statistical Mechanics: Theory and Experiment,
+ * vol. 2008, no 10, octobre 2008, p. P10008. DOI.org (Crossref),
+ * doi:10.1088/1742-5468/2008/10/P10008.
+ * https://arxiv.org/pdf/0803.0476.pdf
+ *
+ * Nicolas Dugué, Anthony Perez. Directed Louvain: maximizing modularity in
+ * directed networks. [Research Report] Université d’Orléans. 2015. hal-01231784
+ * https://hal.archives-ouvertes.fr/hal-01231784
+ *
+ * R. Lambiotte, J.-C. Delvenne and M. Barahona. Laplacian Dynamics and
+ * Multiscale Modular Structure in Networks,
+ * doi:10.1109/TNSE.2015.2391998.
+ * https://arxiv.org/abs/0812.1770
+ *
+ * [Latex]:
+ *
+ * Undirected Case:
+ * ----------------
+ *
+ * \Delta Q=\bigg{[}\frac{\sum^{c}_{in}-(2d_{c}+l)}{2m}-\bigg{(}\frac{\sum^{c}_{tot}-(d+l)}{2m}\bigg{)}^{2}+\frac{\sum^{t}_{in}+(2d_{t}+l)}{2m}-\bigg{(}\frac{\sum^{t}_{tot}+(d+l)}{2m}\bigg{)}^{2}\bigg{]}-\bigg{[}\frac{\sum^{c}_{in}}{2m}-\bigg{(}\frac{\sum^{c}_{tot}}{2m}\bigg{)}^{2}+\frac{\sum^{t}_{in}}{2m}-\bigg{(}\frac{\sum^{t}_{tot}}{2m}\bigg{)}^{2}\bigg{]}
+ * \Delta Q=\frac{d_{t}-d_{c}}{m}+\frac{l\sum^{c}_{tot}+d\sum^{c}_{tot}-d^{2}-l^{2}-2dl-l\sum^{t}_{tot}-d\sum^{t}_{tot}}{2m^{2}}
+ * \Delta Q=\frac{d_{t}-d_{c}}{m}+\frac{(l+d)\sum^{c}_{tot}-d^{2}-l^{2}-2dl-(l+d)\sum^{t}_{tot}}{2m^{2}}
+ *
+ * Directed Case:
+ * --------------
+ * \Delta Q_d=\bigg{[}\frac{\sum^{c}_{in}-(d_{c.in}+d_{c.out}+l)}{m}-\frac{(\sum^{c}_{tot.in}-(d_{in}+l))(\sum^{c}_{tot.out}-(d_{out}+l))}{m^{2}}+\frac{\sum^{t}_{in}+(d_{t.in}+d_{t.out}+l)}{m}-\frac{(\sum^{t}_{tot.in}+(d_{in}+l))(\sum^{t}_{tot.out}+(d_{out}+l))}{m^{2}}\bigg{]}-\bigg{[}\frac{\sum^{c}_{in}}{m}-\frac{\sum^{c}_{tot.in}\sum^{c}_{tot.out}}{m^{2}}+\frac{\sum^{t}_{in}}{m}-\frac{\sum^{t}_{tot.in}\sum^{t}_{tot.out}}{m^{2}}\bigg{]}
+ *
+ * [Notes]:
+ * Louvain is a bit unclear on this but delta computation are not derived from
+ * Q1 - Q2 but rather between Q when considered node is isolated in its own
+ * community versus Q with this node in target community. This is in fact
+ * an optimization because the subtract part is constant in the formulae and
+ * does not affect delta comparisons.
+ */
+var typed = __webpack_require__(/*! mnemonist/utils/typed-arrays */ "./node_modules/graphology-indices/node_modules/mnemonist/utils/typed-arrays.js");
+
+var INSPECT = Symbol.for('nodejs.util.inspect.custom');
+
+var DEFAULTS = {
+  attributes: {
+    weight: 'weight'
+  },
+  keepDendrogram: false,
+  resolution: 1,
+  weighted: false
+};
+
+function UndirectedLouvainIndex(graph, options) {
+
+  // Solving options
+  options = options || {};
+  var attributes = options.attributes || {};
+
+  var keepDendrogram = options.keepDendrogram === true;
+
+  var resolution = typeof options.resolution === 'number' ?
+    options.resolution :
+    DEFAULTS.resolution;
+
+  // Weight getters
+  var weighted = options.weighted === true;
+
+  var weightAttribute = attributes.weight || DEFAULTS.attributes.weight;
+
+  var getWeight = function(attr) {
+    if (!weighted)
+      return 1;
+
+    var weight = attr[weightAttribute];
+
+    if (typeof weight !== 'number' || isNaN(weight))
+      return 1;
+
+    return weight;
+  };
+
+  // Building the index
+  var upperBound = graph.size * 2;
+
+  var NeighborhoodPointerArray = typed.getPointerArray(upperBound);
+  var NodesPointerArray = typed.getPointerArray(graph.order + 1);
+
+  // Properties
+  this.C = graph.order;
+  this.M = 0;
+  this.E = graph.size * 2;
+  this.U = 0;
+  this.resolution = resolution;
+  this.level = 0;
+  this.graph = graph;
+  this.nodes = new Array(graph.order);
+  this.keepDendrogram = keepDendrogram;
+
+  // Edge-level
+  this.neighborhood = new NodesPointerArray(upperBound);
+  this.weights = new Float64Array(upperBound);
+
+  // Node-level
+  this.loops = new Float64Array(graph.order);
+  this.starts = new NeighborhoodPointerArray(graph.order + 1);
+  this.belongings = new NodesPointerArray(graph.order);
+  this.dendrogram = [];
+  this.mapping = null;
+
+  // Community-level
+  this.counts = new NodesPointerArray(graph.order);
+  this.unused = new NodesPointerArray(graph.order);
+  this.totalWeights = new Float64Array(graph.order);
+
+  var ids = {};
+
+  var weight;
+
+  var i = 0,
+      n = 0;
+
+  var self = this;
+
+  // TODO: this is implementation specific
+  graph._nodes.forEach(function(nodeData, node) {
+    self.nodes[i] = node;
+
+    // Node map to index
+    ids[node] = i;
+
+    // Initializing starts
+    n += nodeData.undirectedDegree;
+    self.starts[i] = n;
+
+    // Belongings
+    self.belongings[i] = i;
+    self.counts[i] = 1;
+    i++;
+  });
+
+  // Single sweep over the edges
+  graph.forEachEdge(function(edge, attr, source, target) {
+    weight = getWeight(attr);
+
+    source = ids[source];
+    target = ids[target];
+
+    self.M += weight;
+
+    // Self loop?
+    if (source === target) {
+      self.E -= 2;
+      self.totalWeights[source] += weight * 2;
+      self.loops[source] = weight * 2;
+    }
+    else {
+      self.totalWeights[source] += weight;
+      self.totalWeights[target] += weight;
+
+      var startSource = --self.starts[source],
+          startTarget = --self.starts[target];
+
+      self.neighborhood[startSource] = target;
+      self.neighborhood[startTarget] = source;
+
+      self.weights[startSource] = weight;
+      self.weights[startTarget] = weight;
+    }
+  });
+
+  this.starts[i] = this.E;
+
+  if (this.keepDendrogram)
+    this.dendrogram.push(this.belongings.slice());
+  else
+    this.mapping = this.belongings.slice();
+}
+
+UndirectedLouvainIndex.prototype.isolate = function(i, degree) {
+  var currentCommunity = this.belongings[i];
+
+  // The node is already isolated
+  if (this.counts[currentCommunity] === 1)
+    return currentCommunity;
+
+  var newCommunity = this.unused[--this.U];
+
+  var loops = this.loops[i];
+
+  this.totalWeights[currentCommunity] -= degree + loops;
+  this.totalWeights[newCommunity] += degree + loops;
+
+  this.belongings[i] = newCommunity;
+
+  this.counts[currentCommunity]--;
+  this.counts[newCommunity]++;
+
+  return newCommunity;
+};
+
+UndirectedLouvainIndex.prototype.move = function(
+  i,
+  degree,
+  targetCommunity
+) {
+  var currentCommunity = this.belongings[i],
+      loops = this.loops[i];
+
+  this.totalWeights[currentCommunity] -= degree + loops;
+  this.totalWeights[targetCommunity] += degree + loops;
+
+  this.belongings[i] = targetCommunity;
+
+  var nowEmpty = this.counts[currentCommunity]-- === 1;
+  this.counts[targetCommunity]++;
+
+  if (nowEmpty)
+    this.unused[this.U++] = currentCommunity;
+};
+
+UndirectedLouvainIndex.prototype.expensiveMove = function(i, ci, dryRun) {
+  var o, l, weight;
+
+  var degree = 0;
+
+  for (o = this.starts[i], l = this.starts[i + 1]; o < l; o++) {
+    weight = this.weights[o];
+
+    degree += weight;
+  }
+
+  var args = [i, degree, ci];
+
+  if (dryRun)
+    return args;
+
+  this.move.apply(this, args);
+};
+
+UndirectedLouvainIndex.prototype.zoomOut = function() {
+  var inducedGraph = {},
+      newLabels = {};
+
+  var N = this.nodes.length;
+
+  var C = 0,
+      E = 0;
+
+  var i, j, l, m, n, ci, cj, data, adj;
+
+  // Renumbering communities
+  for (i = 0, l = this.C; i < l; i++) {
+    ci = this.belongings[i];
+
+    if (!(ci in newLabels)) {
+      newLabels[ci] = C;
+      inducedGraph[C] = {
+        adj: {},
+        totalWeights: this.totalWeights[ci],
+        internalWeights: 0
+      };
+      C++;
+    }
+
+    // We do this to otpimize the number of lookups in next loop
+    this.belongings[i] = newLabels[ci];
+  }
+
+  // Actualizing dendrogram
+  var currentLevel, nextLevel;
+
+  if (this.keepDendrogram) {
+    currentLevel = this.dendrogram[this.level];
+    nextLevel = new (typed.getPointerArray(C))(N);
+
+    for (i = 0; i < N; i++)
+      nextLevel[i] = this.belongings[currentLevel[i]];
+
+    this.dendrogram.push(nextLevel);
+  }
+  else {
+    for (i = 0; i < N; i++)
+      this.mapping[i] = this.belongings[this.mapping[i]];
+  }
+
+  // Building induced graph matrix
+  for (i = 0, l = this.C; i < l; i++) {
+    ci = this.belongings[i];
+
+    data = inducedGraph[ci];
+    adj = data.adj;
+    data.internalWeights += this.loops[i];
+
+    for (j = this.starts[i], m = this.starts[i + 1]; j < m; j++) {
+      n = this.neighborhood[j];
+      cj = this.belongings[n];
+
+      if (ci === cj) {
+        data.internalWeights += this.weights[j];
+        continue;
+      }
+
+      if (!(cj in adj))
+        adj[cj] = 0;
+
+      adj[cj] += this.weights[j];
+    }
+  }
+
+  // Rewriting neighborhood
+  this.C = C;
+
+  n = 0;
+
+  for (ci in inducedGraph) {
+    data = inducedGraph[ci];
+    adj = data.adj;
+
+    ci = +ci;
+
+    this.totalWeights[ci] = data.totalWeights;
+    this.loops[ci] = data.internalWeights;
+    this.counts[ci] = 1;
+
+    this.starts[ci] = n;
+    this.belongings[ci] = ci;
+
+    for (cj in adj) {
+      this.neighborhood[n] = cj;
+      this.weights[n] = adj[cj];
+
+      E++;
+      n++;
+    }
+  }
+
+  this.starts[C] = E;
+
+  this.E = E;
+  this.U = 0;
+  this.level++;
+};
+
+UndirectedLouvainIndex.prototype.modularity = function() {
+  var ci, cj, i, j, m;
+
+  var Q = 0;
+  var M2 = this.M * 2;
+  var internalWeights = new Float64Array(this.C);
+
+  for (i = 0; i < this.C; i++) {
+    ci = this.belongings[i];
+    internalWeights[ci] += this.loops[i];
+
+    for (j = this.starts[i], m = this.starts[i + 1]; j < m; j++) {
+      cj = this.belongings[this.neighborhood[j]];
+
+      if (ci !== cj)
+        continue;
+
+      internalWeights[ci] += this.weights[j];
+    }
+  }
+
+  for (i = 0; i < this.C; i++) {
+    Q += (
+      internalWeights[i] / M2 -
+      Math.pow(this.totalWeights[i] / M2, 2) * this.resolution
+    );
+  }
+
+  return Q;
+};
+
+UndirectedLouvainIndex.prototype.delta = function(i, degree, targetCommunityDegree, targetCommunity) {
+  var M = this.M;
+
+  var targetCommunityTotalWeight = this.totalWeights[targetCommunity];
+
+  degree += this.loops[i];
+
+  return (
+    (targetCommunityDegree / M) - // NOTE: formula is a bit different here because targetCommunityDegree is passed without * 2
+    (
+      (targetCommunityTotalWeight * degree * this.resolution) /
+      (2 * M * M)
+    )
+  );
+};
+
+UndirectedLouvainIndex.prototype.deltaWithOwnCommunity = function(i, degree, targetCommunityDegree, targetCommunity) {
+  var M = this.M;
+
+  var targetCommunityTotalWeight = this.totalWeights[targetCommunity];
+
+  degree += this.loops[i];
+
+  return (
+    (targetCommunityDegree / M) - // NOTE: formula is a bit different here because targetCommunityDegree is passed without * 2
+    (
+      ((targetCommunityTotalWeight - degree) * degree * this.resolution) /
+      (2 * M * M)
+    )
+  );
+};
+
+// NOTE: this is just a faster but equivalent version of #.delta
+// It is just off by a constant factor and is just faster to compute
+UndirectedLouvainIndex.prototype.fastDelta = function(i, degree, targetCommunityDegree, targetCommunity) {
+  var M = this.M;
+
+  var targetCommunityTotalWeight = this.totalWeights[targetCommunity];
+
+  degree += this.loops[i];
+
+  return (
+    targetCommunityDegree -
+    (degree * targetCommunityTotalWeight * this.resolution) / (2 * M)
+  );
+};
+
+UndirectedLouvainIndex.prototype.fastDeltaWithOwnCommunity = function(i, degree, targetCommunityDegree, targetCommunity) {
+  var M = this.M;
+
+  var targetCommunityTotalWeight = this.totalWeights[targetCommunity];
+
+  degree += this.loops[i];
+
+  return (
+    targetCommunityDegree -
+    (degree * (targetCommunityTotalWeight - degree) * this.resolution) / (2 * M)
+  );
+};
+
+UndirectedLouvainIndex.prototype.bounds = function(i) {
+  return [this.starts[i], this.starts[i + 1]];
+};
+
+UndirectedLouvainIndex.prototype.project = function() {
+  var self = this;
+
+  var projection = {};
+
+  self.nodes.slice(0, this.C).forEach(function(node, i) {
+    projection[node] = Array.from(
+      self.neighborhood.slice(self.starts[i], self.starts[i + 1])
+    ).map(function(j) {
+      return self.nodes[j];
+    });
+  });
+
+  return projection;
+};
+
+UndirectedLouvainIndex.prototype.collect = function(level) {
+  if (arguments.length < 1)
+    level = this.level;
+
+  var o = {};
+
+  var mapping = this.keepDendrogram ? this.dendrogram[level] : this.mapping;
+
+  var i, l;
+
+  for (i = 0, l = mapping.length; i < l; i++)
+    o[this.nodes[i]] = mapping[i];
+
+  return o;
+};
+
+UndirectedLouvainIndex.prototype.assign = function(prop, level) {
+  if (arguments.length < 2)
+    level = this.level;
+
+  var mapping = this.keepDendrogram ? this.dendrogram[level] : this.mapping;
+
+  var i, l;
+
+  for (i = 0, l = mapping.length; i < l; i++)
+    this.graph.setNodeAttribute(this.nodes[i], prop, mapping[i]);
+};
+
+UndirectedLouvainIndex.prototype[INSPECT] = function() {
+  var proxy = {};
+
+  // Trick so that node displays the name of the constructor
+  Object.defineProperty(proxy, 'constructor', {
+    value: UndirectedLouvainIndex,
+    enumerable: false
+  });
+
+  proxy.C = this.C;
+  proxy.M = this.M;
+  proxy.E = this.E;
+  proxy.U = this.U;
+  proxy.resolution = this.resolution;
+  proxy.level = this.level;
+  proxy.nodes = this.nodes;
+  proxy.starts = this.starts.slice(0, proxy.C + 1);
+
+  var eTruncated = ['neighborhood', 'weights'];
+  var cTruncated = ['counts', 'loops', 'belongings', 'totalWeights'];
+
+  var self = this;
+
+  eTruncated.forEach(function(key) {
+    proxy[key] = self[key].slice(0, proxy.E);
+  });
+
+  cTruncated.forEach(function(key) {
+    proxy[key] = self[key].slice(0, proxy.C);
+  });
+
+  proxy.unused = this.unused.slice(0, this.U);
+
+  if (this.keepDendrogram)
+    proxy.dendrogram = this.dendrogram;
+  else
+    proxy.mapping = this.mapping;
+
+  return proxy;
+};
+
+function DirectedLouvainIndex(graph, options) {
+
+  // Solving options
+  options = options || {};
+  var attributes = options.attributes || {};
+
+  var keepDendrogram = options.keepDendrogram === true;
+
+  var resolution = typeof options.resolution === 'number' ?
+    options.resolution :
+    DEFAULTS.resolution;
+
+  // Weight getters
+  var weighted = options.weighted === true;
+
+  var weightAttribute = attributes.weight || DEFAULTS.attributes.weight;
+
+  var getWeight = function(attr) {
+    if (!weighted)
+      return 1;
+
+    var weight = attr[weightAttribute];
+
+    if (typeof weight !== 'number' || isNaN(weight))
+      return 1;
+
+    return weight;
+  };
+
+  // Building the index
+  var upperBound = graph.size * 2;
+
+  var NeighborhoodPointerArray = typed.getPointerArray(upperBound);
+  var NodesPointerArray = typed.getPointerArray(graph.order + 1);
+
+  // Properties
+  this.C = graph.order;
+  this.M = 0;
+  this.E = graph.size * 2;
+  this.U = 0;
+  this.resolution = resolution;
+  this.level = 0;
+  this.graph = graph;
+  this.nodes = new Array(graph.order);
+  this.keepDendrogram = keepDendrogram;
+
+  // Edge-level
+  // NOTE: edges are stored out then in, in this order
+  this.neighborhood = new NodesPointerArray(upperBound);
+  this.weights = new Float64Array(upperBound);
+
+  // Node-level
+  this.loops = new Float64Array(graph.order);
+  this.starts = new NeighborhoodPointerArray(graph.order + 1);
+  this.offsets = new NeighborhoodPointerArray(graph.order);
+  this.belongings = new NodesPointerArray(graph.order);
+  this.dendrogram = [];
+
+  // Community-level
+  this.counts = new NodesPointerArray(graph.order);
+  this.unused = new NodesPointerArray(graph.order);
+  this.totalInWeights = new Float64Array(graph.order);
+  this.totalOutWeights = new Float64Array(graph.order);
+
+  var ids = {};
+
+  var weight;
+
+  var i = 0,
+      n = 0;
+
+  var self = this;
+
+  // TODO: this is implementation specific
+  graph._nodes.forEach(function(nodeData, node) {
+    self.nodes[i] = node;
+
+    // Node map to index
+    ids[node] = i;
+
+    // Initializing starts & offsets
+    n += nodeData.outDegree;
+    self.starts[i] = n;
+
+    n += nodeData.inDegree;
+    self.offsets[i] = n;
+
+    // Belongings
+    self.belongings[i] = i;
+    self.counts[i] = 1;
+    i++;
+  });
+
+  // Single sweep over the edges
+  graph.forEachEdge(function(edge, attr, source, target) {
+    weight = getWeight(attr);
+
+    source = ids[source];
+    target = ids[target];
+
+    self.M += weight;
+
+    // Self loop?
+    if (source === target) {
+      self.E -= 2;
+      self.loops[source] += weight;
+      self.totalInWeights[source] += weight;
+      self.totalOutWeights[source] += weight;
+    }
+    else {
+      self.totalOutWeights[source] += weight;
+      self.totalInWeights[target] += weight;
+
+      var startSource = --self.starts[source],
+          startTarget = --self.offsets[target];
+
+      self.neighborhood[startSource] = target;
+      self.neighborhood[startTarget] = source;
+
+      self.weights[startSource] = weight;
+      self.weights[startTarget] = weight;
+    }
+  });
+
+  this.starts[i] = this.E;
+
+  if (this.keepDendrogram)
+    this.dendrogram.push(this.belongings.slice());
+  else
+    this.mapping = this.belongings.slice();
+}
+
+DirectedLouvainIndex.prototype.bounds = UndirectedLouvainIndex.prototype.bounds;
+
+DirectedLouvainIndex.prototype.inBounds = function(i) {
+  return [this.offsets[i], this.starts[i + 1]];
+};
+
+DirectedLouvainIndex.prototype.outBounds = function(i) {
+  return [this.starts[i], this.offsets[i]];
+};
+
+DirectedLouvainIndex.prototype.project = UndirectedLouvainIndex.prototype.project;
+
+DirectedLouvainIndex.prototype.projectIn = function() {
+  var self = this;
+
+  var projection = {};
+
+  self.nodes.slice(0, this.C).forEach(function(node, i) {
+    projection[node] = Array.from(
+      self.neighborhood.slice(self.offsets[i], self.starts[i + 1])
+    ).map(function(j) {
+      return self.nodes[j];
+    });
+  });
+
+  return projection;
+};
+
+DirectedLouvainIndex.prototype.projectOut = function() {
+  var self = this;
+
+  var projection = {};
+
+  self.nodes.slice(0, this.C).forEach(function(node, i) {
+    projection[node] = Array.from(
+      self.neighborhood.slice(self.starts[i], self.offsets[i])
+    ).map(function(j) {
+      return self.nodes[j];
+    });
+  });
+
+  return projection;
+};
+
+DirectedLouvainIndex.prototype.isolate = function(i, inDegree, outDegree) {
+  var currentCommunity = this.belongings[i];
+
+  // The node is already isolated
+  if (this.counts[currentCommunity] === 1)
+    return currentCommunity;
+
+  var newCommunity = this.unused[--this.U];
+
+  var loops = this.loops[i];
+
+  this.totalInWeights[currentCommunity] -= inDegree + loops;
+  this.totalInWeights[newCommunity] += inDegree + loops;
+
+  this.totalOutWeights[currentCommunity] -= outDegree + loops;
+  this.totalOutWeights[newCommunity] += outDegree + loops;
+
+  this.belongings[i] = newCommunity;
+
+  this.counts[currentCommunity]--;
+  this.counts[newCommunity]++;
+
+  return newCommunity;
+};
+
+DirectedLouvainIndex.prototype.move = function(
+  i,
+  inDegree,
+  outDegree,
+  targetCommunity
+) {
+  var currentCommunity = this.belongings[i],
+      loops = this.loops[i];
+
+  this.totalInWeights[currentCommunity] -= inDegree + loops;
+  this.totalInWeights[targetCommunity] += inDegree + loops;
+
+  this.totalOutWeights[currentCommunity] -= outDegree + loops;
+  this.totalOutWeights[targetCommunity] += outDegree + loops;
+
+  this.belongings[i] = targetCommunity;
+
+  var nowEmpty = this.counts[currentCommunity]-- === 1;
+  this.counts[targetCommunity]++;
+
+  if (nowEmpty)
+    this.unused[this.U++] = currentCommunity;
+};
+
+DirectedLouvainIndex.prototype.expensiveMove = function(i, ci, dryRun) {
+  var o, l, out, weight;
+
+  var inDegree = 0,
+      outDegree = 0;
+
+  var s = this.offsets[i];
+
+  for (o = this.starts[i], l = this.starts[i + 1]; o < l; o++) {
+    out = o < s;
+    weight = this.weights[o];
+
+    if (out)
+      outDegree += weight;
+    else
+      inDegree += weight;
+  }
+
+  var args = [
+    i,
+    inDegree,
+    outDegree,
+    ci
+  ];
+
+  if (dryRun)
+    return args;
+
+  this.move.apply(this, args);
+};
+
+DirectedLouvainIndex.prototype.zoomOut = function() {
+  var inducedGraph = {},
+      newLabels = {};
+
+  var N = this.nodes.length;
+
+  var C = 0,
+      E = 0;
+
+  var i, j, l, m, n, ci, cj, data, offset, out, adj, inAdj, outAdj;
+
+  // Renumbering communities
+  for (i = 0, l = this.C; i < l; i++) {
+    ci = this.belongings[i];
+
+    if (!(ci in newLabels)) {
+      newLabels[ci] = C;
+      inducedGraph[C] = {
+        inAdj: {},
+        outAdj: {},
+        totalInWeights: this.totalInWeights[ci],
+        totalOutWeights: this.totalOutWeights[ci],
+        internalWeights: 0
+      };
+      C++;
+    }
+
+    // We do this to otpimize the number of lookups in next loop
+    this.belongings[i] = newLabels[ci];
+  }
+
+  // Actualizing dendrogram
+  var currentLevel, nextLevel;
+
+  if (this.keepDendrogram) {
+    currentLevel = this.dendrogram[this.level];
+    nextLevel = new (typed.getPointerArray(C))(N);
+
+    for (i = 0; i < N; i++)
+      nextLevel[i] = this.belongings[currentLevel[i]];
+
+    this.dendrogram.push(nextLevel);
+  }
+  else {
+    for (i = 0; i < N; i++)
+      this.mapping[i] = this.belongings[this.mapping[i]];
+  }
+
+  // Building induced graph matrix
+  for (i = 0, l = this.C; i < l; i++) {
+    ci = this.belongings[i];
+    offset = this.offsets[i];
+
+    data = inducedGraph[ci];
+    inAdj = data.inAdj;
+    outAdj = data.outAdj;
+    data.internalWeights += this.loops[i];
+
+    for (j = this.starts[i], m = this.starts[i + 1]; j < m; j++) {
+      n = this.neighborhood[j];
+      cj = this.belongings[n];
+      out = j < offset;
+
+      adj = out ? outAdj : inAdj;
+
+      if (ci === cj) {
+        if (out)
+          data.internalWeights += this.weights[j];
+
+        continue;
+      }
+
+      if (!(cj in adj))
+        adj[cj] = 0;
+
+      adj[cj] += this.weights[j];
+    }
+  }
+
+  // Rewriting neighborhood
+  this.C = C;
+
+  n = 0;
+
+  for (ci in inducedGraph) {
+    data = inducedGraph[ci];
+    inAdj = data.inAdj;
+    outAdj = data.outAdj;
+
+    ci = +ci;
+
+    this.totalInWeights[ci] = data.totalInWeights;
+    this.totalOutWeights[ci] = data.totalOutWeights;
+    this.loops[ci] = data.internalWeights;
+    this.counts[ci] = 1;
+
+    this.starts[ci] = n;
+    this.belongings[ci] = ci;
+
+    for (cj in outAdj) {
+      this.neighborhood[n] = cj;
+      this.weights[n] = outAdj[cj];
+
+      E++;
+      n++;
+    }
+
+    this.offsets[ci] = n;
+
+    for (cj in inAdj) {
+      this.neighborhood[n] = cj;
+      this.weights[n] = inAdj[cj];
+
+      E++;
+      n++;
+    }
+  }
+
+  this.starts[C] = E;
+
+  this.E = E;
+  this.U = 0;
+  this.level++;
+};
+
+DirectedLouvainIndex.prototype.modularity = function() {
+  var ci, cj, i, j, m;
+
+  var Q = 0;
+  var M = this.M;
+  var internalWeights = new Float64Array(this.C);
+
+  for (i = 0; i < this.C; i++) {
+    ci = this.belongings[i];
+    internalWeights[ci] += this.loops[i];
+
+    for (j = this.starts[i], m = this.offsets[i]; j < m; j++) {
+      cj = this.belongings[this.neighborhood[j]];
+
+      if (ci !== cj)
+        continue;
+
+      internalWeights[ci] += this.weights[j];
+    }
+  }
+
+  for (i = 0; i < this.C; i++)
+    Q += (
+      (internalWeights[i] / M) -
+      (this.totalInWeights[i] * this.totalOutWeights[i] / Math.pow(M, 2)) *
+      this.resolution
+    );
+
+  return Q;
+};
+
+DirectedLouvainIndex.prototype.delta = function(
+  i,
+  inDegree,
+  outDegree,
+  targetCommunityDegree,
+  targetCommunity
+) {
+  var M = this.M;
+
+  var targetCommunityTotalInWeight = this.totalInWeights[targetCommunity],
+      targetCommunityTotalOutWeight = this.totalOutWeights[targetCommunity];
+
+  var loops = this.loops[i];
+
+  inDegree += loops;
+  outDegree += loops;
+
+  return (
+    (targetCommunityDegree / M) -
+    (
+      (
+        (outDegree * targetCommunityTotalInWeight) +
+        (inDegree * targetCommunityTotalOutWeight)
+      ) * this.resolution /
+      (M * M)
+    )
+  );
+};
+
+DirectedLouvainIndex.prototype.deltaWithOwnCommunity = function(
+  i,
+  inDegree,
+  outDegree,
+  targetCommunityDegree,
+  targetCommunity
+) {
+  var M = this.M;
+
+  var targetCommunityTotalInWeight = this.totalInWeights[targetCommunity],
+      targetCommunityTotalOutWeight = this.totalOutWeights[targetCommunity];
+
+  var loops = this.loops[i];
+
+  inDegree += loops;
+  outDegree += loops;
+
+  return (
+    (targetCommunityDegree / M) -
+    (
+      (
+        (outDegree * (targetCommunityTotalInWeight - inDegree)) +
+        (inDegree * (targetCommunityTotalOutWeight - outDegree))
+      ) * this.resolution /
+      (M * M)
+    )
+  );
+};
+
+DirectedLouvainIndex.prototype.collect = UndirectedLouvainIndex.prototype.collect;
+DirectedLouvainIndex.prototype.assign = UndirectedLouvainIndex.prototype.assign;
+
+DirectedLouvainIndex.prototype[INSPECT] = function() {
+  var proxy = {};
+
+  // Trick so that node displays the name of the constructor
+  Object.defineProperty(proxy, 'constructor', {
+    value: DirectedLouvainIndex,
+    enumerable: false
+  });
+
+  proxy.C = this.C;
+  proxy.M = this.M;
+  proxy.E = this.E;
+  proxy.U = this.U;
+  proxy.resolution = this.resolution;
+  proxy.level = this.level;
+  proxy.nodes = this.nodes;
+  proxy.starts = this.starts.slice(0, proxy.C + 1);
+
+  var eTruncated = ['neighborhood', 'weights'];
+  var cTruncated = ['counts', 'offsets', 'loops', 'belongings', 'totalInWeights', 'totalOutWeights'];
+
+  var self = this;
+
+  eTruncated.forEach(function(key) {
+    proxy[key] = self[key].slice(0, proxy.E);
+  });
+
+  cTruncated.forEach(function(key) {
+    proxy[key] = self[key].slice(0, proxy.C);
+  });
+
+  proxy.unused = this.unused.slice(0, this.U);
+
+  if (this.keepDendrogram)
+    proxy.dendrogram = this.dendrogram;
+  else
+    proxy.mapping = this.mapping;
+
+  return proxy;
+};
+
+exports.UndirectedLouvainIndex = UndirectedLouvainIndex;
+exports.DirectedLouvainIndex = DirectedLouvainIndex;
+
+
+/***/ }),
+
+/***/ "./node_modules/graphology-indices/node_modules/mnemonist/utils/typed-arrays.js":
+/*!**************************************************************************************!*\
+  !*** ./node_modules/graphology-indices/node_modules/mnemonist/utils/typed-arrays.js ***!
+  \**************************************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+/**
+ * Mnemonist Typed Array Helpers
+ * ==============================
+ *
+ * Miscellaneous helpers related to typed arrays.
+ */
+
+/**
+ * When using an unsigned integer array to store pointers, one might want to
+ * choose the optimal word size in regards to the actual numbers of pointers
+ * to store.
+ *
+ * This helpers does just that.
+ *
+ * @param  {number} size - Expected size of the array to map.
+ * @return {TypedArray}
+ */
+var MAX_8BIT_INTEGER = Math.pow(2, 8) - 1,
+    MAX_16BIT_INTEGER = Math.pow(2, 16) - 1,
+    MAX_32BIT_INTEGER = Math.pow(2, 32) - 1;
+
+var MAX_SIGNED_8BIT_INTEGER = Math.pow(2, 7) - 1,
+    MAX_SIGNED_16BIT_INTEGER = Math.pow(2, 15) - 1,
+    MAX_SIGNED_32BIT_INTEGER = Math.pow(2, 31) - 1;
+
+exports.getPointerArray = function(size) {
+  var maxIndex = size - 1;
+
+  if (maxIndex <= MAX_8BIT_INTEGER)
+    return Uint8Array;
+
+  if (maxIndex <= MAX_16BIT_INTEGER)
+    return Uint16Array;
+
+  if (maxIndex <= MAX_32BIT_INTEGER)
+    return Uint32Array;
+
+  return Float64Array;
+};
+
+exports.getSignedPointerArray = function(size) {
+  var maxIndex = size - 1;
+
+  if (maxIndex <= MAX_SIGNED_8BIT_INTEGER)
+    return Int8Array;
+
+  if (maxIndex <= MAX_SIGNED_16BIT_INTEGER)
+    return Int16Array;
+
+  if (maxIndex <= MAX_SIGNED_32BIT_INTEGER)
+    return Int32Array;
+
+  return Float64Array;
+};
+
+/**
+ * Function returning the minimal type able to represent the given number.
+ *
+ * @param  {number} value - Value to test.
+ * @return {TypedArrayClass}
+ */
+exports.getNumberType = function(value) {
+
+  // <= 32 bits itnteger?
+  if (value === (value | 0)) {
+
+    // Negative
+    if (Math.sign(value) === -1) {
+      if (value <= 127 && value >= -128)
+        return Int8Array;
+
+      if (value <= 32767 && value >= -32768)
+        return Int16Array;
+
+      return Int32Array;
+    }
+    else {
+
+      if (value <= 255)
+        return Uint8Array;
+
+      if (value <= 65535)
+        return Uint16Array;
+
+      return Uint32Array;
+    }
+  }
+
+  // 53 bits integer & floats
+  // NOTE: it's kinda hard to tell whether we could use 32bits or not...
+  return Float64Array;
+};
+
+/**
+ * Function returning the minimal type able to represent the given array
+ * of JavaScript numbers.
+ *
+ * @param  {array}    array  - Array to represent.
+ * @param  {function} getter - Optional getter.
+ * @return {TypedArrayClass}
+ */
+var TYPE_PRIORITY = {
+  Uint8Array: 1,
+  Int8Array: 2,
+  Uint16Array: 3,
+  Int16Array: 4,
+  Uint32Array: 5,
+  Int32Array: 6,
+  Float32Array: 7,
+  Float64Array: 8
+};
+
+// TODO: make this a one-shot for one value
+exports.getMinimalRepresentation = function(array, getter) {
+  var maxType = null,
+      maxPriority = 0,
+      p,
+      t,
+      v,
+      i,
+      l;
+
+  for (i = 0, l = array.length; i < l; i++) {
+    v = getter ? getter(array[i]) : array[i];
+    t = exports.getNumberType(v);
+    p = TYPE_PRIORITY[t.name];
+
+    if (p > maxPriority) {
+      maxPriority = p;
+      maxType = t;
+    }
+  }
+
+  return maxType;
+};
+
+/**
+ * Function returning whether the given value is a typed array.
+ *
+ * @param  {any} value - Value to test.
+ * @return {boolean}
+ */
+exports.isTypedArray = function(value) {
+  return typeof ArrayBuffer !== 'undefined' && ArrayBuffer.isView(value);
+};
+
+/**
+ * Function used to concat byte arrays.
+ *
+ * @param  {...ByteArray}
+ * @return {ByteArray}
+ */
+exports.concat = function() {
+  var length = 0,
+      i,
+      o,
+      l;
+
+  for (i = 0, l = arguments.length; i < l; i++)
+    length += arguments[i].length;
+
+  var array = new (arguments[0].constructor)(length);
+
+  for (i = 0, o = 0; i < l; i++) {
+    array.set(arguments[i], o);
+    o += arguments[i].length;
+  }
+
+  return array;
+};
+
+/**
+ * Function used to initialize a byte array of indices.
+ *
+ * @param  {number}    length - Length of target.
+ * @return {ByteArray}
+ */
+exports.indices = function(length) {
+  var PointerArray = exports.getPointerArray(length);
+
+  var array = new PointerArray(length);
+
+  for (var i = 0; i < length; i++)
+    array[i] = i;
+
+  return array;
+};
+
+
+/***/ }),
+
+/***/ "./node_modules/graphology-utils/infer-type.js":
+/*!*****************************************************!*\
+  !*** ./node_modules/graphology-utils/infer-type.js ***!
+  \*****************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+/**
+ * Graphology inferType
+ * =====================
+ *
+ * Useful function used to "guess" the real type of the given Graph using
+ * introspection.
+ */
+var isGraph = __webpack_require__(/*! ./is-graph.js */ "./node_modules/graphology-utils/is-graph.js");
+
+/**
+ * Returning the inferred type of the given graph.
+ *
+ * @param  {Graph}   graph - Target graph.
+ * @return {boolean}
+ */
+module.exports = function inferType(graph) {
+  if (!isGraph(graph))
+    throw new Error('graphology-utils/infer-type: expecting a valid graphology instance.');
+
+  var declaredType = graph.type;
+
+  if (declaredType !== 'mixed')
+    return declaredType;
+
+  if (
+    (graph.directedSize === 0 && graph.undirectedSize === 0) ||
+    (graph.directedSize > 0 && graph.undirectedSize > 0)
+  )
+    return 'mixed';
+
+  if (graph.directedSize > 0)
+    return 'directed';
+
+  return 'undirected';
+};
 
 
 /***/ }),
@@ -33983,7 +35805,7 @@ var Graph = function (_EventEmitter) {
    */
 
 
-  Graph.prototype.import = function _import(data) {
+  Graph.prototype.importer = function _import(data) {
     var _this2 = this;
 
     var merge = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
@@ -33992,7 +35814,7 @@ var Graph = function (_EventEmitter) {
     // Importing a Graph instance
     if ((0, _utils.isGraph)(data)) {
 
-      this.import(data.export(), merge);
+      this.importer(data.export(), merge);
       return this;
     }
 
@@ -34043,7 +35865,7 @@ var Graph = function (_EventEmitter) {
 
   Graph.prototype.copy = function copy() {
     var graph = new Graph(this._options);
-    graph.import(this);
+    graph.importer(this);
 
     return graph;
   };
@@ -34360,7 +36182,7 @@ function attachStaticFromMethod(Class) {
    */
   Class.from = function (data, options) {
     var instance = new Class(options);
-    instance.import(data);
+    instance.importer(data);
 
     return instance;
   };
@@ -36398,3558 +38220,782 @@ module.exports.jLouvain = exports.jLouvain = function () {
 
 /***/ }),
 
-/***/ "./node_modules/lodash/_Hash.js":
-/*!**************************************!*\
-  !*** ./node_modules/lodash/_Hash.js ***!
-  \**************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var hashClear = __webpack_require__(/*! ./_hashClear */ "./node_modules/lodash/_hashClear.js"),
-    hashDelete = __webpack_require__(/*! ./_hashDelete */ "./node_modules/lodash/_hashDelete.js"),
-    hashGet = __webpack_require__(/*! ./_hashGet */ "./node_modules/lodash/_hashGet.js"),
-    hashHas = __webpack_require__(/*! ./_hashHas */ "./node_modules/lodash/_hashHas.js"),
-    hashSet = __webpack_require__(/*! ./_hashSet */ "./node_modules/lodash/_hashSet.js");
-
-/**
- * Creates a hash object.
- *
- * @private
- * @constructor
- * @param {Array} [entries] The key-value pairs to cache.
- */
-function Hash(entries) {
-  var index = -1,
-      length = entries == null ? 0 : entries.length;
-
-  this.clear();
-  while (++index < length) {
-    var entry = entries[index];
-    this.set(entry[0], entry[1]);
-  }
-}
-
-// Add methods to `Hash`.
-Hash.prototype.clear = hashClear;
-Hash.prototype['delete'] = hashDelete;
-Hash.prototype.get = hashGet;
-Hash.prototype.has = hashHas;
-Hash.prototype.set = hashSet;
-
-module.exports = Hash;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_ListCache.js":
-/*!*******************************************!*\
-  !*** ./node_modules/lodash/_ListCache.js ***!
-  \*******************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var listCacheClear = __webpack_require__(/*! ./_listCacheClear */ "./node_modules/lodash/_listCacheClear.js"),
-    listCacheDelete = __webpack_require__(/*! ./_listCacheDelete */ "./node_modules/lodash/_listCacheDelete.js"),
-    listCacheGet = __webpack_require__(/*! ./_listCacheGet */ "./node_modules/lodash/_listCacheGet.js"),
-    listCacheHas = __webpack_require__(/*! ./_listCacheHas */ "./node_modules/lodash/_listCacheHas.js"),
-    listCacheSet = __webpack_require__(/*! ./_listCacheSet */ "./node_modules/lodash/_listCacheSet.js");
-
-/**
- * Creates an list cache object.
- *
- * @private
- * @constructor
- * @param {Array} [entries] The key-value pairs to cache.
- */
-function ListCache(entries) {
-  var index = -1,
-      length = entries == null ? 0 : entries.length;
-
-  this.clear();
-  while (++index < length) {
-    var entry = entries[index];
-    this.set(entry[0], entry[1]);
-  }
-}
-
-// Add methods to `ListCache`.
-ListCache.prototype.clear = listCacheClear;
-ListCache.prototype['delete'] = listCacheDelete;
-ListCache.prototype.get = listCacheGet;
-ListCache.prototype.has = listCacheHas;
-ListCache.prototype.set = listCacheSet;
-
-module.exports = ListCache;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_Map.js":
-/*!*************************************!*\
-  !*** ./node_modules/lodash/_Map.js ***!
-  \*************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var getNative = __webpack_require__(/*! ./_getNative */ "./node_modules/lodash/_getNative.js"),
-    root = __webpack_require__(/*! ./_root */ "./node_modules/lodash/_root.js");
-
-/* Built-in method references that are verified to be native. */
-var Map = getNative(root, 'Map');
-
-module.exports = Map;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_MapCache.js":
-/*!******************************************!*\
-  !*** ./node_modules/lodash/_MapCache.js ***!
-  \******************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var mapCacheClear = __webpack_require__(/*! ./_mapCacheClear */ "./node_modules/lodash/_mapCacheClear.js"),
-    mapCacheDelete = __webpack_require__(/*! ./_mapCacheDelete */ "./node_modules/lodash/_mapCacheDelete.js"),
-    mapCacheGet = __webpack_require__(/*! ./_mapCacheGet */ "./node_modules/lodash/_mapCacheGet.js"),
-    mapCacheHas = __webpack_require__(/*! ./_mapCacheHas */ "./node_modules/lodash/_mapCacheHas.js"),
-    mapCacheSet = __webpack_require__(/*! ./_mapCacheSet */ "./node_modules/lodash/_mapCacheSet.js");
-
-/**
- * Creates a map cache object to store key-value pairs.
- *
- * @private
- * @constructor
- * @param {Array} [entries] The key-value pairs to cache.
- */
-function MapCache(entries) {
-  var index = -1,
-      length = entries == null ? 0 : entries.length;
-
-  this.clear();
-  while (++index < length) {
-    var entry = entries[index];
-    this.set(entry[0], entry[1]);
-  }
-}
-
-// Add methods to `MapCache`.
-MapCache.prototype.clear = mapCacheClear;
-MapCache.prototype['delete'] = mapCacheDelete;
-MapCache.prototype.get = mapCacheGet;
-MapCache.prototype.has = mapCacheHas;
-MapCache.prototype.set = mapCacheSet;
-
-module.exports = MapCache;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_Stack.js":
-/*!***************************************!*\
-  !*** ./node_modules/lodash/_Stack.js ***!
-  \***************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var ListCache = __webpack_require__(/*! ./_ListCache */ "./node_modules/lodash/_ListCache.js"),
-    stackClear = __webpack_require__(/*! ./_stackClear */ "./node_modules/lodash/_stackClear.js"),
-    stackDelete = __webpack_require__(/*! ./_stackDelete */ "./node_modules/lodash/_stackDelete.js"),
-    stackGet = __webpack_require__(/*! ./_stackGet */ "./node_modules/lodash/_stackGet.js"),
-    stackHas = __webpack_require__(/*! ./_stackHas */ "./node_modules/lodash/_stackHas.js"),
-    stackSet = __webpack_require__(/*! ./_stackSet */ "./node_modules/lodash/_stackSet.js");
-
-/**
- * Creates a stack cache object to store key-value pairs.
- *
- * @private
- * @constructor
- * @param {Array} [entries] The key-value pairs to cache.
- */
-function Stack(entries) {
-  var data = this.__data__ = new ListCache(entries);
-  this.size = data.size;
-}
-
-// Add methods to `Stack`.
-Stack.prototype.clear = stackClear;
-Stack.prototype['delete'] = stackDelete;
-Stack.prototype.get = stackGet;
-Stack.prototype.has = stackHas;
-Stack.prototype.set = stackSet;
-
-module.exports = Stack;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_Symbol.js":
-/*!****************************************!*\
-  !*** ./node_modules/lodash/_Symbol.js ***!
-  \****************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var root = __webpack_require__(/*! ./_root */ "./node_modules/lodash/_root.js");
-
-/** Built-in value references. */
-var Symbol = root.Symbol;
-
-module.exports = Symbol;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_Uint8Array.js":
-/*!********************************************!*\
-  !*** ./node_modules/lodash/_Uint8Array.js ***!
-  \********************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var root = __webpack_require__(/*! ./_root */ "./node_modules/lodash/_root.js");
-
-/** Built-in value references. */
-var Uint8Array = root.Uint8Array;
-
-module.exports = Uint8Array;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_apply.js":
-/*!***************************************!*\
-  !*** ./node_modules/lodash/_apply.js ***!
-  \***************************************/
+/***/ "./node_modules/mnemonist/node_modules/obliterator/iterator.js":
+/*!*********************************************************************!*\
+  !*** ./node_modules/mnemonist/node_modules/obliterator/iterator.js ***!
+  \*********************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports) {
 
 /**
- * A faster alternative to `Function#apply`, this function invokes `func`
- * with the `this` binding of `thisArg` and the arguments of `args`.
+ * Obliterator Iterator Class
+ * ===========================
  *
- * @private
- * @param {Function} func The function to invoke.
- * @param {*} thisArg The `this` binding of `func`.
- * @param {Array} args The arguments to invoke `func` with.
- * @returns {*} Returns the result of `func`.
+ * Simple class representing the library's iterators.
  */
-function apply(func, thisArg, args) {
-  switch (args.length) {
-    case 0: return func.call(thisArg);
-    case 1: return func.call(thisArg, args[0]);
-    case 2: return func.call(thisArg, args[0], args[1]);
-    case 3: return func.call(thisArg, args[0], args[1], args[2]);
-  }
-  return func.apply(thisArg, args);
-}
-
-module.exports = apply;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_arrayLikeKeys.js":
-/*!***********************************************!*\
-  !*** ./node_modules/lodash/_arrayLikeKeys.js ***!
-  \***********************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var baseTimes = __webpack_require__(/*! ./_baseTimes */ "./node_modules/lodash/_baseTimes.js"),
-    isArguments = __webpack_require__(/*! ./isArguments */ "./node_modules/lodash/isArguments.js"),
-    isArray = __webpack_require__(/*! ./isArray */ "./node_modules/lodash/isArray.js"),
-    isBuffer = __webpack_require__(/*! ./isBuffer */ "./node_modules/lodash/isBuffer.js"),
-    isIndex = __webpack_require__(/*! ./_isIndex */ "./node_modules/lodash/_isIndex.js"),
-    isTypedArray = __webpack_require__(/*! ./isTypedArray */ "./node_modules/lodash/isTypedArray.js");
-
-/** Used for built-in method references. */
-var objectProto = Object.prototype;
-
-/** Used to check objects for own properties. */
-var hasOwnProperty = objectProto.hasOwnProperty;
 
 /**
- * Creates an array of the enumerable property names of the array-like `value`.
+ * Iterator class.
  *
- * @private
- * @param {*} value The value to query.
- * @param {boolean} inherited Specify returning inherited property names.
- * @returns {Array} Returns the array of property names.
+ * @constructor
+ * @param {function} next - Next function.
  */
-function arrayLikeKeys(value, inherited) {
-  var isArr = isArray(value),
-      isArg = !isArr && isArguments(value),
-      isBuff = !isArr && !isArg && isBuffer(value),
-      isType = !isArr && !isArg && !isBuff && isTypedArray(value),
-      skipIndexes = isArr || isArg || isBuff || isType,
-      result = skipIndexes ? baseTimes(value.length, String) : [],
-      length = result.length;
+function Iterator(next) {
 
-  for (var key in value) {
-    if ((inherited || hasOwnProperty.call(value, key)) &&
-        !(skipIndexes && (
-           // Safari 9 has enumerable `arguments.length` in strict mode.
-           key == 'length' ||
-           // Node.js 0.10 has enumerable non-index properties on buffers.
-           (isBuff && (key == 'offset' || key == 'parent')) ||
-           // PhantomJS 2 has enumerable non-index properties on typed arrays.
-           (isType && (key == 'buffer' || key == 'byteLength' || key == 'byteOffset')) ||
-           // Skip index properties.
-           isIndex(key, length)
-        ))) {
-      result.push(key);
-    }
-  }
-  return result;
+  // Hiding the given function
+  Object.defineProperty(this, '_next', {
+    writable: false,
+    enumerable: false,
+    value: next
+  });
+
+  // Is the iterator complete?
+  this.done = false;
 }
 
-module.exports = arrayLikeKeys;
+/**
+ * Next function.
+ *
+ * @return {object}
+ */
+// NOTE: maybe this should dropped for performance?
+Iterator.prototype.next = function() {
+  if (this.done)
+    return {done: true};
 
+  var step = this._next();
 
-/***/ }),
+  if (step.done)
+    this.done = true;
 
-/***/ "./node_modules/lodash/_assignMergeValue.js":
-/*!**************************************************!*\
-  !*** ./node_modules/lodash/_assignMergeValue.js ***!
-  \**************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var baseAssignValue = __webpack_require__(/*! ./_baseAssignValue */ "./node_modules/lodash/_baseAssignValue.js"),
-    eq = __webpack_require__(/*! ./eq */ "./node_modules/lodash/eq.js");
+  return step;
+};
 
 /**
- * This function is like `assignValue` except that it doesn't assign
- * `undefined` values.
- *
- * @private
- * @param {Object} object The object to modify.
- * @param {string} key The key of the property to assign.
- * @param {*} value The value to assign.
+ * If symbols are supported, we add `next` to `Symbol.iterator`.
  */
-function assignMergeValue(object, key, value) {
-  if ((value !== undefined && !eq(object[key], value)) ||
-      (value === undefined && !(key in object))) {
-    baseAssignValue(object, key, value);
-  }
-}
-
-module.exports = assignMergeValue;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_assignValue.js":
-/*!*********************************************!*\
-  !*** ./node_modules/lodash/_assignValue.js ***!
-  \*********************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var baseAssignValue = __webpack_require__(/*! ./_baseAssignValue */ "./node_modules/lodash/_baseAssignValue.js"),
-    eq = __webpack_require__(/*! ./eq */ "./node_modules/lodash/eq.js");
-
-/** Used for built-in method references. */
-var objectProto = Object.prototype;
-
-/** Used to check objects for own properties. */
-var hasOwnProperty = objectProto.hasOwnProperty;
-
-/**
- * Assigns `value` to `key` of `object` if the existing value is not equivalent
- * using [`SameValueZero`](http://ecma-international.org/ecma-262/7.0/#sec-samevaluezero)
- * for equality comparisons.
- *
- * @private
- * @param {Object} object The object to modify.
- * @param {string} key The key of the property to assign.
- * @param {*} value The value to assign.
- */
-function assignValue(object, key, value) {
-  var objValue = object[key];
-  if (!(hasOwnProperty.call(object, key) && eq(objValue, value)) ||
-      (value === undefined && !(key in object))) {
-    baseAssignValue(object, key, value);
-  }
-}
-
-module.exports = assignValue;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_assocIndexOf.js":
-/*!**********************************************!*\
-  !*** ./node_modules/lodash/_assocIndexOf.js ***!
-  \**********************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var eq = __webpack_require__(/*! ./eq */ "./node_modules/lodash/eq.js");
-
-/**
- * Gets the index at which the `key` is found in `array` of key-value pairs.
- *
- * @private
- * @param {Array} array The array to inspect.
- * @param {*} key The key to search for.
- * @returns {number} Returns the index of the matched value, else `-1`.
- */
-function assocIndexOf(array, key) {
-  var length = array.length;
-  while (length--) {
-    if (eq(array[length][0], key)) {
-      return length;
-    }
-  }
-  return -1;
-}
-
-module.exports = assocIndexOf;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_baseAssignValue.js":
-/*!*************************************************!*\
-  !*** ./node_modules/lodash/_baseAssignValue.js ***!
-  \*************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var defineProperty = __webpack_require__(/*! ./_defineProperty */ "./node_modules/lodash/_defineProperty.js");
-
-/**
- * The base implementation of `assignValue` and `assignMergeValue` without
- * value checks.
- *
- * @private
- * @param {Object} object The object to modify.
- * @param {string} key The key of the property to assign.
- * @param {*} value The value to assign.
- */
-function baseAssignValue(object, key, value) {
-  if (key == '__proto__' && defineProperty) {
-    defineProperty(object, key, {
-      'configurable': true,
-      'enumerable': true,
-      'value': value,
-      'writable': true
-    });
-  } else {
-    object[key] = value;
-  }
-}
-
-module.exports = baseAssignValue;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_baseCreate.js":
-/*!********************************************!*\
-  !*** ./node_modules/lodash/_baseCreate.js ***!
-  \********************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var isObject = __webpack_require__(/*! ./isObject */ "./node_modules/lodash/isObject.js");
-
-/** Built-in value references. */
-var objectCreate = Object.create;
-
-/**
- * The base implementation of `_.create` without support for assigning
- * properties to the created object.
- *
- * @private
- * @param {Object} proto The object to inherit from.
- * @returns {Object} Returns the new object.
- */
-var baseCreate = (function() {
-  function object() {}
-  return function(proto) {
-    if (!isObject(proto)) {
-      return {};
-    }
-    if (objectCreate) {
-      return objectCreate(proto);
-    }
-    object.prototype = proto;
-    var result = new object;
-    object.prototype = undefined;
-    return result;
+if (typeof Symbol !== 'undefined')
+  Iterator.prototype[Symbol.iterator] = function() {
+    return this;
   };
-}());
-
-module.exports = baseCreate;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_baseFor.js":
-/*!*****************************************!*\
-  !*** ./node_modules/lodash/_baseFor.js ***!
-  \*****************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var createBaseFor = __webpack_require__(/*! ./_createBaseFor */ "./node_modules/lodash/_createBaseFor.js");
 
 /**
- * The base implementation of `baseForOwn` which iterates over `object`
- * properties returned by `keysFunc` and invokes `iteratee` for each property.
- * Iteratee functions may exit iteration early by explicitly returning `false`.
+ * Returning an iterator of the given values.
  *
- * @private
- * @param {Object} object The object to iterate over.
- * @param {Function} iteratee The function invoked per iteration.
- * @param {Function} keysFunc The function to get the keys of `object`.
- * @returns {Object} Returns `object`.
+ * @param  {any...} values - Values.
+ * @return {Iterator}
  */
-var baseFor = createBaseFor();
-
-module.exports = baseFor;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_baseGetTag.js":
-/*!********************************************!*\
-  !*** ./node_modules/lodash/_baseGetTag.js ***!
-  \********************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var Symbol = __webpack_require__(/*! ./_Symbol */ "./node_modules/lodash/_Symbol.js"),
-    getRawTag = __webpack_require__(/*! ./_getRawTag */ "./node_modules/lodash/_getRawTag.js"),
-    objectToString = __webpack_require__(/*! ./_objectToString */ "./node_modules/lodash/_objectToString.js");
-
-/** `Object#toString` result references. */
-var nullTag = '[object Null]',
-    undefinedTag = '[object Undefined]';
-
-/** Built-in value references. */
-var symToStringTag = Symbol ? Symbol.toStringTag : undefined;
-
-/**
- * The base implementation of `getTag` without fallbacks for buggy environments.
- *
- * @private
- * @param {*} value The value to query.
- * @returns {string} Returns the `toStringTag`.
- */
-function baseGetTag(value) {
-  if (value == null) {
-    return value === undefined ? undefinedTag : nullTag;
-  }
-  return (symToStringTag && symToStringTag in Object(value))
-    ? getRawTag(value)
-    : objectToString(value);
-}
-
-module.exports = baseGetTag;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_baseIsArguments.js":
-/*!*************************************************!*\
-  !*** ./node_modules/lodash/_baseIsArguments.js ***!
-  \*************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var baseGetTag = __webpack_require__(/*! ./_baseGetTag */ "./node_modules/lodash/_baseGetTag.js"),
-    isObjectLike = __webpack_require__(/*! ./isObjectLike */ "./node_modules/lodash/isObjectLike.js");
-
-/** `Object#toString` result references. */
-var argsTag = '[object Arguments]';
-
-/**
- * The base implementation of `_.isArguments`.
- *
- * @private
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is an `arguments` object,
- */
-function baseIsArguments(value) {
-  return isObjectLike(value) && baseGetTag(value) == argsTag;
-}
-
-module.exports = baseIsArguments;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_baseIsNative.js":
-/*!**********************************************!*\
-  !*** ./node_modules/lodash/_baseIsNative.js ***!
-  \**********************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var isFunction = __webpack_require__(/*! ./isFunction */ "./node_modules/lodash/isFunction.js"),
-    isMasked = __webpack_require__(/*! ./_isMasked */ "./node_modules/lodash/_isMasked.js"),
-    isObject = __webpack_require__(/*! ./isObject */ "./node_modules/lodash/isObject.js"),
-    toSource = __webpack_require__(/*! ./_toSource */ "./node_modules/lodash/_toSource.js");
-
-/**
- * Used to match `RegExp`
- * [syntax characters](http://ecma-international.org/ecma-262/7.0/#sec-patterns).
- */
-var reRegExpChar = /[\\^$.*+?()[\]{}|]/g;
-
-/** Used to detect host constructors (Safari). */
-var reIsHostCtor = /^\[object .+?Constructor\]$/;
-
-/** Used for built-in method references. */
-var funcProto = Function.prototype,
-    objectProto = Object.prototype;
-
-/** Used to resolve the decompiled source of functions. */
-var funcToString = funcProto.toString;
-
-/** Used to check objects for own properties. */
-var hasOwnProperty = objectProto.hasOwnProperty;
-
-/** Used to detect if a method is native. */
-var reIsNative = RegExp('^' +
-  funcToString.call(hasOwnProperty).replace(reRegExpChar, '\\$&')
-  .replace(/hasOwnProperty|(function).*?(?=\\\()| for .+?(?=\\\])/g, '$1.*?') + '$'
-);
-
-/**
- * The base implementation of `_.isNative` without bad shim checks.
- *
- * @private
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is a native function,
- *  else `false`.
- */
-function baseIsNative(value) {
-  if (!isObject(value) || isMasked(value)) {
-    return false;
-  }
-  var pattern = isFunction(value) ? reIsNative : reIsHostCtor;
-  return pattern.test(toSource(value));
-}
-
-module.exports = baseIsNative;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_baseIsTypedArray.js":
-/*!**************************************************!*\
-  !*** ./node_modules/lodash/_baseIsTypedArray.js ***!
-  \**************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var baseGetTag = __webpack_require__(/*! ./_baseGetTag */ "./node_modules/lodash/_baseGetTag.js"),
-    isLength = __webpack_require__(/*! ./isLength */ "./node_modules/lodash/isLength.js"),
-    isObjectLike = __webpack_require__(/*! ./isObjectLike */ "./node_modules/lodash/isObjectLike.js");
-
-/** `Object#toString` result references. */
-var argsTag = '[object Arguments]',
-    arrayTag = '[object Array]',
-    boolTag = '[object Boolean]',
-    dateTag = '[object Date]',
-    errorTag = '[object Error]',
-    funcTag = '[object Function]',
-    mapTag = '[object Map]',
-    numberTag = '[object Number]',
-    objectTag = '[object Object]',
-    regexpTag = '[object RegExp]',
-    setTag = '[object Set]',
-    stringTag = '[object String]',
-    weakMapTag = '[object WeakMap]';
-
-var arrayBufferTag = '[object ArrayBuffer]',
-    dataViewTag = '[object DataView]',
-    float32Tag = '[object Float32Array]',
-    float64Tag = '[object Float64Array]',
-    int8Tag = '[object Int8Array]',
-    int16Tag = '[object Int16Array]',
-    int32Tag = '[object Int32Array]',
-    uint8Tag = '[object Uint8Array]',
-    uint8ClampedTag = '[object Uint8ClampedArray]',
-    uint16Tag = '[object Uint16Array]',
-    uint32Tag = '[object Uint32Array]';
-
-/** Used to identify `toStringTag` values of typed arrays. */
-var typedArrayTags = {};
-typedArrayTags[float32Tag] = typedArrayTags[float64Tag] =
-typedArrayTags[int8Tag] = typedArrayTags[int16Tag] =
-typedArrayTags[int32Tag] = typedArrayTags[uint8Tag] =
-typedArrayTags[uint8ClampedTag] = typedArrayTags[uint16Tag] =
-typedArrayTags[uint32Tag] = true;
-typedArrayTags[argsTag] = typedArrayTags[arrayTag] =
-typedArrayTags[arrayBufferTag] = typedArrayTags[boolTag] =
-typedArrayTags[dataViewTag] = typedArrayTags[dateTag] =
-typedArrayTags[errorTag] = typedArrayTags[funcTag] =
-typedArrayTags[mapTag] = typedArrayTags[numberTag] =
-typedArrayTags[objectTag] = typedArrayTags[regexpTag] =
-typedArrayTags[setTag] = typedArrayTags[stringTag] =
-typedArrayTags[weakMapTag] = false;
-
-/**
- * The base implementation of `_.isTypedArray` without Node.js optimizations.
- *
- * @private
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is a typed array, else `false`.
- */
-function baseIsTypedArray(value) {
-  return isObjectLike(value) &&
-    isLength(value.length) && !!typedArrayTags[baseGetTag(value)];
-}
-
-module.exports = baseIsTypedArray;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_baseKeysIn.js":
-/*!********************************************!*\
-  !*** ./node_modules/lodash/_baseKeysIn.js ***!
-  \********************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var isObject = __webpack_require__(/*! ./isObject */ "./node_modules/lodash/isObject.js"),
-    isPrototype = __webpack_require__(/*! ./_isPrototype */ "./node_modules/lodash/_isPrototype.js"),
-    nativeKeysIn = __webpack_require__(/*! ./_nativeKeysIn */ "./node_modules/lodash/_nativeKeysIn.js");
-
-/** Used for built-in method references. */
-var objectProto = Object.prototype;
-
-/** Used to check objects for own properties. */
-var hasOwnProperty = objectProto.hasOwnProperty;
-
-/**
- * The base implementation of `_.keysIn` which doesn't treat sparse arrays as dense.
- *
- * @private
- * @param {Object} object The object to query.
- * @returns {Array} Returns the array of property names.
- */
-function baseKeysIn(object) {
-  if (!isObject(object)) {
-    return nativeKeysIn(object);
-  }
-  var isProto = isPrototype(object),
-      result = [];
-
-  for (var key in object) {
-    if (!(key == 'constructor' && (isProto || !hasOwnProperty.call(object, key)))) {
-      result.push(key);
-    }
-  }
-  return result;
-}
-
-module.exports = baseKeysIn;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_baseMerge.js":
-/*!*******************************************!*\
-  !*** ./node_modules/lodash/_baseMerge.js ***!
-  \*******************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var Stack = __webpack_require__(/*! ./_Stack */ "./node_modules/lodash/_Stack.js"),
-    assignMergeValue = __webpack_require__(/*! ./_assignMergeValue */ "./node_modules/lodash/_assignMergeValue.js"),
-    baseFor = __webpack_require__(/*! ./_baseFor */ "./node_modules/lodash/_baseFor.js"),
-    baseMergeDeep = __webpack_require__(/*! ./_baseMergeDeep */ "./node_modules/lodash/_baseMergeDeep.js"),
-    isObject = __webpack_require__(/*! ./isObject */ "./node_modules/lodash/isObject.js"),
-    keysIn = __webpack_require__(/*! ./keysIn */ "./node_modules/lodash/keysIn.js"),
-    safeGet = __webpack_require__(/*! ./_safeGet */ "./node_modules/lodash/_safeGet.js");
-
-/**
- * The base implementation of `_.merge` without support for multiple sources.
- *
- * @private
- * @param {Object} object The destination object.
- * @param {Object} source The source object.
- * @param {number} srcIndex The index of `source`.
- * @param {Function} [customizer] The function to customize merged values.
- * @param {Object} [stack] Tracks traversed source values and their merged
- *  counterparts.
- */
-function baseMerge(object, source, srcIndex, customizer, stack) {
-  if (object === source) {
-    return;
-  }
-  baseFor(source, function(srcValue, key) {
-    stack || (stack = new Stack);
-    if (isObject(srcValue)) {
-      baseMergeDeep(object, source, key, srcIndex, baseMerge, customizer, stack);
-    }
-    else {
-      var newValue = customizer
-        ? customizer(safeGet(object, key), srcValue, (key + ''), object, source, stack)
-        : undefined;
-
-      if (newValue === undefined) {
-        newValue = srcValue;
-      }
-      assignMergeValue(object, key, newValue);
-    }
-  }, keysIn);
-}
-
-module.exports = baseMerge;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_baseMergeDeep.js":
-/*!***********************************************!*\
-  !*** ./node_modules/lodash/_baseMergeDeep.js ***!
-  \***********************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var assignMergeValue = __webpack_require__(/*! ./_assignMergeValue */ "./node_modules/lodash/_assignMergeValue.js"),
-    cloneBuffer = __webpack_require__(/*! ./_cloneBuffer */ "./node_modules/lodash/_cloneBuffer.js"),
-    cloneTypedArray = __webpack_require__(/*! ./_cloneTypedArray */ "./node_modules/lodash/_cloneTypedArray.js"),
-    copyArray = __webpack_require__(/*! ./_copyArray */ "./node_modules/lodash/_copyArray.js"),
-    initCloneObject = __webpack_require__(/*! ./_initCloneObject */ "./node_modules/lodash/_initCloneObject.js"),
-    isArguments = __webpack_require__(/*! ./isArguments */ "./node_modules/lodash/isArguments.js"),
-    isArray = __webpack_require__(/*! ./isArray */ "./node_modules/lodash/isArray.js"),
-    isArrayLikeObject = __webpack_require__(/*! ./isArrayLikeObject */ "./node_modules/lodash/isArrayLikeObject.js"),
-    isBuffer = __webpack_require__(/*! ./isBuffer */ "./node_modules/lodash/isBuffer.js"),
-    isFunction = __webpack_require__(/*! ./isFunction */ "./node_modules/lodash/isFunction.js"),
-    isObject = __webpack_require__(/*! ./isObject */ "./node_modules/lodash/isObject.js"),
-    isPlainObject = __webpack_require__(/*! ./isPlainObject */ "./node_modules/lodash/isPlainObject.js"),
-    isTypedArray = __webpack_require__(/*! ./isTypedArray */ "./node_modules/lodash/isTypedArray.js"),
-    safeGet = __webpack_require__(/*! ./_safeGet */ "./node_modules/lodash/_safeGet.js"),
-    toPlainObject = __webpack_require__(/*! ./toPlainObject */ "./node_modules/lodash/toPlainObject.js");
-
-/**
- * A specialized version of `baseMerge` for arrays and objects which performs
- * deep merges and tracks traversed objects enabling objects with circular
- * references to be merged.
- *
- * @private
- * @param {Object} object The destination object.
- * @param {Object} source The source object.
- * @param {string} key The key of the value to merge.
- * @param {number} srcIndex The index of `source`.
- * @param {Function} mergeFunc The function to merge values.
- * @param {Function} [customizer] The function to customize assigned values.
- * @param {Object} [stack] Tracks traversed source values and their merged
- *  counterparts.
- */
-function baseMergeDeep(object, source, key, srcIndex, mergeFunc, customizer, stack) {
-  var objValue = safeGet(object, key),
-      srcValue = safeGet(source, key),
-      stacked = stack.get(srcValue);
-
-  if (stacked) {
-    assignMergeValue(object, key, stacked);
-    return;
-  }
-  var newValue = customizer
-    ? customizer(objValue, srcValue, (key + ''), object, source, stack)
-    : undefined;
-
-  var isCommon = newValue === undefined;
-
-  if (isCommon) {
-    var isArr = isArray(srcValue),
-        isBuff = !isArr && isBuffer(srcValue),
-        isTyped = !isArr && !isBuff && isTypedArray(srcValue);
-
-    newValue = srcValue;
-    if (isArr || isBuff || isTyped) {
-      if (isArray(objValue)) {
-        newValue = objValue;
-      }
-      else if (isArrayLikeObject(objValue)) {
-        newValue = copyArray(objValue);
-      }
-      else if (isBuff) {
-        isCommon = false;
-        newValue = cloneBuffer(srcValue, true);
-      }
-      else if (isTyped) {
-        isCommon = false;
-        newValue = cloneTypedArray(srcValue, true);
-      }
-      else {
-        newValue = [];
-      }
-    }
-    else if (isPlainObject(srcValue) || isArguments(srcValue)) {
-      newValue = objValue;
-      if (isArguments(objValue)) {
-        newValue = toPlainObject(objValue);
-      }
-      else if (!isObject(objValue) || isFunction(objValue)) {
-        newValue = initCloneObject(srcValue);
-      }
-    }
-    else {
-      isCommon = false;
-    }
-  }
-  if (isCommon) {
-    // Recursively merge objects and arrays (susceptible to call stack limits).
-    stack.set(srcValue, newValue);
-    mergeFunc(newValue, srcValue, srcIndex, customizer, stack);
-    stack['delete'](srcValue);
-  }
-  assignMergeValue(object, key, newValue);
-}
-
-module.exports = baseMergeDeep;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_baseRest.js":
-/*!******************************************!*\
-  !*** ./node_modules/lodash/_baseRest.js ***!
-  \******************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var identity = __webpack_require__(/*! ./identity */ "./node_modules/lodash/identity.js"),
-    overRest = __webpack_require__(/*! ./_overRest */ "./node_modules/lodash/_overRest.js"),
-    setToString = __webpack_require__(/*! ./_setToString */ "./node_modules/lodash/_setToString.js");
-
-/**
- * The base implementation of `_.rest` which doesn't validate or coerce arguments.
- *
- * @private
- * @param {Function} func The function to apply a rest parameter to.
- * @param {number} [start=func.length-1] The start position of the rest parameter.
- * @returns {Function} Returns the new function.
- */
-function baseRest(func, start) {
-  return setToString(overRest(func, start, identity), func + '');
-}
-
-module.exports = baseRest;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_baseSetToString.js":
-/*!*************************************************!*\
-  !*** ./node_modules/lodash/_baseSetToString.js ***!
-  \*************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var constant = __webpack_require__(/*! ./constant */ "./node_modules/lodash/constant.js"),
-    defineProperty = __webpack_require__(/*! ./_defineProperty */ "./node_modules/lodash/_defineProperty.js"),
-    identity = __webpack_require__(/*! ./identity */ "./node_modules/lodash/identity.js");
-
-/**
- * The base implementation of `setToString` without support for hot loop shorting.
- *
- * @private
- * @param {Function} func The function to modify.
- * @param {Function} string The `toString` result.
- * @returns {Function} Returns `func`.
- */
-var baseSetToString = !defineProperty ? identity : function(func, string) {
-  return defineProperty(func, 'toString', {
-    'configurable': true,
-    'enumerable': false,
-    'value': constant(string),
-    'writable': true
+Iterator.of = function() {
+  var args = arguments,
+      l = args.length,
+      i = 0;
+
+  return new Iterator(function() {
+    if (i >= l)
+      return {done: true};
+
+    return {done: false, value: args[i++]};
   });
 };
 
-module.exports = baseSetToString;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_baseTimes.js":
-/*!*******************************************!*\
-  !*** ./node_modules/lodash/_baseTimes.js ***!
-  \*******************************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
 /**
- * The base implementation of `_.times` without support for iteratee shorthands
- * or max array length checks.
+ * Returning an empty iterator.
  *
- * @private
- * @param {number} n The number of times to invoke `iteratee`.
- * @param {Function} iteratee The function invoked per iteration.
- * @returns {Array} Returns the array of results.
+ * @return {Iterator}
  */
-function baseTimes(n, iteratee) {
-  var index = -1,
-      result = Array(n);
-
-  while (++index < n) {
-    result[index] = iteratee(index);
-  }
-  return result;
-}
-
-module.exports = baseTimes;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_baseUnary.js":
-/*!*******************************************!*\
-  !*** ./node_modules/lodash/_baseUnary.js ***!
-  \*******************************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-/**
- * The base implementation of `_.unary` without support for storing metadata.
- *
- * @private
- * @param {Function} func The function to cap arguments for.
- * @returns {Function} Returns the new capped function.
- */
-function baseUnary(func) {
-  return function(value) {
-    return func(value);
-  };
-}
-
-module.exports = baseUnary;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_cloneArrayBuffer.js":
-/*!**************************************************!*\
-  !*** ./node_modules/lodash/_cloneArrayBuffer.js ***!
-  \**************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var Uint8Array = __webpack_require__(/*! ./_Uint8Array */ "./node_modules/lodash/_Uint8Array.js");
-
-/**
- * Creates a clone of `arrayBuffer`.
- *
- * @private
- * @param {ArrayBuffer} arrayBuffer The array buffer to clone.
- * @returns {ArrayBuffer} Returns the cloned array buffer.
- */
-function cloneArrayBuffer(arrayBuffer) {
-  var result = new arrayBuffer.constructor(arrayBuffer.byteLength);
-  new Uint8Array(result).set(new Uint8Array(arrayBuffer));
-  return result;
-}
-
-module.exports = cloneArrayBuffer;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_cloneBuffer.js":
-/*!*********************************************!*\
-  !*** ./node_modules/lodash/_cloneBuffer.js ***!
-  \*********************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-/* WEBPACK VAR INJECTION */(function(module) {var root = __webpack_require__(/*! ./_root */ "./node_modules/lodash/_root.js");
-
-/** Detect free variable `exports`. */
-var freeExports =  true && exports && !exports.nodeType && exports;
-
-/** Detect free variable `module`. */
-var freeModule = freeExports && typeof module == 'object' && module && !module.nodeType && module;
-
-/** Detect the popular CommonJS extension `module.exports`. */
-var moduleExports = freeModule && freeModule.exports === freeExports;
-
-/** Built-in value references. */
-var Buffer = moduleExports ? root.Buffer : undefined,
-    allocUnsafe = Buffer ? Buffer.allocUnsafe : undefined;
-
-/**
- * Creates a clone of  `buffer`.
- *
- * @private
- * @param {Buffer} buffer The buffer to clone.
- * @param {boolean} [isDeep] Specify a deep clone.
- * @returns {Buffer} Returns the cloned buffer.
- */
-function cloneBuffer(buffer, isDeep) {
-  if (isDeep) {
-    return buffer.slice();
-  }
-  var length = buffer.length,
-      result = allocUnsafe ? allocUnsafe(length) : new buffer.constructor(length);
-
-  buffer.copy(result);
-  return result;
-}
-
-module.exports = cloneBuffer;
-
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../webpack/buildin/module.js */ "./node_modules/webpack/buildin/module.js")(module)))
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_cloneTypedArray.js":
-/*!*************************************************!*\
-  !*** ./node_modules/lodash/_cloneTypedArray.js ***!
-  \*************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var cloneArrayBuffer = __webpack_require__(/*! ./_cloneArrayBuffer */ "./node_modules/lodash/_cloneArrayBuffer.js");
-
-/**
- * Creates a clone of `typedArray`.
- *
- * @private
- * @param {Object} typedArray The typed array to clone.
- * @param {boolean} [isDeep] Specify a deep clone.
- * @returns {Object} Returns the cloned typed array.
- */
-function cloneTypedArray(typedArray, isDeep) {
-  var buffer = isDeep ? cloneArrayBuffer(typedArray.buffer) : typedArray.buffer;
-  return new typedArray.constructor(buffer, typedArray.byteOffset, typedArray.length);
-}
-
-module.exports = cloneTypedArray;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_copyArray.js":
-/*!*******************************************!*\
-  !*** ./node_modules/lodash/_copyArray.js ***!
-  \*******************************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-/**
- * Copies the values of `source` to `array`.
- *
- * @private
- * @param {Array} source The array to copy values from.
- * @param {Array} [array=[]] The array to copy values to.
- * @returns {Array} Returns `array`.
- */
-function copyArray(source, array) {
-  var index = -1,
-      length = source.length;
-
-  array || (array = Array(length));
-  while (++index < length) {
-    array[index] = source[index];
-  }
-  return array;
-}
-
-module.exports = copyArray;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_copyObject.js":
-/*!********************************************!*\
-  !*** ./node_modules/lodash/_copyObject.js ***!
-  \********************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var assignValue = __webpack_require__(/*! ./_assignValue */ "./node_modules/lodash/_assignValue.js"),
-    baseAssignValue = __webpack_require__(/*! ./_baseAssignValue */ "./node_modules/lodash/_baseAssignValue.js");
-
-/**
- * Copies properties of `source` to `object`.
- *
- * @private
- * @param {Object} source The object to copy properties from.
- * @param {Array} props The property identifiers to copy.
- * @param {Object} [object={}] The object to copy properties to.
- * @param {Function} [customizer] The function to customize copied values.
- * @returns {Object} Returns `object`.
- */
-function copyObject(source, props, object, customizer) {
-  var isNew = !object;
-  object || (object = {});
-
-  var index = -1,
-      length = props.length;
-
-  while (++index < length) {
-    var key = props[index];
-
-    var newValue = customizer
-      ? customizer(object[key], source[key], key, object, source)
-      : undefined;
-
-    if (newValue === undefined) {
-      newValue = source[key];
-    }
-    if (isNew) {
-      baseAssignValue(object, key, newValue);
-    } else {
-      assignValue(object, key, newValue);
-    }
-  }
-  return object;
-}
-
-module.exports = copyObject;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_coreJsData.js":
-/*!********************************************!*\
-  !*** ./node_modules/lodash/_coreJsData.js ***!
-  \********************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var root = __webpack_require__(/*! ./_root */ "./node_modules/lodash/_root.js");
-
-/** Used to detect overreaching core-js shims. */
-var coreJsData = root['__core-js_shared__'];
-
-module.exports = coreJsData;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_createAssigner.js":
-/*!************************************************!*\
-  !*** ./node_modules/lodash/_createAssigner.js ***!
-  \************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var baseRest = __webpack_require__(/*! ./_baseRest */ "./node_modules/lodash/_baseRest.js"),
-    isIterateeCall = __webpack_require__(/*! ./_isIterateeCall */ "./node_modules/lodash/_isIterateeCall.js");
-
-/**
- * Creates a function like `_.assign`.
- *
- * @private
- * @param {Function} assigner The function to assign values.
- * @returns {Function} Returns the new assigner function.
- */
-function createAssigner(assigner) {
-  return baseRest(function(object, sources) {
-    var index = -1,
-        length = sources.length,
-        customizer = length > 1 ? sources[length - 1] : undefined,
-        guard = length > 2 ? sources[2] : undefined;
-
-    customizer = (assigner.length > 3 && typeof customizer == 'function')
-      ? (length--, customizer)
-      : undefined;
-
-    if (guard && isIterateeCall(sources[0], sources[1], guard)) {
-      customizer = length < 3 ? undefined : customizer;
-      length = 1;
-    }
-    object = Object(object);
-    while (++index < length) {
-      var source = sources[index];
-      if (source) {
-        assigner(object, source, index, customizer);
-      }
-    }
-    return object;
-  });
-}
-
-module.exports = createAssigner;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_createBaseFor.js":
-/*!***********************************************!*\
-  !*** ./node_modules/lodash/_createBaseFor.js ***!
-  \***********************************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-/**
- * Creates a base function for methods like `_.forIn` and `_.forOwn`.
- *
- * @private
- * @param {boolean} [fromRight] Specify iterating from right to left.
- * @returns {Function} Returns the new base function.
- */
-function createBaseFor(fromRight) {
-  return function(object, iteratee, keysFunc) {
-    var index = -1,
-        iterable = Object(object),
-        props = keysFunc(object),
-        length = props.length;
-
-    while (length--) {
-      var key = props[fromRight ? length : ++index];
-      if (iteratee(iterable[key], key, iterable) === false) {
-        break;
-      }
-    }
-    return object;
-  };
-}
-
-module.exports = createBaseFor;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_customDefaultsMerge.js":
-/*!*****************************************************!*\
-  !*** ./node_modules/lodash/_customDefaultsMerge.js ***!
-  \*****************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var baseMerge = __webpack_require__(/*! ./_baseMerge */ "./node_modules/lodash/_baseMerge.js"),
-    isObject = __webpack_require__(/*! ./isObject */ "./node_modules/lodash/isObject.js");
-
-/**
- * Used by `_.defaultsDeep` to customize its `_.merge` use to merge source
- * objects into destination objects that are passed thru.
- *
- * @private
- * @param {*} objValue The destination value.
- * @param {*} srcValue The source value.
- * @param {string} key The key of the property to merge.
- * @param {Object} object The parent object of `objValue`.
- * @param {Object} source The parent object of `srcValue`.
- * @param {Object} [stack] Tracks traversed source values and their merged
- *  counterparts.
- * @returns {*} Returns the value to assign.
- */
-function customDefaultsMerge(objValue, srcValue, key, object, source, stack) {
-  if (isObject(objValue) && isObject(srcValue)) {
-    // Recursively merge objects and arrays (susceptible to call stack limits).
-    stack.set(srcValue, objValue);
-    baseMerge(objValue, srcValue, undefined, customDefaultsMerge, stack);
-    stack['delete'](srcValue);
-  }
-  return objValue;
-}
-
-module.exports = customDefaultsMerge;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_defineProperty.js":
-/*!************************************************!*\
-  !*** ./node_modules/lodash/_defineProperty.js ***!
-  \************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var getNative = __webpack_require__(/*! ./_getNative */ "./node_modules/lodash/_getNative.js");
-
-var defineProperty = (function() {
-  try {
-    var func = getNative(Object, 'defineProperty');
-    func({}, '', {});
-    return func;
-  } catch (e) {}
-}());
-
-module.exports = defineProperty;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_freeGlobal.js":
-/*!********************************************!*\
-  !*** ./node_modules/lodash/_freeGlobal.js ***!
-  \********************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-/* WEBPACK VAR INJECTION */(function(global) {/** Detect free variable `global` from Node.js. */
-var freeGlobal = typeof global == 'object' && global && global.Object === Object && global;
-
-module.exports = freeGlobal;
-
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../webpack/buildin/global.js */ "./node_modules/webpack/buildin/global.js")))
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_getMapData.js":
-/*!********************************************!*\
-  !*** ./node_modules/lodash/_getMapData.js ***!
-  \********************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var isKeyable = __webpack_require__(/*! ./_isKeyable */ "./node_modules/lodash/_isKeyable.js");
-
-/**
- * Gets the data for `map`.
- *
- * @private
- * @param {Object} map The map to query.
- * @param {string} key The reference key.
- * @returns {*} Returns the map data.
- */
-function getMapData(map, key) {
-  var data = map.__data__;
-  return isKeyable(key)
-    ? data[typeof key == 'string' ? 'string' : 'hash']
-    : data.map;
-}
-
-module.exports = getMapData;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_getNative.js":
-/*!*******************************************!*\
-  !*** ./node_modules/lodash/_getNative.js ***!
-  \*******************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var baseIsNative = __webpack_require__(/*! ./_baseIsNative */ "./node_modules/lodash/_baseIsNative.js"),
-    getValue = __webpack_require__(/*! ./_getValue */ "./node_modules/lodash/_getValue.js");
-
-/**
- * Gets the native function at `key` of `object`.
- *
- * @private
- * @param {Object} object The object to query.
- * @param {string} key The key of the method to get.
- * @returns {*} Returns the function if it's native, else `undefined`.
- */
-function getNative(object, key) {
-  var value = getValue(object, key);
-  return baseIsNative(value) ? value : undefined;
-}
-
-module.exports = getNative;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_getPrototype.js":
-/*!**********************************************!*\
-  !*** ./node_modules/lodash/_getPrototype.js ***!
-  \**********************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var overArg = __webpack_require__(/*! ./_overArg */ "./node_modules/lodash/_overArg.js");
-
-/** Built-in value references. */
-var getPrototype = overArg(Object.getPrototypeOf, Object);
-
-module.exports = getPrototype;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_getRawTag.js":
-/*!*******************************************!*\
-  !*** ./node_modules/lodash/_getRawTag.js ***!
-  \*******************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var Symbol = __webpack_require__(/*! ./_Symbol */ "./node_modules/lodash/_Symbol.js");
-
-/** Used for built-in method references. */
-var objectProto = Object.prototype;
-
-/** Used to check objects for own properties. */
-var hasOwnProperty = objectProto.hasOwnProperty;
-
-/**
- * Used to resolve the
- * [`toStringTag`](http://ecma-international.org/ecma-262/7.0/#sec-object.prototype.tostring)
- * of values.
- */
-var nativeObjectToString = objectProto.toString;
-
-/** Built-in value references. */
-var symToStringTag = Symbol ? Symbol.toStringTag : undefined;
-
-/**
- * A specialized version of `baseGetTag` which ignores `Symbol.toStringTag` values.
- *
- * @private
- * @param {*} value The value to query.
- * @returns {string} Returns the raw `toStringTag`.
- */
-function getRawTag(value) {
-  var isOwn = hasOwnProperty.call(value, symToStringTag),
-      tag = value[symToStringTag];
-
-  try {
-    value[symToStringTag] = undefined;
-    var unmasked = true;
-  } catch (e) {}
-
-  var result = nativeObjectToString.call(value);
-  if (unmasked) {
-    if (isOwn) {
-      value[symToStringTag] = tag;
-    } else {
-      delete value[symToStringTag];
-    }
-  }
-  return result;
-}
-
-module.exports = getRawTag;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_getValue.js":
-/*!******************************************!*\
-  !*** ./node_modules/lodash/_getValue.js ***!
-  \******************************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-/**
- * Gets the value at `key` of `object`.
- *
- * @private
- * @param {Object} [object] The object to query.
- * @param {string} key The key of the property to get.
- * @returns {*} Returns the property value.
- */
-function getValue(object, key) {
-  return object == null ? undefined : object[key];
-}
-
-module.exports = getValue;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_hashClear.js":
-/*!*******************************************!*\
-  !*** ./node_modules/lodash/_hashClear.js ***!
-  \*******************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var nativeCreate = __webpack_require__(/*! ./_nativeCreate */ "./node_modules/lodash/_nativeCreate.js");
-
-/**
- * Removes all key-value entries from the hash.
- *
- * @private
- * @name clear
- * @memberOf Hash
- */
-function hashClear() {
-  this.__data__ = nativeCreate ? nativeCreate(null) : {};
-  this.size = 0;
-}
-
-module.exports = hashClear;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_hashDelete.js":
-/*!********************************************!*\
-  !*** ./node_modules/lodash/_hashDelete.js ***!
-  \********************************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-/**
- * Removes `key` and its value from the hash.
- *
- * @private
- * @name delete
- * @memberOf Hash
- * @param {Object} hash The hash to modify.
- * @param {string} key The key of the value to remove.
- * @returns {boolean} Returns `true` if the entry was removed, else `false`.
- */
-function hashDelete(key) {
-  var result = this.has(key) && delete this.__data__[key];
-  this.size -= result ? 1 : 0;
-  return result;
-}
-
-module.exports = hashDelete;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_hashGet.js":
-/*!*****************************************!*\
-  !*** ./node_modules/lodash/_hashGet.js ***!
-  \*****************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var nativeCreate = __webpack_require__(/*! ./_nativeCreate */ "./node_modules/lodash/_nativeCreate.js");
-
-/** Used to stand-in for `undefined` hash values. */
-var HASH_UNDEFINED = '__lodash_hash_undefined__';
-
-/** Used for built-in method references. */
-var objectProto = Object.prototype;
-
-/** Used to check objects for own properties. */
-var hasOwnProperty = objectProto.hasOwnProperty;
-
-/**
- * Gets the hash value for `key`.
- *
- * @private
- * @name get
- * @memberOf Hash
- * @param {string} key The key of the value to get.
- * @returns {*} Returns the entry value.
- */
-function hashGet(key) {
-  var data = this.__data__;
-  if (nativeCreate) {
-    var result = data[key];
-    return result === HASH_UNDEFINED ? undefined : result;
-  }
-  return hasOwnProperty.call(data, key) ? data[key] : undefined;
-}
-
-module.exports = hashGet;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_hashHas.js":
-/*!*****************************************!*\
-  !*** ./node_modules/lodash/_hashHas.js ***!
-  \*****************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var nativeCreate = __webpack_require__(/*! ./_nativeCreate */ "./node_modules/lodash/_nativeCreate.js");
-
-/** Used for built-in method references. */
-var objectProto = Object.prototype;
-
-/** Used to check objects for own properties. */
-var hasOwnProperty = objectProto.hasOwnProperty;
-
-/**
- * Checks if a hash value for `key` exists.
- *
- * @private
- * @name has
- * @memberOf Hash
- * @param {string} key The key of the entry to check.
- * @returns {boolean} Returns `true` if an entry for `key` exists, else `false`.
- */
-function hashHas(key) {
-  var data = this.__data__;
-  return nativeCreate ? (data[key] !== undefined) : hasOwnProperty.call(data, key);
-}
-
-module.exports = hashHas;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_hashSet.js":
-/*!*****************************************!*\
-  !*** ./node_modules/lodash/_hashSet.js ***!
-  \*****************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var nativeCreate = __webpack_require__(/*! ./_nativeCreate */ "./node_modules/lodash/_nativeCreate.js");
-
-/** Used to stand-in for `undefined` hash values. */
-var HASH_UNDEFINED = '__lodash_hash_undefined__';
-
-/**
- * Sets the hash `key` to `value`.
- *
- * @private
- * @name set
- * @memberOf Hash
- * @param {string} key The key of the value to set.
- * @param {*} value The value to set.
- * @returns {Object} Returns the hash instance.
- */
-function hashSet(key, value) {
-  var data = this.__data__;
-  this.size += this.has(key) ? 0 : 1;
-  data[key] = (nativeCreate && value === undefined) ? HASH_UNDEFINED : value;
-  return this;
-}
-
-module.exports = hashSet;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_initCloneObject.js":
-/*!*************************************************!*\
-  !*** ./node_modules/lodash/_initCloneObject.js ***!
-  \*************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var baseCreate = __webpack_require__(/*! ./_baseCreate */ "./node_modules/lodash/_baseCreate.js"),
-    getPrototype = __webpack_require__(/*! ./_getPrototype */ "./node_modules/lodash/_getPrototype.js"),
-    isPrototype = __webpack_require__(/*! ./_isPrototype */ "./node_modules/lodash/_isPrototype.js");
-
-/**
- * Initializes an object clone.
- *
- * @private
- * @param {Object} object The object to clone.
- * @returns {Object} Returns the initialized clone.
- */
-function initCloneObject(object) {
-  return (typeof object.constructor == 'function' && !isPrototype(object))
-    ? baseCreate(getPrototype(object))
-    : {};
-}
-
-module.exports = initCloneObject;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_isIndex.js":
-/*!*****************************************!*\
-  !*** ./node_modules/lodash/_isIndex.js ***!
-  \*****************************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-/** Used as references for various `Number` constants. */
-var MAX_SAFE_INTEGER = 9007199254740991;
-
-/** Used to detect unsigned integer values. */
-var reIsUint = /^(?:0|[1-9]\d*)$/;
-
-/**
- * Checks if `value` is a valid array-like index.
- *
- * @private
- * @param {*} value The value to check.
- * @param {number} [length=MAX_SAFE_INTEGER] The upper bounds of a valid index.
- * @returns {boolean} Returns `true` if `value` is a valid index, else `false`.
- */
-function isIndex(value, length) {
-  var type = typeof value;
-  length = length == null ? MAX_SAFE_INTEGER : length;
-
-  return !!length &&
-    (type == 'number' ||
-      (type != 'symbol' && reIsUint.test(value))) &&
-        (value > -1 && value % 1 == 0 && value < length);
-}
-
-module.exports = isIndex;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_isIterateeCall.js":
-/*!************************************************!*\
-  !*** ./node_modules/lodash/_isIterateeCall.js ***!
-  \************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var eq = __webpack_require__(/*! ./eq */ "./node_modules/lodash/eq.js"),
-    isArrayLike = __webpack_require__(/*! ./isArrayLike */ "./node_modules/lodash/isArrayLike.js"),
-    isIndex = __webpack_require__(/*! ./_isIndex */ "./node_modules/lodash/_isIndex.js"),
-    isObject = __webpack_require__(/*! ./isObject */ "./node_modules/lodash/isObject.js");
-
-/**
- * Checks if the given arguments are from an iteratee call.
- *
- * @private
- * @param {*} value The potential iteratee value argument.
- * @param {*} index The potential iteratee index or key argument.
- * @param {*} object The potential iteratee object argument.
- * @returns {boolean} Returns `true` if the arguments are from an iteratee call,
- *  else `false`.
- */
-function isIterateeCall(value, index, object) {
-  if (!isObject(object)) {
-    return false;
-  }
-  var type = typeof index;
-  if (type == 'number'
-        ? (isArrayLike(object) && isIndex(index, object.length))
-        : (type == 'string' && index in object)
-      ) {
-    return eq(object[index], value);
-  }
-  return false;
-}
-
-module.exports = isIterateeCall;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_isKeyable.js":
-/*!*******************************************!*\
-  !*** ./node_modules/lodash/_isKeyable.js ***!
-  \*******************************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-/**
- * Checks if `value` is suitable for use as unique object key.
- *
- * @private
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is suitable, else `false`.
- */
-function isKeyable(value) {
-  var type = typeof value;
-  return (type == 'string' || type == 'number' || type == 'symbol' || type == 'boolean')
-    ? (value !== '__proto__')
-    : (value === null);
-}
-
-module.exports = isKeyable;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_isMasked.js":
-/*!******************************************!*\
-  !*** ./node_modules/lodash/_isMasked.js ***!
-  \******************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var coreJsData = __webpack_require__(/*! ./_coreJsData */ "./node_modules/lodash/_coreJsData.js");
-
-/** Used to detect methods masquerading as native. */
-var maskSrcKey = (function() {
-  var uid = /[^.]+$/.exec(coreJsData && coreJsData.keys && coreJsData.keys.IE_PROTO || '');
-  return uid ? ('Symbol(src)_1.' + uid) : '';
-}());
-
-/**
- * Checks if `func` has its source masked.
- *
- * @private
- * @param {Function} func The function to check.
- * @returns {boolean} Returns `true` if `func` is masked, else `false`.
- */
-function isMasked(func) {
-  return !!maskSrcKey && (maskSrcKey in func);
-}
-
-module.exports = isMasked;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_isPrototype.js":
-/*!*********************************************!*\
-  !*** ./node_modules/lodash/_isPrototype.js ***!
-  \*********************************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-/** Used for built-in method references. */
-var objectProto = Object.prototype;
-
-/**
- * Checks if `value` is likely a prototype object.
- *
- * @private
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is a prototype, else `false`.
- */
-function isPrototype(value) {
-  var Ctor = value && value.constructor,
-      proto = (typeof Ctor == 'function' && Ctor.prototype) || objectProto;
-
-  return value === proto;
-}
-
-module.exports = isPrototype;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_listCacheClear.js":
-/*!************************************************!*\
-  !*** ./node_modules/lodash/_listCacheClear.js ***!
-  \************************************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-/**
- * Removes all key-value entries from the list cache.
- *
- * @private
- * @name clear
- * @memberOf ListCache
- */
-function listCacheClear() {
-  this.__data__ = [];
-  this.size = 0;
-}
-
-module.exports = listCacheClear;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_listCacheDelete.js":
-/*!*************************************************!*\
-  !*** ./node_modules/lodash/_listCacheDelete.js ***!
-  \*************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var assocIndexOf = __webpack_require__(/*! ./_assocIndexOf */ "./node_modules/lodash/_assocIndexOf.js");
-
-/** Used for built-in method references. */
-var arrayProto = Array.prototype;
-
-/** Built-in value references. */
-var splice = arrayProto.splice;
-
-/**
- * Removes `key` and its value from the list cache.
- *
- * @private
- * @name delete
- * @memberOf ListCache
- * @param {string} key The key of the value to remove.
- * @returns {boolean} Returns `true` if the entry was removed, else `false`.
- */
-function listCacheDelete(key) {
-  var data = this.__data__,
-      index = assocIndexOf(data, key);
-
-  if (index < 0) {
-    return false;
-  }
-  var lastIndex = data.length - 1;
-  if (index == lastIndex) {
-    data.pop();
-  } else {
-    splice.call(data, index, 1);
-  }
-  --this.size;
-  return true;
-}
-
-module.exports = listCacheDelete;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_listCacheGet.js":
-/*!**********************************************!*\
-  !*** ./node_modules/lodash/_listCacheGet.js ***!
-  \**********************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var assocIndexOf = __webpack_require__(/*! ./_assocIndexOf */ "./node_modules/lodash/_assocIndexOf.js");
-
-/**
- * Gets the list cache value for `key`.
- *
- * @private
- * @name get
- * @memberOf ListCache
- * @param {string} key The key of the value to get.
- * @returns {*} Returns the entry value.
- */
-function listCacheGet(key) {
-  var data = this.__data__,
-      index = assocIndexOf(data, key);
-
-  return index < 0 ? undefined : data[index][1];
-}
-
-module.exports = listCacheGet;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_listCacheHas.js":
-/*!**********************************************!*\
-  !*** ./node_modules/lodash/_listCacheHas.js ***!
-  \**********************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var assocIndexOf = __webpack_require__(/*! ./_assocIndexOf */ "./node_modules/lodash/_assocIndexOf.js");
-
-/**
- * Checks if a list cache value for `key` exists.
- *
- * @private
- * @name has
- * @memberOf ListCache
- * @param {string} key The key of the entry to check.
- * @returns {boolean} Returns `true` if an entry for `key` exists, else `false`.
- */
-function listCacheHas(key) {
-  return assocIndexOf(this.__data__, key) > -1;
-}
-
-module.exports = listCacheHas;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_listCacheSet.js":
-/*!**********************************************!*\
-  !*** ./node_modules/lodash/_listCacheSet.js ***!
-  \**********************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var assocIndexOf = __webpack_require__(/*! ./_assocIndexOf */ "./node_modules/lodash/_assocIndexOf.js");
-
-/**
- * Sets the list cache `key` to `value`.
- *
- * @private
- * @name set
- * @memberOf ListCache
- * @param {string} key The key of the value to set.
- * @param {*} value The value to set.
- * @returns {Object} Returns the list cache instance.
- */
-function listCacheSet(key, value) {
-  var data = this.__data__,
-      index = assocIndexOf(data, key);
-
-  if (index < 0) {
-    ++this.size;
-    data.push([key, value]);
-  } else {
-    data[index][1] = value;
-  }
-  return this;
-}
-
-module.exports = listCacheSet;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_mapCacheClear.js":
-/*!***********************************************!*\
-  !*** ./node_modules/lodash/_mapCacheClear.js ***!
-  \***********************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var Hash = __webpack_require__(/*! ./_Hash */ "./node_modules/lodash/_Hash.js"),
-    ListCache = __webpack_require__(/*! ./_ListCache */ "./node_modules/lodash/_ListCache.js"),
-    Map = __webpack_require__(/*! ./_Map */ "./node_modules/lodash/_Map.js");
-
-/**
- * Removes all key-value entries from the map.
- *
- * @private
- * @name clear
- * @memberOf MapCache
- */
-function mapCacheClear() {
-  this.size = 0;
-  this.__data__ = {
-    'hash': new Hash,
-    'map': new (Map || ListCache),
-    'string': new Hash
-  };
-}
-
-module.exports = mapCacheClear;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_mapCacheDelete.js":
-/*!************************************************!*\
-  !*** ./node_modules/lodash/_mapCacheDelete.js ***!
-  \************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var getMapData = __webpack_require__(/*! ./_getMapData */ "./node_modules/lodash/_getMapData.js");
-
-/**
- * Removes `key` and its value from the map.
- *
- * @private
- * @name delete
- * @memberOf MapCache
- * @param {string} key The key of the value to remove.
- * @returns {boolean} Returns `true` if the entry was removed, else `false`.
- */
-function mapCacheDelete(key) {
-  var result = getMapData(this, key)['delete'](key);
-  this.size -= result ? 1 : 0;
-  return result;
-}
-
-module.exports = mapCacheDelete;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_mapCacheGet.js":
-/*!*********************************************!*\
-  !*** ./node_modules/lodash/_mapCacheGet.js ***!
-  \*********************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var getMapData = __webpack_require__(/*! ./_getMapData */ "./node_modules/lodash/_getMapData.js");
-
-/**
- * Gets the map value for `key`.
- *
- * @private
- * @name get
- * @memberOf MapCache
- * @param {string} key The key of the value to get.
- * @returns {*} Returns the entry value.
- */
-function mapCacheGet(key) {
-  return getMapData(this, key).get(key);
-}
-
-module.exports = mapCacheGet;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_mapCacheHas.js":
-/*!*********************************************!*\
-  !*** ./node_modules/lodash/_mapCacheHas.js ***!
-  \*********************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var getMapData = __webpack_require__(/*! ./_getMapData */ "./node_modules/lodash/_getMapData.js");
-
-/**
- * Checks if a map value for `key` exists.
- *
- * @private
- * @name has
- * @memberOf MapCache
- * @param {string} key The key of the entry to check.
- * @returns {boolean} Returns `true` if an entry for `key` exists, else `false`.
- */
-function mapCacheHas(key) {
-  return getMapData(this, key).has(key);
-}
-
-module.exports = mapCacheHas;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_mapCacheSet.js":
-/*!*********************************************!*\
-  !*** ./node_modules/lodash/_mapCacheSet.js ***!
-  \*********************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var getMapData = __webpack_require__(/*! ./_getMapData */ "./node_modules/lodash/_getMapData.js");
-
-/**
- * Sets the map `key` to `value`.
- *
- * @private
- * @name set
- * @memberOf MapCache
- * @param {string} key The key of the value to set.
- * @param {*} value The value to set.
- * @returns {Object} Returns the map cache instance.
- */
-function mapCacheSet(key, value) {
-  var data = getMapData(this, key),
-      size = data.size;
-
-  data.set(key, value);
-  this.size += data.size == size ? 0 : 1;
-  return this;
-}
-
-module.exports = mapCacheSet;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_nativeCreate.js":
-/*!**********************************************!*\
-  !*** ./node_modules/lodash/_nativeCreate.js ***!
-  \**********************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var getNative = __webpack_require__(/*! ./_getNative */ "./node_modules/lodash/_getNative.js");
-
-/* Built-in method references that are verified to be native. */
-var nativeCreate = getNative(Object, 'create');
-
-module.exports = nativeCreate;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_nativeKeysIn.js":
-/*!**********************************************!*\
-  !*** ./node_modules/lodash/_nativeKeysIn.js ***!
-  \**********************************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-/**
- * This function is like
- * [`Object.keys`](http://ecma-international.org/ecma-262/7.0/#sec-object.keys)
- * except that it includes inherited enumerable properties.
- *
- * @private
- * @param {Object} object The object to query.
- * @returns {Array} Returns the array of property names.
- */
-function nativeKeysIn(object) {
-  var result = [];
-  if (object != null) {
-    for (var key in Object(object)) {
-      result.push(key);
-    }
-  }
-  return result;
-}
-
-module.exports = nativeKeysIn;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_nodeUtil.js":
-/*!******************************************!*\
-  !*** ./node_modules/lodash/_nodeUtil.js ***!
-  \******************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-/* WEBPACK VAR INJECTION */(function(module) {var freeGlobal = __webpack_require__(/*! ./_freeGlobal */ "./node_modules/lodash/_freeGlobal.js");
-
-/** Detect free variable `exports`. */
-var freeExports =  true && exports && !exports.nodeType && exports;
-
-/** Detect free variable `module`. */
-var freeModule = freeExports && typeof module == 'object' && module && !module.nodeType && module;
-
-/** Detect the popular CommonJS extension `module.exports`. */
-var moduleExports = freeModule && freeModule.exports === freeExports;
-
-/** Detect free variable `process` from Node.js. */
-var freeProcess = moduleExports && freeGlobal.process;
-
-/** Used to access faster Node.js helpers. */
-var nodeUtil = (function() {
-  try {
-    // Use `util.types` for Node.js 10+.
-    var types = freeModule && freeModule.require && freeModule.require('util').types;
-
-    if (types) {
-      return types;
-    }
-
-    // Legacy `process.binding('util')` for Node.js < 10.
-    return freeProcess && freeProcess.binding && freeProcess.binding('util');
-  } catch (e) {}
-}());
-
-module.exports = nodeUtil;
-
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../webpack/buildin/module.js */ "./node_modules/webpack/buildin/module.js")(module)))
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_objectToString.js":
-/*!************************************************!*\
-  !*** ./node_modules/lodash/_objectToString.js ***!
-  \************************************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-/** Used for built-in method references. */
-var objectProto = Object.prototype;
-
-/**
- * Used to resolve the
- * [`toStringTag`](http://ecma-international.org/ecma-262/7.0/#sec-object.prototype.tostring)
- * of values.
- */
-var nativeObjectToString = objectProto.toString;
-
-/**
- * Converts `value` to a string using `Object.prototype.toString`.
- *
- * @private
- * @param {*} value The value to convert.
- * @returns {string} Returns the converted string.
- */
-function objectToString(value) {
-  return nativeObjectToString.call(value);
-}
-
-module.exports = objectToString;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_overArg.js":
-/*!*****************************************!*\
-  !*** ./node_modules/lodash/_overArg.js ***!
-  \*****************************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-/**
- * Creates a unary function that invokes `func` with its argument transformed.
- *
- * @private
- * @param {Function} func The function to wrap.
- * @param {Function} transform The argument transform.
- * @returns {Function} Returns the new function.
- */
-function overArg(func, transform) {
-  return function(arg) {
-    return func(transform(arg));
-  };
-}
-
-module.exports = overArg;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_overRest.js":
-/*!******************************************!*\
-  !*** ./node_modules/lodash/_overRest.js ***!
-  \******************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var apply = __webpack_require__(/*! ./_apply */ "./node_modules/lodash/_apply.js");
-
-/* Built-in method references for those with the same name as other `lodash` methods. */
-var nativeMax = Math.max;
-
-/**
- * A specialized version of `baseRest` which transforms the rest array.
- *
- * @private
- * @param {Function} func The function to apply a rest parameter to.
- * @param {number} [start=func.length-1] The start position of the rest parameter.
- * @param {Function} transform The rest array transform.
- * @returns {Function} Returns the new function.
- */
-function overRest(func, start, transform) {
-  start = nativeMax(start === undefined ? (func.length - 1) : start, 0);
-  return function() {
-    var args = arguments,
-        index = -1,
-        length = nativeMax(args.length - start, 0),
-        array = Array(length);
-
-    while (++index < length) {
-      array[index] = args[start + index];
-    }
-    index = -1;
-    var otherArgs = Array(start + 1);
-    while (++index < start) {
-      otherArgs[index] = args[index];
-    }
-    otherArgs[start] = transform(array);
-    return apply(func, this, otherArgs);
-  };
-}
-
-module.exports = overRest;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_root.js":
-/*!**************************************!*\
-  !*** ./node_modules/lodash/_root.js ***!
-  \**************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var freeGlobal = __webpack_require__(/*! ./_freeGlobal */ "./node_modules/lodash/_freeGlobal.js");
-
-/** Detect free variable `self`. */
-var freeSelf = typeof self == 'object' && self && self.Object === Object && self;
-
-/** Used as a reference to the global object. */
-var root = freeGlobal || freeSelf || Function('return this')();
-
-module.exports = root;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_safeGet.js":
-/*!*****************************************!*\
-  !*** ./node_modules/lodash/_safeGet.js ***!
-  \*****************************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-/**
- * Gets the value at `key`, unless `key` is "__proto__" or "constructor".
- *
- * @private
- * @param {Object} object The object to query.
- * @param {string} key The key of the property to get.
- * @returns {*} Returns the property value.
- */
-function safeGet(object, key) {
-  if (key === 'constructor' && typeof object[key] === 'function') {
-    return;
-  }
-
-  if (key == '__proto__') {
-    return;
-  }
-
-  return object[key];
-}
-
-module.exports = safeGet;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_setToString.js":
-/*!*********************************************!*\
-  !*** ./node_modules/lodash/_setToString.js ***!
-  \*********************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var baseSetToString = __webpack_require__(/*! ./_baseSetToString */ "./node_modules/lodash/_baseSetToString.js"),
-    shortOut = __webpack_require__(/*! ./_shortOut */ "./node_modules/lodash/_shortOut.js");
-
-/**
- * Sets the `toString` method of `func` to return `string`.
- *
- * @private
- * @param {Function} func The function to modify.
- * @param {Function} string The `toString` result.
- * @returns {Function} Returns `func`.
- */
-var setToString = shortOut(baseSetToString);
-
-module.exports = setToString;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_shortOut.js":
-/*!******************************************!*\
-  !*** ./node_modules/lodash/_shortOut.js ***!
-  \******************************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-/** Used to detect hot functions by number of calls within a span of milliseconds. */
-var HOT_COUNT = 800,
-    HOT_SPAN = 16;
-
-/* Built-in method references for those with the same name as other `lodash` methods. */
-var nativeNow = Date.now;
-
-/**
- * Creates a function that'll short out and invoke `identity` instead
- * of `func` when it's called `HOT_COUNT` or more times in `HOT_SPAN`
- * milliseconds.
- *
- * @private
- * @param {Function} func The function to restrict.
- * @returns {Function} Returns the new shortable function.
- */
-function shortOut(func) {
-  var count = 0,
-      lastCalled = 0;
-
-  return function() {
-    var stamp = nativeNow(),
-        remaining = HOT_SPAN - (stamp - lastCalled);
-
-    lastCalled = stamp;
-    if (remaining > 0) {
-      if (++count >= HOT_COUNT) {
-        return arguments[0];
-      }
-    } else {
-      count = 0;
-    }
-    return func.apply(undefined, arguments);
-  };
-}
-
-module.exports = shortOut;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_stackClear.js":
-/*!********************************************!*\
-  !*** ./node_modules/lodash/_stackClear.js ***!
-  \********************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var ListCache = __webpack_require__(/*! ./_ListCache */ "./node_modules/lodash/_ListCache.js");
-
-/**
- * Removes all key-value entries from the stack.
- *
- * @private
- * @name clear
- * @memberOf Stack
- */
-function stackClear() {
-  this.__data__ = new ListCache;
-  this.size = 0;
-}
-
-module.exports = stackClear;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_stackDelete.js":
-/*!*********************************************!*\
-  !*** ./node_modules/lodash/_stackDelete.js ***!
-  \*********************************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-/**
- * Removes `key` and its value from the stack.
- *
- * @private
- * @name delete
- * @memberOf Stack
- * @param {string} key The key of the value to remove.
- * @returns {boolean} Returns `true` if the entry was removed, else `false`.
- */
-function stackDelete(key) {
-  var data = this.__data__,
-      result = data['delete'](key);
-
-  this.size = data.size;
-  return result;
-}
-
-module.exports = stackDelete;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_stackGet.js":
-/*!******************************************!*\
-  !*** ./node_modules/lodash/_stackGet.js ***!
-  \******************************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-/**
- * Gets the stack value for `key`.
- *
- * @private
- * @name get
- * @memberOf Stack
- * @param {string} key The key of the value to get.
- * @returns {*} Returns the entry value.
- */
-function stackGet(key) {
-  return this.__data__.get(key);
-}
-
-module.exports = stackGet;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_stackHas.js":
-/*!******************************************!*\
-  !*** ./node_modules/lodash/_stackHas.js ***!
-  \******************************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-/**
- * Checks if a stack value for `key` exists.
- *
- * @private
- * @name has
- * @memberOf Stack
- * @param {string} key The key of the entry to check.
- * @returns {boolean} Returns `true` if an entry for `key` exists, else `false`.
- */
-function stackHas(key) {
-  return this.__data__.has(key);
-}
-
-module.exports = stackHas;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_stackSet.js":
-/*!******************************************!*\
-  !*** ./node_modules/lodash/_stackSet.js ***!
-  \******************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var ListCache = __webpack_require__(/*! ./_ListCache */ "./node_modules/lodash/_ListCache.js"),
-    Map = __webpack_require__(/*! ./_Map */ "./node_modules/lodash/_Map.js"),
-    MapCache = __webpack_require__(/*! ./_MapCache */ "./node_modules/lodash/_MapCache.js");
-
-/** Used as the size to enable large array optimizations. */
-var LARGE_ARRAY_SIZE = 200;
-
-/**
- * Sets the stack `key` to `value`.
- *
- * @private
- * @name set
- * @memberOf Stack
- * @param {string} key The key of the value to set.
- * @param {*} value The value to set.
- * @returns {Object} Returns the stack cache instance.
- */
-function stackSet(key, value) {
-  var data = this.__data__;
-  if (data instanceof ListCache) {
-    var pairs = data.__data__;
-    if (!Map || (pairs.length < LARGE_ARRAY_SIZE - 1)) {
-      pairs.push([key, value]);
-      this.size = ++data.size;
-      return this;
-    }
-    data = this.__data__ = new MapCache(pairs);
-  }
-  data.set(key, value);
-  this.size = data.size;
-  return this;
-}
-
-module.exports = stackSet;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/_toSource.js":
-/*!******************************************!*\
-  !*** ./node_modules/lodash/_toSource.js ***!
-  \******************************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-/** Used for built-in method references. */
-var funcProto = Function.prototype;
-
-/** Used to resolve the decompiled source of functions. */
-var funcToString = funcProto.toString;
-
-/**
- * Converts `func` to its source code.
- *
- * @private
- * @param {Function} func The function to convert.
- * @returns {string} Returns the source code.
- */
-function toSource(func) {
-  if (func != null) {
-    try {
-      return funcToString.call(func);
-    } catch (e) {}
-    try {
-      return (func + '');
-    } catch (e) {}
-  }
-  return '';
-}
-
-module.exports = toSource;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/constant.js":
-/*!*****************************************!*\
-  !*** ./node_modules/lodash/constant.js ***!
-  \*****************************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-/**
- * Creates a function that returns `value`.
- *
- * @static
- * @memberOf _
- * @since 2.4.0
- * @category Util
- * @param {*} value The value to return from the new function.
- * @returns {Function} Returns the new constant function.
- * @example
- *
- * var objects = _.times(2, _.constant({ 'a': 1 }));
- *
- * console.log(objects);
- * // => [{ 'a': 1 }, { 'a': 1 }]
- *
- * console.log(objects[0] === objects[1]);
- * // => true
- */
-function constant(value) {
-  return function() {
-    return value;
-  };
-}
-
-module.exports = constant;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/defaultsDeep.js":
-/*!*********************************************!*\
-  !*** ./node_modules/lodash/defaultsDeep.js ***!
-  \*********************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var apply = __webpack_require__(/*! ./_apply */ "./node_modules/lodash/_apply.js"),
-    baseRest = __webpack_require__(/*! ./_baseRest */ "./node_modules/lodash/_baseRest.js"),
-    customDefaultsMerge = __webpack_require__(/*! ./_customDefaultsMerge */ "./node_modules/lodash/_customDefaultsMerge.js"),
-    mergeWith = __webpack_require__(/*! ./mergeWith */ "./node_modules/lodash/mergeWith.js");
-
-/**
- * This method is like `_.defaults` except that it recursively assigns
- * default properties.
- *
- * **Note:** This method mutates `object`.
- *
- * @static
- * @memberOf _
- * @since 3.10.0
- * @category Object
- * @param {Object} object The destination object.
- * @param {...Object} [sources] The source objects.
- * @returns {Object} Returns `object`.
- * @see _.defaults
- * @example
- *
- * _.defaultsDeep({ 'a': { 'b': 2 } }, { 'a': { 'b': 1, 'c': 3 } });
- * // => { 'a': { 'b': 2, 'c': 3 } }
- */
-var defaultsDeep = baseRest(function(args) {
-  args.push(undefined, customDefaultsMerge);
-  return apply(mergeWith, undefined, args);
-});
-
-module.exports = defaultsDeep;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/eq.js":
-/*!***********************************!*\
-  !*** ./node_modules/lodash/eq.js ***!
-  \***********************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-/**
- * Performs a
- * [`SameValueZero`](http://ecma-international.org/ecma-262/7.0/#sec-samevaluezero)
- * comparison between two values to determine if they are equivalent.
- *
- * @static
- * @memberOf _
- * @since 4.0.0
- * @category Lang
- * @param {*} value The value to compare.
- * @param {*} other The other value to compare.
- * @returns {boolean} Returns `true` if the values are equivalent, else `false`.
- * @example
- *
- * var object = { 'a': 1 };
- * var other = { 'a': 1 };
- *
- * _.eq(object, object);
- * // => true
- *
- * _.eq(object, other);
- * // => false
- *
- * _.eq('a', 'a');
- * // => true
- *
- * _.eq('a', Object('a'));
- * // => false
- *
- * _.eq(NaN, NaN);
- * // => true
- */
-function eq(value, other) {
-  return value === other || (value !== value && other !== other);
-}
-
-module.exports = eq;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/identity.js":
-/*!*****************************************!*\
-  !*** ./node_modules/lodash/identity.js ***!
-  \*****************************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-/**
- * This method returns the first argument it receives.
- *
- * @static
- * @since 0.1.0
- * @memberOf _
- * @category Util
- * @param {*} value Any value.
- * @returns {*} Returns `value`.
- * @example
- *
- * var object = { 'a': 1 };
- *
- * console.log(_.identity(object) === object);
- * // => true
- */
-function identity(value) {
-  return value;
-}
-
-module.exports = identity;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/isArguments.js":
-/*!********************************************!*\
-  !*** ./node_modules/lodash/isArguments.js ***!
-  \********************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var baseIsArguments = __webpack_require__(/*! ./_baseIsArguments */ "./node_modules/lodash/_baseIsArguments.js"),
-    isObjectLike = __webpack_require__(/*! ./isObjectLike */ "./node_modules/lodash/isObjectLike.js");
-
-/** Used for built-in method references. */
-var objectProto = Object.prototype;
-
-/** Used to check objects for own properties. */
-var hasOwnProperty = objectProto.hasOwnProperty;
-
-/** Built-in value references. */
-var propertyIsEnumerable = objectProto.propertyIsEnumerable;
-
-/**
- * Checks if `value` is likely an `arguments` object.
- *
- * @static
- * @memberOf _
- * @since 0.1.0
- * @category Lang
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is an `arguments` object,
- *  else `false`.
- * @example
- *
- * _.isArguments(function() { return arguments; }());
- * // => true
- *
- * _.isArguments([1, 2, 3]);
- * // => false
- */
-var isArguments = baseIsArguments(function() { return arguments; }()) ? baseIsArguments : function(value) {
-  return isObjectLike(value) && hasOwnProperty.call(value, 'callee') &&
-    !propertyIsEnumerable.call(value, 'callee');
+Iterator.empty = function() {
+  var iterator = new Iterator(null);
+  iterator.done = true;
+
+  return iterator;
 };
 
-module.exports = isArguments;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/isArray.js":
-/*!****************************************!*\
-  !*** ./node_modules/lodash/isArray.js ***!
-  \****************************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
 /**
- * Checks if `value` is classified as an `Array` object.
+ * Returning whether the given value is an iterator.
  *
- * @static
- * @memberOf _
- * @since 0.1.0
- * @category Lang
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is an array, else `false`.
- * @example
- *
- * _.isArray([1, 2, 3]);
- * // => true
- *
- * _.isArray(document.body.children);
- * // => false
- *
- * _.isArray('abc');
- * // => false
- *
- * _.isArray(_.noop);
- * // => false
+ * @param  {any} value - Value.
+ * @return {boolean}
  */
-var isArray = Array.isArray;
-
-module.exports = isArray;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/isArrayLike.js":
-/*!********************************************!*\
-  !*** ./node_modules/lodash/isArrayLike.js ***!
-  \********************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var isFunction = __webpack_require__(/*! ./isFunction */ "./node_modules/lodash/isFunction.js"),
-    isLength = __webpack_require__(/*! ./isLength */ "./node_modules/lodash/isLength.js");
-
-/**
- * Checks if `value` is array-like. A value is considered array-like if it's
- * not a function and has a `value.length` that's an integer greater than or
- * equal to `0` and less than or equal to `Number.MAX_SAFE_INTEGER`.
- *
- * @static
- * @memberOf _
- * @since 4.0.0
- * @category Lang
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is array-like, else `false`.
- * @example
- *
- * _.isArrayLike([1, 2, 3]);
- * // => true
- *
- * _.isArrayLike(document.body.children);
- * // => true
- *
- * _.isArrayLike('abc');
- * // => true
- *
- * _.isArrayLike(_.noop);
- * // => false
- */
-function isArrayLike(value) {
-  return value != null && isLength(value.length) && !isFunction(value);
-}
-
-module.exports = isArrayLike;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/isArrayLikeObject.js":
-/*!**************************************************!*\
-  !*** ./node_modules/lodash/isArrayLikeObject.js ***!
-  \**************************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var isArrayLike = __webpack_require__(/*! ./isArrayLike */ "./node_modules/lodash/isArrayLike.js"),
-    isObjectLike = __webpack_require__(/*! ./isObjectLike */ "./node_modules/lodash/isObjectLike.js");
-
-/**
- * This method is like `_.isArrayLike` except that it also checks if `value`
- * is an object.
- *
- * @static
- * @memberOf _
- * @since 4.0.0
- * @category Lang
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is an array-like object,
- *  else `false`.
- * @example
- *
- * _.isArrayLikeObject([1, 2, 3]);
- * // => true
- *
- * _.isArrayLikeObject(document.body.children);
- * // => true
- *
- * _.isArrayLikeObject('abc');
- * // => false
- *
- * _.isArrayLikeObject(_.noop);
- * // => false
- */
-function isArrayLikeObject(value) {
-  return isObjectLike(value) && isArrayLike(value);
-}
-
-module.exports = isArrayLikeObject;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/isBuffer.js":
-/*!*****************************************!*\
-  !*** ./node_modules/lodash/isBuffer.js ***!
-  \*****************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-/* WEBPACK VAR INJECTION */(function(module) {var root = __webpack_require__(/*! ./_root */ "./node_modules/lodash/_root.js"),
-    stubFalse = __webpack_require__(/*! ./stubFalse */ "./node_modules/lodash/stubFalse.js");
-
-/** Detect free variable `exports`. */
-var freeExports =  true && exports && !exports.nodeType && exports;
-
-/** Detect free variable `module`. */
-var freeModule = freeExports && typeof module == 'object' && module && !module.nodeType && module;
-
-/** Detect the popular CommonJS extension `module.exports`. */
-var moduleExports = freeModule && freeModule.exports === freeExports;
-
-/** Built-in value references. */
-var Buffer = moduleExports ? root.Buffer : undefined;
-
-/* Built-in method references for those with the same name as other `lodash` methods. */
-var nativeIsBuffer = Buffer ? Buffer.isBuffer : undefined;
-
-/**
- * Checks if `value` is a buffer.
- *
- * @static
- * @memberOf _
- * @since 4.3.0
- * @category Lang
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is a buffer, else `false`.
- * @example
- *
- * _.isBuffer(new Buffer(2));
- * // => true
- *
- * _.isBuffer(new Uint8Array(2));
- * // => false
- */
-var isBuffer = nativeIsBuffer || stubFalse;
-
-module.exports = isBuffer;
-
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../webpack/buildin/module.js */ "./node_modules/webpack/buildin/module.js")(module)))
-
-/***/ }),
-
-/***/ "./node_modules/lodash/isFunction.js":
-/*!*******************************************!*\
-  !*** ./node_modules/lodash/isFunction.js ***!
-  \*******************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var baseGetTag = __webpack_require__(/*! ./_baseGetTag */ "./node_modules/lodash/_baseGetTag.js"),
-    isObject = __webpack_require__(/*! ./isObject */ "./node_modules/lodash/isObject.js");
-
-/** `Object#toString` result references. */
-var asyncTag = '[object AsyncFunction]',
-    funcTag = '[object Function]',
-    genTag = '[object GeneratorFunction]',
-    proxyTag = '[object Proxy]';
-
-/**
- * Checks if `value` is classified as a `Function` object.
- *
- * @static
- * @memberOf _
- * @since 0.1.0
- * @category Lang
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is a function, else `false`.
- * @example
- *
- * _.isFunction(_);
- * // => true
- *
- * _.isFunction(/abc/);
- * // => false
- */
-function isFunction(value) {
-  if (!isObject(value)) {
-    return false;
-  }
-  // The use of `Object#toString` avoids issues with the `typeof` operator
-  // in Safari 9 which returns 'object' for typed arrays and other constructors.
-  var tag = baseGetTag(value);
-  return tag == funcTag || tag == genTag || tag == asyncTag || tag == proxyTag;
-}
-
-module.exports = isFunction;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/isLength.js":
-/*!*****************************************!*\
-  !*** ./node_modules/lodash/isLength.js ***!
-  \*****************************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-/** Used as references for various `Number` constants. */
-var MAX_SAFE_INTEGER = 9007199254740991;
-
-/**
- * Checks if `value` is a valid array-like length.
- *
- * **Note:** This method is loosely based on
- * [`ToLength`](http://ecma-international.org/ecma-262/7.0/#sec-tolength).
- *
- * @static
- * @memberOf _
- * @since 4.0.0
- * @category Lang
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is a valid length, else `false`.
- * @example
- *
- * _.isLength(3);
- * // => true
- *
- * _.isLength(Number.MIN_VALUE);
- * // => false
- *
- * _.isLength(Infinity);
- * // => false
- *
- * _.isLength('3');
- * // => false
- */
-function isLength(value) {
-  return typeof value == 'number' &&
-    value > -1 && value % 1 == 0 && value <= MAX_SAFE_INTEGER;
-}
-
-module.exports = isLength;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/isObject.js":
-/*!*****************************************!*\
-  !*** ./node_modules/lodash/isObject.js ***!
-  \*****************************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-/**
- * Checks if `value` is the
- * [language type](http://www.ecma-international.org/ecma-262/7.0/#sec-ecmascript-language-types)
- * of `Object`. (e.g. arrays, functions, objects, regexes, `new Number(0)`, and `new String('')`)
- *
- * @static
- * @memberOf _
- * @since 0.1.0
- * @category Lang
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is an object, else `false`.
- * @example
- *
- * _.isObject({});
- * // => true
- *
- * _.isObject([1, 2, 3]);
- * // => true
- *
- * _.isObject(_.noop);
- * // => true
- *
- * _.isObject(null);
- * // => false
- */
-function isObject(value) {
-  var type = typeof value;
-  return value != null && (type == 'object' || type == 'function');
-}
-
-module.exports = isObject;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/isObjectLike.js":
-/*!*********************************************!*\
-  !*** ./node_modules/lodash/isObjectLike.js ***!
-  \*********************************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-/**
- * Checks if `value` is object-like. A value is object-like if it's not `null`
- * and has a `typeof` result of "object".
- *
- * @static
- * @memberOf _
- * @since 4.0.0
- * @category Lang
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is object-like, else `false`.
- * @example
- *
- * _.isObjectLike({});
- * // => true
- *
- * _.isObjectLike([1, 2, 3]);
- * // => true
- *
- * _.isObjectLike(_.noop);
- * // => false
- *
- * _.isObjectLike(null);
- * // => false
- */
-function isObjectLike(value) {
-  return value != null && typeof value == 'object';
-}
-
-module.exports = isObjectLike;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/isPlainObject.js":
-/*!**********************************************!*\
-  !*** ./node_modules/lodash/isPlainObject.js ***!
-  \**********************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var baseGetTag = __webpack_require__(/*! ./_baseGetTag */ "./node_modules/lodash/_baseGetTag.js"),
-    getPrototype = __webpack_require__(/*! ./_getPrototype */ "./node_modules/lodash/_getPrototype.js"),
-    isObjectLike = __webpack_require__(/*! ./isObjectLike */ "./node_modules/lodash/isObjectLike.js");
-
-/** `Object#toString` result references. */
-var objectTag = '[object Object]';
-
-/** Used for built-in method references. */
-var funcProto = Function.prototype,
-    objectProto = Object.prototype;
-
-/** Used to resolve the decompiled source of functions. */
-var funcToString = funcProto.toString;
-
-/** Used to check objects for own properties. */
-var hasOwnProperty = objectProto.hasOwnProperty;
-
-/** Used to infer the `Object` constructor. */
-var objectCtorString = funcToString.call(Object);
-
-/**
- * Checks if `value` is a plain object, that is, an object created by the
- * `Object` constructor or one with a `[[Prototype]]` of `null`.
- *
- * @static
- * @memberOf _
- * @since 0.8.0
- * @category Lang
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is a plain object, else `false`.
- * @example
- *
- * function Foo() {
- *   this.a = 1;
- * }
- *
- * _.isPlainObject(new Foo);
- * // => false
- *
- * _.isPlainObject([1, 2, 3]);
- * // => false
- *
- * _.isPlainObject({ 'x': 0, 'y': 0 });
- * // => true
- *
- * _.isPlainObject(Object.create(null));
- * // => true
- */
-function isPlainObject(value) {
-  if (!isObjectLike(value) || baseGetTag(value) != objectTag) {
-    return false;
-  }
-  var proto = getPrototype(value);
-  if (proto === null) {
+Iterator.is = function(value) {
+  if (value instanceof Iterator)
     return true;
-  }
-  var Ctor = hasOwnProperty.call(proto, 'constructor') && proto.constructor;
-  return typeof Ctor == 'function' && Ctor instanceof Ctor &&
-    funcToString.call(Ctor) == objectCtorString;
-}
 
-module.exports = isPlainObject;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/isTypedArray.js":
-/*!*********************************************!*\
-  !*** ./node_modules/lodash/isTypedArray.js ***!
-  \*********************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var baseIsTypedArray = __webpack_require__(/*! ./_baseIsTypedArray */ "./node_modules/lodash/_baseIsTypedArray.js"),
-    baseUnary = __webpack_require__(/*! ./_baseUnary */ "./node_modules/lodash/_baseUnary.js"),
-    nodeUtil = __webpack_require__(/*! ./_nodeUtil */ "./node_modules/lodash/_nodeUtil.js");
-
-/* Node.js helper references. */
-var nodeIsTypedArray = nodeUtil && nodeUtil.isTypedArray;
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    typeof value.next === 'function'
+  );
+};
 
 /**
- * Checks if `value` is classified as a typed array.
- *
- * @static
- * @memberOf _
- * @since 3.0.0
- * @category Lang
- * @param {*} value The value to check.
- * @returns {boolean} Returns `true` if `value` is a typed array, else `false`.
- * @example
- *
- * _.isTypedArray(new Uint8Array);
- * // => true
- *
- * _.isTypedArray([]);
- * // => false
+ * Exporting.
  */
-var isTypedArray = nodeIsTypedArray ? baseUnary(nodeIsTypedArray) : baseIsTypedArray;
-
-module.exports = isTypedArray;
+module.exports = Iterator;
 
 
 /***/ }),
 
-/***/ "./node_modules/lodash/keysIn.js":
-/*!***************************************!*\
-  !*** ./node_modules/lodash/keysIn.js ***!
-  \***************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var arrayLikeKeys = __webpack_require__(/*! ./_arrayLikeKeys */ "./node_modules/lodash/_arrayLikeKeys.js"),
-    baseKeysIn = __webpack_require__(/*! ./_baseKeysIn */ "./node_modules/lodash/_baseKeysIn.js"),
-    isArrayLike = __webpack_require__(/*! ./isArrayLike */ "./node_modules/lodash/isArrayLike.js");
-
-/**
- * Creates an array of the own and inherited enumerable property names of `object`.
- *
- * **Note:** Non-object values are coerced to objects.
- *
- * @static
- * @memberOf _
- * @since 3.0.0
- * @category Object
- * @param {Object} object The object to query.
- * @returns {Array} Returns the array of property names.
- * @example
- *
- * function Foo() {
- *   this.a = 1;
- *   this.b = 2;
- * }
- *
- * Foo.prototype.c = 3;
- *
- * _.keysIn(new Foo);
- * // => ['a', 'b', 'c'] (iteration order is not guaranteed)
- */
-function keysIn(object) {
-  return isArrayLike(object) ? arrayLikeKeys(object, true) : baseKeysIn(object);
-}
-
-module.exports = keysIn;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/mergeWith.js":
-/*!******************************************!*\
-  !*** ./node_modules/lodash/mergeWith.js ***!
-  \******************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-var baseMerge = __webpack_require__(/*! ./_baseMerge */ "./node_modules/lodash/_baseMerge.js"),
-    createAssigner = __webpack_require__(/*! ./_createAssigner */ "./node_modules/lodash/_createAssigner.js");
-
-/**
- * This method is like `_.merge` except that it accepts `customizer` which
- * is invoked to produce the merged values of the destination and source
- * properties. If `customizer` returns `undefined`, merging is handled by the
- * method instead. The `customizer` is invoked with six arguments:
- * (objValue, srcValue, key, object, source, stack).
- *
- * **Note:** This method mutates `object`.
- *
- * @static
- * @memberOf _
- * @since 4.0.0
- * @category Object
- * @param {Object} object The destination object.
- * @param {...Object} sources The source objects.
- * @param {Function} customizer The function to customize assigned values.
- * @returns {Object} Returns `object`.
- * @example
- *
- * function customizer(objValue, srcValue) {
- *   if (_.isArray(objValue)) {
- *     return objValue.concat(srcValue);
- *   }
- * }
- *
- * var object = { 'a': [1], 'b': [2] };
- * var other = { 'a': [3], 'b': [4] };
- *
- * _.mergeWith(object, other, customizer);
- * // => { 'a': [1, 3], 'b': [2, 4] }
- */
-var mergeWith = createAssigner(function(object, source, srcIndex, customizer) {
-  baseMerge(object, source, srcIndex, customizer);
-});
-
-module.exports = mergeWith;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/stubFalse.js":
-/*!******************************************!*\
-  !*** ./node_modules/lodash/stubFalse.js ***!
-  \******************************************/
-/*! no static exports found */
-/***/ (function(module, exports) {
-
-/**
- * This method returns `false`.
- *
- * @static
- * @memberOf _
- * @since 4.13.0
- * @category Util
- * @returns {boolean} Returns `false`.
- * @example
- *
- * _.times(2, _.stubFalse);
- * // => [false, false]
- */
-function stubFalse() {
-  return false;
-}
-
-module.exports = stubFalse;
-
-
-/***/ }),
-
-/***/ "./node_modules/lodash/toPlainObject.js":
+/***/ "./node_modules/mnemonist/sparse-map.js":
 /*!**********************************************!*\
-  !*** ./node_modules/lodash/toPlainObject.js ***!
+  !*** ./node_modules/mnemonist/sparse-map.js ***!
   \**********************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-var copyObject = __webpack_require__(/*! ./_copyObject */ "./node_modules/lodash/_copyObject.js"),
-    keysIn = __webpack_require__(/*! ./keysIn */ "./node_modules/lodash/keysIn.js");
+/**
+ * Mnemonist SparseMap
+ * ====================
+ *
+ * JavaScript sparse map implemented on top of byte arrays.
+ *
+ * [Reference]: https://research.swtch.com/sparse
+ */
+var Iterator = __webpack_require__(/*! obliterator/iterator */ "./node_modules/mnemonist/node_modules/obliterator/iterator.js"),
+    getPointerArray = __webpack_require__(/*! ./utils/typed-arrays.js */ "./node_modules/mnemonist/utils/typed-arrays.js").getPointerArray;
 
 /**
- * Converts `value` to a plain object flattening inherited enumerable string
- * keyed properties of `value` to own properties of the plain object.
+ * SparseMap.
  *
- * @static
- * @memberOf _
- * @since 3.0.0
- * @category Lang
- * @param {*} value The value to convert.
- * @returns {Object} Returns the converted plain object.
- * @example
- *
- * function Foo() {
- *   this.b = 2;
- * }
- *
- * Foo.prototype.c = 3;
- *
- * _.assign({ 'a': 1 }, new Foo);
- * // => { 'a': 1, 'b': 2 }
- *
- * _.assign({ 'a': 1 }, _.toPlainObject(new Foo));
- * // => { 'a': 1, 'b': 2, 'c': 3 }
+ * @constructor
  */
-function toPlainObject(value) {
-  return copyObject(value, keysIn(value));
+function SparseMap(Values, length) {
+  if (arguments.length < 2) {
+    length = Values;
+    Values = Array;
+  }
+
+  var ByteArray = getPointerArray(length);
+
+  // Properties
+  this.size = 0;
+  this.length = length;
+  this.dense = new ByteArray(length);
+  this.sparse = new ByteArray(length);
+  this.vals = new Values(length);
 }
 
-module.exports = toPlainObject;
+/**
+ * Method used to clear the structure.
+ *
+ * @return {undefined}
+ */
+SparseMap.prototype.clear = function() {
+  this.size = 0;
+};
+
+/**
+ * Method used to check the existence of a member in the set.
+ *
+ * @param  {number} member - Member to test.
+ * @return {SparseMap}
+ */
+SparseMap.prototype.has = function(member) {
+  var index = this.sparse[member];
+
+  return (
+    index < this.size &&
+    this.dense[index] === member
+  );
+};
+
+/**
+ * Method used to get the value associated to a member in the set.
+ *
+ * @param  {number} member - Member to test.
+ * @return {any}
+ */
+SparseMap.prototype.get = function(member) {
+  var index = this.sparse[member];
+
+  if (index < this.size && this.dense[index] === member)
+    return this.vals[index];
+
+  return;
+};
+
+/**
+ * Method used to set a value into the map.
+ *
+ * @param  {number} member - Member to set.
+ * @param  {any}    value  - Associated value.
+ * @return {SparseMap}
+ */
+SparseMap.prototype.set = function(member, value) {
+  var index = this.sparse[member];
+
+  if (index < this.size && this.dense[index] === member) {
+    this.vals[index] = value;
+    return this;
+  }
+
+  this.dense[this.size] = member;
+  this.sparse[member] = this.size;
+  this.vals[this.size] = value;
+  this.size++;
+
+  return this;
+};
+
+/**
+ * Method used to remove a member from the set.
+ *
+ * @param  {number} member - Member to delete.
+ * @return {boolean}
+ */
+SparseMap.prototype.delete = function(member) {
+  var index = this.sparse[member];
+
+  if (index >= this.size || this.dense[index] !== member)
+    return false;
+
+  index = this.dense[this.size - 1];
+  this.dense[this.sparse[member]] = index;
+  this.sparse[index] = this.sparse[member];
+  this.size--;
+
+  return true;
+};
+
+/**
+ * Method used to iterate over the set's values.
+ *
+ * @param  {function}  callback - Function to call for each item.
+ * @param  {object}    scope    - Optional scope.
+ * @return {undefined}
+ */
+SparseMap.prototype.forEach = function(callback, scope) {
+  scope = arguments.length > 1 ? scope : this;
+
+  for (var i = 0; i < this.size; i++)
+    callback.call(scope, this.vals[i], this.dense[i]);
+};
+
+/**
+ * Method used to create an iterator over a set's members.
+ *
+ * @return {Iterator}
+ */
+SparseMap.prototype.keys = function() {
+  var size = this.size,
+      dense = this.dense,
+      i = 0;
+
+  return new Iterator(function() {
+    if (i < size) {
+      var item = dense[i];
+      i++;
+
+      return {
+        value: item
+      };
+    }
+
+    return {
+      done: true
+    };
+  });
+};
+
+/**
+ * Method used to create an iterator over a set's values.
+ *
+ * @return {Iterator}
+ */
+SparseMap.prototype.values = function() {
+  var size = this.size,
+      values = this.vals,
+      i = 0;
+
+  return new Iterator(function() {
+    if (i < size) {
+      var item = values[i];
+      i++;
+
+      return {
+        value: item
+      };
+    }
+
+    return {
+      done: true
+    };
+  });
+};
+
+/**
+ * Method used to create an iterator over a set's entries.
+ *
+ * @return {Iterator}
+ */
+SparseMap.prototype.entries = function() {
+  var size = this.size,
+      dense = this.dense,
+      values = this.vals,
+      i = 0;
+
+  return new Iterator(function() {
+    if (i < size) {
+      var item = [dense[i], values[i]];
+      i++;
+
+      return {
+        value: item
+      };
+    }
+
+    return {
+      done: true
+    };
+  });
+};
+
+/**
+ * Attaching the #.entries method to Symbol.iterator if possible.
+ */
+if (typeof Symbol !== 'undefined')
+  SparseMap.prototype[Symbol.iterator] = SparseMap.prototype.entries;
+
+/**
+ * Convenience known methods.
+ */
+SparseMap.prototype.inspect = function() {
+  var proxy = new Map();
+
+  for (var i = 0; i < this.size; i++)
+    proxy.set(this.dense[i], this.vals[i]);
+
+  // Trick so that node displays the name of the constructor
+  Object.defineProperty(proxy, 'constructor', {
+    value: SparseMap,
+    enumerable: false
+  });
+
+  proxy.length = this.length;
+
+  if (this.vals.constructor !== Array)
+    proxy.type = this.vals.constructor.name;
+
+  return proxy;
+};
+
+if (typeof Symbol !== 'undefined')
+  SparseMap.prototype[Symbol.for('nodejs.util.inspect.custom')] = SparseMap.prototype.inspect;
+
+/**
+ * Exporting.
+ */
+module.exports = SparseMap;
+
+
+/***/ }),
+
+/***/ "./node_modules/mnemonist/sparse-queue-set.js":
+/*!****************************************************!*\
+  !*** ./node_modules/mnemonist/sparse-queue-set.js ***!
+  \****************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+/**
+ * Mnemonist SparseQueueSet
+ * =========================
+ *
+ * JavaScript sparse queue set implemented on top of byte arrays.
+ *
+ * [Reference]: https://research.swtch.com/sparse
+ */
+var Iterator = __webpack_require__(/*! obliterator/iterator */ "./node_modules/mnemonist/node_modules/obliterator/iterator.js"),
+    getPointerArray = __webpack_require__(/*! ./utils/typed-arrays.js */ "./node_modules/mnemonist/utils/typed-arrays.js").getPointerArray;
+
+/**
+ * SparseQueueSet.
+ *
+ * @constructor
+ */
+function SparseQueueSet(capacity) {
+
+  var ByteArray = getPointerArray(capacity);
+
+  // Properties
+  this.start = 0;
+  this.size = 0;
+  this.capacity = capacity;
+  this.dense = new ByteArray(capacity);
+  this.sparse = new ByteArray(capacity);
+}
+
+/**
+ * Method used to clear the structure.
+ *
+ * @return {undefined}
+ */
+SparseQueueSet.prototype.clear = function() {
+  this.start = 0;
+  this.size = 0;
+};
+
+/**
+ * Method used to check the existence of a member in the queue.
+ *
+ * @param  {number} member - Member to test.
+ * @return {SparseQueueSet}
+ */
+SparseQueueSet.prototype.has = function(member) {
+  if (this.size === 0)
+    return false;
+
+  var index = this.sparse[member];
+
+  var inBounds = (index >= this.start) ?
+    (index < (this.start + this.size)) :
+    (index < ((this.start + this.size) % this.capacity));
+
+  return (
+    inBounds &&
+    this.dense[index] === member
+  );
+};
+
+/**
+ * Method used to add a member to the queue.
+ *
+ * @param  {number} member - Member to add.
+ * @return {SparseQueueSet}
+ */
+SparseQueueSet.prototype.enqueue = function(member) {
+  var index = this.sparse[member];
+
+  var inBounds = (index >= this.start) ?
+    (index < (this.start + this.size)) :
+    (index < ((this.start + this.size) % this.capacity));
+
+  if (this.size !== 0 && inBounds && this.dense[index] === member)
+    return this;
+
+  index = (this.start + this.size) % this.capacity;
+
+  this.dense[index] = member;
+  this.sparse[member] = index;
+  this.size++;
+
+  return this;
+};
+
+/**
+ * Method used to remove the next member from the queue.
+ *
+ * @param  {number} member - Member to delete.
+ * @return {boolean}
+ */
+SparseQueueSet.prototype.dequeue = function() {
+  if (this.size === 0)
+    return;
+
+  var index = this.start;
+
+  this.size--;
+  this.start++;
+
+  if (this.start === this.capacity)
+    this.start = 0;
+
+  var member = this.dense[index];
+
+  this.sparse[member] = index + 1;
+
+  return member;
+};
+
+/**
+ * Method used to iterate over the queue's values.
+ *
+ * @param  {function}  callback - Function to call for each item.
+ * @param  {object}    scope    - Optional scope.
+ * @return {undefined}
+ */
+SparseQueueSet.prototype.forEach = function(callback, scope) {
+  scope = arguments.length > 1 ? scope : this;
+
+  var c = this.capacity,
+      l = this.size,
+      i = this.start,
+      j = 0;
+
+  while (j < l) {
+    callback.call(scope, this.dense[i], j, this);
+    i++;
+    j++;
+
+    if (i === c)
+      i = 0;
+  }
+};
+
+/**
+ * Method used to create an iterator over a set's values.
+ *
+ * @return {Iterator}
+ */
+SparseQueueSet.prototype.values = function() {
+  var dense = this.dense,
+      c = this.capacity,
+      l = this.size,
+      i = this.start,
+      j = 0;
+
+  return new Iterator(function() {
+    if (j >= l)
+      return {
+        done: true
+      };
+
+    var value = dense[i];
+
+    i++;
+    j++;
+
+    if (i === c)
+      i = 0;
+
+    return {
+      value: value,
+      done: false
+    };
+  });
+};
+
+/**
+ * Attaching the #.values method to Symbol.iterator if possible.
+ */
+if (typeof Symbol !== 'undefined')
+  SparseQueueSet.prototype[Symbol.iterator] = SparseQueueSet.prototype.values;
+
+/**
+ * Convenience known methods.
+ */
+SparseQueueSet.prototype.inspect = function() {
+  var proxy = [];
+
+  this.forEach(function(member) {
+    proxy.push(member);
+  });
+
+  // Trick so that node displays the name of the constructor
+  Object.defineProperty(proxy, 'constructor', {
+    value: SparseQueueSet,
+    enumerable: false
+  });
+
+  proxy.capacity = this.capacity;
+
+  return proxy;
+};
+
+if (typeof Symbol !== 'undefined')
+  SparseQueueSet.prototype[Symbol.for('nodejs.util.inspect.custom')] = SparseQueueSet.prototype.inspect;
+
+/**
+ * Exporting.
+ */
+module.exports = SparseQueueSet;
+
+
+/***/ }),
+
+/***/ "./node_modules/mnemonist/utils/typed-arrays.js":
+/*!******************************************************!*\
+  !*** ./node_modules/mnemonist/utils/typed-arrays.js ***!
+  \******************************************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+/**
+ * Mnemonist Typed Array Helpers
+ * ==============================
+ *
+ * Miscellaneous helpers related to typed arrays.
+ */
+
+/**
+ * When using an unsigned integer array to store pointers, one might want to
+ * choose the optimal word size in regards to the actual numbers of pointers
+ * to store.
+ *
+ * This helpers does just that.
+ *
+ * @param  {number} size - Expected size of the array to map.
+ * @return {TypedArray}
+ */
+var MAX_8BIT_INTEGER = Math.pow(2, 8) - 1,
+    MAX_16BIT_INTEGER = Math.pow(2, 16) - 1,
+    MAX_32BIT_INTEGER = Math.pow(2, 32) - 1;
+
+var MAX_SIGNED_8BIT_INTEGER = Math.pow(2, 7) - 1,
+    MAX_SIGNED_16BIT_INTEGER = Math.pow(2, 15) - 1,
+    MAX_SIGNED_32BIT_INTEGER = Math.pow(2, 31) - 1;
+
+exports.getPointerArray = function(size) {
+  var maxIndex = size - 1;
+
+  if (maxIndex <= MAX_8BIT_INTEGER)
+    return Uint8Array;
+
+  if (maxIndex <= MAX_16BIT_INTEGER)
+    return Uint16Array;
+
+  if (maxIndex <= MAX_32BIT_INTEGER)
+    return Uint32Array;
+
+  return Float64Array;
+};
+
+exports.getSignedPointerArray = function(size) {
+  var maxIndex = size - 1;
+
+  if (maxIndex <= MAX_SIGNED_8BIT_INTEGER)
+    return Int8Array;
+
+  if (maxIndex <= MAX_SIGNED_16BIT_INTEGER)
+    return Int16Array;
+
+  if (maxIndex <= MAX_SIGNED_32BIT_INTEGER)
+    return Int32Array;
+
+  return Float64Array;
+};
+
+/**
+ * Function returning the minimal type able to represent the given number.
+ *
+ * @param  {number} value - Value to test.
+ * @return {TypedArrayClass}
+ */
+exports.getNumberType = function(value) {
+
+  // <= 32 bits itnteger?
+  if (value === (value | 0)) {
+
+    // Negative
+    if (Math.sign(value) === -1) {
+      if (value <= 127 && value >= -128)
+        return Int8Array;
+
+      if (value <= 32767 && value >= -32768)
+        return Int16Array;
+
+      return Int32Array;
+    }
+    else {
+
+      if (value <= 255)
+        return Uint8Array;
+
+      if (value <= 65535)
+        return Uint16Array;
+
+      return Uint32Array;
+    }
+  }
+
+  // 53 bits integer & floats
+  // NOTE: it's kinda hard to tell whether we could use 32bits or not...
+  return Float64Array;
+};
+
+/**
+ * Function returning the minimal type able to represent the given array
+ * of JavaScript numbers.
+ *
+ * @param  {array}    array  - Array to represent.
+ * @param  {function} getter - Optional getter.
+ * @return {TypedArrayClass}
+ */
+var TYPE_PRIORITY = {
+  Uint8Array: 1,
+  Int8Array: 2,
+  Uint16Array: 3,
+  Int16Array: 4,
+  Uint32Array: 5,
+  Int32Array: 6,
+  Float32Array: 7,
+  Float64Array: 8
+};
+
+// TODO: make this a one-shot for one value
+exports.getMinimalRepresentation = function(array, getter) {
+  var maxType = null,
+      maxPriority = 0,
+      p,
+      t,
+      v,
+      i,
+      l;
+
+  for (i = 0, l = array.length; i < l; i++) {
+    v = getter ? getter(array[i]) : array[i];
+    t = exports.getNumberType(v);
+    p = TYPE_PRIORITY[t.name];
+
+    if (p > maxPriority) {
+      maxPriority = p;
+      maxType = t;
+    }
+  }
+
+  return maxType;
+};
+
+/**
+ * Function returning whether the given value is a typed array.
+ *
+ * @param  {any} value - Value to test.
+ * @return {boolean}
+ */
+exports.isTypedArray = function(value) {
+  return typeof ArrayBuffer !== 'undefined' && ArrayBuffer.isView(value);
+};
+
+/**
+ * Function used to concat byte arrays.
+ *
+ * @param  {...ByteArray}
+ * @return {ByteArray}
+ */
+exports.concat = function() {
+  var length = 0,
+      i,
+      o,
+      l;
+
+  for (i = 0, l = arguments.length; i < l; i++)
+    length += arguments[i].length;
+
+  var array = new (arguments[0].constructor)(length);
+
+  for (i = 0, o = 0; i < l; i++) {
+    array.set(arguments[i], o);
+    o += arguments[i].length;
+  }
+
+  return array;
+};
+
+/**
+ * Function used to initialize a byte array of indices.
+ *
+ * @param  {number}    length - Length of target.
+ * @return {ByteArray}
+ */
+exports.indices = function(length) {
+  var PointerArray = exports.getPointerArray(length);
+
+  var array = new PointerArray(length);
+
+  for (var i = 0; i < length; i++)
+    array[i] = i;
+
+  return array;
+};
 
 
 /***/ }),
@@ -40170,66 +39216,102 @@ module.exports = function take(iterator, n) {
 
 /***/ }),
 
-/***/ "./node_modules/webpack/buildin/global.js":
-/*!***********************************!*\
-  !*** (webpack)/buildin/global.js ***!
-  \***********************************/
+/***/ "./node_modules/pandemonium/random-index.js":
+/*!**************************************************!*\
+  !*** ./node_modules/pandemonium/random-index.js ***!
+  \**************************************************/
 /*! no static exports found */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
-var g;
+/**
+ * Pandemonium Random Index
+ * =========================
+ *
+ * Random index function.
+ */
+var createRandom = __webpack_require__(/*! ./random.js */ "./node_modules/pandemonium/random.js").createRandom;
 
-// This works in non-strict mode
-g = (function() {
-	return this;
-})();
+/**
+ * Creating a function returning a random index from the given array.
+ *
+ * @param  {function} rng - RNG function returning uniform random.
+ * @return {function}     - The created function.
+ */
+function createRandomIndex(rng) {
+  var customRandom = createRandom(rng);
 
-try {
-	// This works if eval is allowed (see CSP)
-	g = g || new Function("return this")();
-} catch (e) {
-	// This works if the window reference is available
-	if (typeof window === "object") g = window;
+  /**
+   * Random function.
+   *
+   * @param  {array|number}  array - Target array or length of the array.
+   * @return {number}
+   */
+  return function(length) {
+    if (typeof length !== 'number')
+      length = length.length;
+
+    return customRandom(0, length - 1);
+  };
 }
 
-// g can still be undefined, but nothing to do about it...
-// We return undefined, instead of nothing here, so it's
-// easier to handle this case. if(!global) { ...}
+/**
+ * Default random index using `Math.random`.
+ */
+var randomIndex = createRandomIndex(Math.random);
 
-module.exports = g;
+/**
+ * Exporting.
+ */
+randomIndex.createRandomIndex = createRandomIndex;
+module.exports = randomIndex;
 
 
 /***/ }),
 
-/***/ "./node_modules/webpack/buildin/module.js":
-/*!***********************************!*\
-  !*** (webpack)/buildin/module.js ***!
-  \***********************************/
+/***/ "./node_modules/pandemonium/random.js":
+/*!********************************************!*\
+  !*** ./node_modules/pandemonium/random.js ***!
+  \********************************************/
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-module.exports = function(module) {
-	if (!module.webpackPolyfill) {
-		module.deprecate = function() {};
-		module.paths = [];
-		// module.parent = undefined by default
-		if (!module.children) module.children = [];
-		Object.defineProperty(module, "loaded", {
-			enumerable: true,
-			get: function() {
-				return module.l;
-			}
-		});
-		Object.defineProperty(module, "id", {
-			enumerable: true,
-			get: function() {
-				return module.i;
-			}
-		});
-		module.webpackPolyfill = 1;
-	}
-	return module;
-};
+/**
+ * Pandemonium Random
+ * ===================
+ *
+ * Random function.
+ */
+
+/**
+ * Creating a function returning a random integer such as a <= N <= b.
+ *
+ * @param  {function} rng - RNG function returning uniform random.
+ * @return {function}     - The created function.
+ */
+function createRandom(rng) {
+
+  /**
+   * Random function.
+   *
+   * @param  {number} a - From.
+   * @param  {number} b - To.
+   * @return {number}
+   */
+  return function(a, b) {
+    return a + Math.floor(rng() * (b - a + 1));
+  };
+}
+
+/**
+ * Default random using `Math.random`.
+ */
+var random = createRandom(Math.random);
+
+/**
+ * Exporting.
+ */
+random.createRandom = createRandom;
+module.exports = random;
 
 
 /***/ }),
