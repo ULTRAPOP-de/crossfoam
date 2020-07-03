@@ -30151,14 +30151,14 @@ var setupNav = function () {
         ["options", "settings", "options"],
     ];
     navData.forEach(function (data) {
-        d3__WEBPACK_IMPORTED_MODULE_1__["select"]("#icon-" + data[0])
+        Object(d3__WEBPACK_IMPORTED_MODULE_1__["select"])("#icon-" + data[0])
             .attr("href", browser.runtime.getURL("html/" + data[2] + ".html"));
-        d3__WEBPACK_IMPORTED_MODULE_1__["select"]("#label-" + data[0])
+        Object(d3__WEBPACK_IMPORTED_MODULE_1__["select"])("#label-" + data[0])
             .text(browser.i18n.getMessage(data[1]));
     });
 };
 var setupVersion = function () {
-    d3__WEBPACK_IMPORTED_MODULE_1__["select"]("#version")
+    Object(d3__WEBPACK_IMPORTED_MODULE_1__["select"])("#version")
         .text("v" + browser.runtime.getManifest().version);
 };
 var setupFooter = function () {

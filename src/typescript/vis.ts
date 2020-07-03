@@ -3,7 +3,7 @@ import { exportFormats, exportNetwork } from "@crossfoam/export";
 import { getScrapes } from "@crossfoam/services";
 import { formatDate } from "@crossfoam/utils";
 import { ClusterVis, ListVis, NetworkVis, OverviewVis } from "@crossfoam/vis";
-import * as d3 from "d3";
+import { event as d3event, select, selectAll } from "d3";
 import { setupNav, setupVersion, StateManager } from "./nav";
 
 // Master nav and extension version
@@ -67,12 +67,12 @@ const updateView = () => {
             break;
         }
 
-        d3.select("#visContainer").attr("class", stateManager.urlState.view);
+        select("#visContainer").attr("class", stateManager.urlState.view);
 
         cache.vis.build(cache.networks[stateManager.urlState.nUuid],
                         cache.scrapes[cache.scrapeKeys[stateManager.urlState.nUuid]]);
 
-        d3.selectAll("#spinnerOverlay").remove();
+        selectAll("#spinnerOverlay").remove();
       });
     }
 
@@ -85,9 +85,9 @@ const stateManager = new StateManager(updateView);
 
 const selectionView = () => {
 
-  d3.selectAll("#page *").remove();
+  selectAll("#page *").remove();
 
-  const container = d3.select("#page").append("div").attr("id", "scrape-container");
+  const container = select("#page").append("div").attr("id", "scrape-container");
 
   container.append("h1")
     .html(`${browser.i18n.getMessage("selectionTitle")}`);
@@ -160,7 +160,7 @@ const selectionView = () => {
         .classed("scrapeImage", true)
         .append("img")
           .on("error", (d, i, a) => {
-            d3.select(a[i])
+            select(a[i])
               .attr("src", "https://abs.twimg.com/sticky/default_profile_images/default_profile_normal.png");
           })
           .attr("src", cache.userImages[scrape.screenName]);
@@ -176,7 +176,7 @@ const selectionView = () => {
     srcset="../assets/images/navbar--icon-vis-delete.png 1x, \
     ../assets/images/navbar--icon-vis-delete@2x.png 2x" >`)
         .on("click", (d) => {
-          d3.event.stopPropagation();
+          d3event.stopPropagation();
 
           const confirmation = confirm(browser.i18n.getMessage("confirmDelete"));
 
@@ -219,7 +219,7 @@ const selectionView = () => {
       srcset="../assets/images/navbar--icon-vis-download.png 1x, \
       ../assets/images/navbar--icon-vis-download@2x.png 2x" >`)
           .on("click", () => {
-            d3.event.stopPropagation();
+            d3event.stopPropagation();
 
             stateManager.urlState.nUuid = scrape.nUuid;
             stateManager.urlState.view = "export";
@@ -238,7 +238,7 @@ const selectionView = () => {
       srcset="../assets/images/navbar--icon-vis-goto-list.png 1x, \
       ../assets/images/navbar--icon-vis-goto-list@2x.png 2x" >`)
           .on("click", () => {
-            d3.event.stopPropagation();
+            d3event.stopPropagation();
 
             stateManager.urlState.nUuid = scrape.nUuid;
             stateManager.urlState.view = "list";
@@ -252,7 +252,7 @@ const selectionView = () => {
       srcset="../assets/images/navbar--icon-vis-goto-cluster.png 1x, \
       ../assets/images/navbar--icon-vis-goto-cluster@2x.png 2x" >`)
           .on("click", () => {
-            d3.event.stopPropagation();
+            d3event.stopPropagation();
 
             stateManager.urlState.nUuid = scrape.nUuid;
             stateManager.urlState.view = "cluster";
@@ -266,7 +266,7 @@ const selectionView = () => {
       srcset="../assets/images/navbar--icon-vis-goto-network.png 1x, \
       ../assets/images/navbar--icon-vis-goto-network@2x.png 2x" >`)
           .on("click", () => {
-            d3.event.stopPropagation();
+            d3event.stopPropagation();
 
             stateManager.urlState.nUuid = scrape.nUuid;
             stateManager.urlState.view = "network";
@@ -280,7 +280,7 @@ const selectionView = () => {
       srcset="../assets/images/navbar--icon-vis-goto-overview.png 1x, \
       ../assets/images/navbar--icon-vis-goto-overview@2x.png 2x" >`)
           .on("click", () => {
-            d3.event.stopPropagation();
+            d3event.stopPropagation();
 
             stateManager.urlState.nUuid = scrape.nUuid;
             stateManager.urlState.view = "overview";
@@ -326,14 +326,14 @@ const selectionView = () => {
 };
 
 const setupBackButton = () => {
-  d3.select("#page").append("a")
+  select("#page").append("a")
     .attr("id", "backButton")
     .html(`&larr;&nbsp;${browser.i18n.getMessage("backToOverview")}`)
     .attr("href", "vis.html");
 };
 
 const updateBackButton = () => {
-  const backButton = d3.select("#backButton");
+  const backButton = select("#backButton");
   if (!backButton.empty()) {
     if ("subView" in stateManager.urlState && stateManager.urlState.subView !== "level0") {
       backButton
@@ -355,11 +355,11 @@ const setupExport = () => {
 
   const scrape = cache.scrapes[cache.scrapeKeys[stateManager.urlState.nUuid]];
 
-  d3.selectAll("#page *").remove();
+  selectAll("#page *").remove();
 
   setupBackButton();
 
-  const exportContainer = d3.select("#page").append("div")
+  const exportContainer = select("#page").append("div")
     .attr("id", "exportContainer");
 
   exportContainer.append("h1")
@@ -404,17 +404,17 @@ const setupExport = () => {
 };
 
 const setupVis = () => {
-  d3.selectAll("#page *").remove();
+  selectAll("#page *").remove();
 
-  const visContainer = d3.select("#page").append("div")
+  const visContainer = select("#page").append("div")
     .attr("id", "visContainer");
 
-  d3.select("#page").append("div")
+  select("#page").append("div")
     .attr("id", "spinnerOverlay")
     .append("img")
       .attr("src", "../assets/images/logo-animation.gif");
 
-  const visNav = d3.select("#page").append("div")
+  const visNav = select("#page").append("div")
     .attr("id", "visNav")
     .html(`<ul>
     <li class="${(stateManager.urlState.view === "overview") ? "active" : ""}">
@@ -459,7 +459,7 @@ const setupVis = () => {
     </li>
     </ul>`);
 
-  const visHelp = d3.select("#page").append("div")
+  const visHelp = select("#page").append("div")
     .attr("id", "visHelp")
     .html(`<span><span class="icon">
     <img src="../assets/images/navbar--icon-chatbot.png" \

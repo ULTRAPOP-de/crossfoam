@@ -42096,26 +42096,26 @@ browser.runtime.onMessage.addListener(browserMessage);
 // When the extension is installed or updated let the user know...
 var handleInstalled = function (details) {
     // Don't notify user's if in dev mode
-    if (!details.temporary) {
-        switch (details.reason) {
-            case "update":
-                browser.tabs.create({
-                    active: true,
-                    url: "/html/update.html?previousVersion=" + details.previousVersion,
-                });
-                break;
-            case "install":
-                installData();
-                browser.tabs.create({
-                    active: true,
-                    url: "/html/preInstall.html",
-                });
-                break;
-            default:
-                // Ignore "browser_update" & "shared_module_update"
-                break;
-        }
+    // if (!details.temporary) {
+    switch (details.reason) {
+        case "update":
+            browser.tabs.create({
+                active: true,
+                url: "/html/update.html?previousVersion=" + details.previousVersion,
+            });
+            break;
+        case "install":
+            installData();
+            browser.tabs.create({
+                active: true,
+                url: "/html/preInstall.html",
+            });
+            break;
+        default:
+            // Ignore "browser_update" & "shared_module_update"
+            break;
     }
+    // }
 };
 browser.runtime.onInstalled.addListener(handleInstalled);
 var installData = function () {
@@ -42131,7 +42131,7 @@ var installData = function () {
                 return _crossfoam_data__WEBPACK_IMPORTED_MODULE_0__["set"]("s--twitter--u", sTwitterU);
             })
                 .then(function () {
-                return d3__WEBPACK_IMPORTED_MODULE_5__["json"]("/assets/data/wikidata.json");
+                return Object(d3__WEBPACK_IMPORTED_MODULE_5__["json"])("/assets/data/wikidata.json");
             })
                 .then(function (data) {
                 var setData = {};

@@ -1,5 +1,5 @@
 import { setHTML } from "@crossfoam/ui-helpers";
-import { setupNav, setupFooter, setupVersion } from "./nav";
+import { setupFooter, setupNav, setupVersion } from "./nav";
 
 setHTML("#versionControl", browser.i18n.getMessage(
   "updateVersion",

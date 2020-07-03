@@ -1,5 +1,5 @@
 import { setHTML } from "@crossfoam/ui-helpers";
-import { setupNav, setupFooter, setupVersion } from "./nav";
+import { setupFooter, setupNav, setupVersion } from "./nav";
 
 const translateHowTo = [
   ["howto--title", "howToTitle"],

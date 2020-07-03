@@ -4,7 +4,7 @@ import { analyseNetwork, buildNetwork, checkupNetwork, cleanupNetwork,
 import * as queue from "@crossfoam/queue";
 import { identifyService, services } from "@crossfoam/services";
 import { objEmpty, uuid } from "@crossfoam/utils";
-import * as d3 from "d3";
+import { json as d3json } from "d3";
 
 // Modify dom
 const handleUpdated = (tabId, changeInfo, tabInfo) => {
@@ -388,7 +388,7 @@ browser.runtime.onMessage.addListener(browserMessage);
 
 const handleInstalled = (details) => {
   // Don't notify user's if in dev mode
-  if (!details.temporary) {
+  // if (!details.temporary) {
     switch (details.reason) {
       case "update":
         browser.tabs.create({
@@ -407,7 +407,7 @@ const handleInstalled = (details) => {
         // Ignore "browser_update" & "shared_module_update"
         break;
     }
-  }
+  // }
 };
 
 browser.runtime.onInstalled.addListener(handleInstalled);
@@ -425,7 +425,7 @@ const installData = () => {
             return cfData.set(`s--twitter--u`, sTwitterU);
           })
           .then(() => {
-            return d3.json("/assets/data/wikidata.json");
+            return d3json("/assets/data/wikidata.json");
           })
           .then((data) => {
             const setData = {};

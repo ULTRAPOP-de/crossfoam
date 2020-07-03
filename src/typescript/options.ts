@@ -1,7 +1,7 @@
 import * as cfData from "@crossfoam/data";
 import { services } from "@crossfoam/services";
 import { setHTML } from "@crossfoam/ui-helpers";
-import { setupNav, setupFooter, setupVersion } from "./nav";
+import { setupFooter, setupNav, setupVersion } from "./nav";
 
 const translates = [
   ["settings--title", "settings"],

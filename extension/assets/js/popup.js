@@ -30800,20 +30800,20 @@ __webpack_require__.r(__webpack_exports__);
 
 var scrapes = [];
 var updateList = function () {
-    d3__WEBPACK_IMPORTED_MODULE_3__["selectAll"]("#scrape-list li").remove();
+    Object(d3__WEBPACK_IMPORTED_MODULE_3__["selectAll"])("#scrape-list li").remove();
     if (scrapes.length > 0) {
-        d3__WEBPACK_IMPORTED_MODULE_3__["select"]("#scrape-title").text(browser.i18n.getMessage("popupScrapeTitle") + ":")
+        Object(d3__WEBPACK_IMPORTED_MODULE_3__["select"])("#scrape-title").text(browser.i18n.getMessage("popupScrapeTitle") + ":")
             .on("mouseover", function () {
-            d3__WEBPACK_IMPORTED_MODULE_3__["select"]("#overlay")
+            Object(d3__WEBPACK_IMPORTED_MODULE_3__["select"])("#overlay")
                 .style("display", "none");
         });
-        var scrapeItems = d3__WEBPACK_IMPORTED_MODULE_3__["select"]("#scrape-list")
+        var scrapeItems = Object(d3__WEBPACK_IMPORTED_MODULE_3__["select"])("#scrape-list")
             .selectAll("li").data(scrapes).enter().append("li")
             .classed("scrape", true)
             .on("mouseover", function (d, i, nodes) {
             cancelID = i;
-            var bbox = d3__WEBPACK_IMPORTED_MODULE_3__["select"](nodes[i]).node().getBoundingClientRect();
-            d3__WEBPACK_IMPORTED_MODULE_3__["select"]("#overlay")
+            var bbox = Object(d3__WEBPACK_IMPORTED_MODULE_3__["select"])(nodes[i]).node().getBoundingClientRect();
+            Object(d3__WEBPACK_IMPORTED_MODULE_3__["select"])("#overlay")
                 .style("display", "table")
                 .style("top", (bbox.top + 1) + "px")
                 .style("width", bbox.width + "px")
@@ -30852,7 +30852,7 @@ var updateList = function () {
         });
     }
     else {
-        d3__WEBPACK_IMPORTED_MODULE_3__["select"]("#scrape-title").text("");
+        Object(d3__WEBPACK_IMPORTED_MODULE_3__["select"])("#scrape-title").text("");
     }
 };
 var spinnerDestroyed = true;
@@ -30873,16 +30873,16 @@ var loadUpdate = function () {
         if (!spinnerDestroyed) {
             spinnerDestroyed = true;
             destroySpinner();
-            d3__WEBPACK_IMPORTED_MODULE_3__["select"]("#scrape-loader").remove();
+            Object(d3__WEBPACK_IMPORTED_MODULE_3__["select"])("#scrape-loader").remove();
         }
     });
 };
 /*----- Cancel Overlay -----*/
 var cancelID = 0;
-d3__WEBPACK_IMPORTED_MODULE_3__["select"]("body").append("div")
+Object(d3__WEBPACK_IMPORTED_MODULE_3__["select"])("body").append("div")
     .attr("id", "overlay")
     .on("mouseout", function () {
-    d3__WEBPACK_IMPORTED_MODULE_3__["select"]("#overlay")
+    Object(d3__WEBPACK_IMPORTED_MODULE_3__["select"])("#overlay")
         .style("display", "none");
 })
     .on("click", function () {
@@ -30895,7 +30895,7 @@ d3__WEBPACK_IMPORTED_MODULE_3__["select"]("body").append("div")
         .then(function (response) {
         if (response.type === "update") {
             loadUpdate();
-            d3__WEBPACK_IMPORTED_MODULE_3__["select"]("#overlay")
+            Object(d3__WEBPACK_IMPORTED_MODULE_3__["select"])("#overlay")
                 .style("top", 0)
                 .style("height", 0)
                 .style("display", "none");
@@ -30912,9 +30912,9 @@ d3__WEBPACK_IMPORTED_MODULE_3__["select"]("body").append("div")
       alt='" + browser.i18n.getMessage("popupCancelLink") + "' ></span><span>"
     + browser.i18n.getMessage("popupCancelLink") + "</span>");
 /*----- Link to Vis -----*/
-d3__WEBPACK_IMPORTED_MODULE_3__["select"]("#action--text span")
+Object(d3__WEBPACK_IMPORTED_MODULE_3__["select"])("#action--text span")
     .text(browser.i18n.getMessage("popupExploreLink"));
-d3__WEBPACK_IMPORTED_MODULE_3__["select"]("#action a")
+Object(d3__WEBPACK_IMPORTED_MODULE_3__["select"])("#action a")
     .on("click", function () {
     browser.tabs.create({
         url: "/html/vis.html",
@@ -30925,13 +30925,13 @@ d3__WEBPACK_IMPORTED_MODULE_3__["select"]("#action a")
     });
 })
     .on("mouseover", function () {
-    d3__WEBPACK_IMPORTED_MODULE_3__["select"]("#overlay")
+    Object(d3__WEBPACK_IMPORTED_MODULE_3__["select"])("#overlay")
         .style("display", "none");
 });
 /*----- Footer -----*/
-d3__WEBPACK_IMPORTED_MODULE_3__["select"]("#footer .right")
+Object(d3__WEBPACK_IMPORTED_MODULE_3__["select"])("#footer .right")
     .text(browser.runtime.getManifest().version);
-d3__WEBPACK_IMPORTED_MODULE_3__["select"]("#footer .left")
+Object(d3__WEBPACK_IMPORTED_MODULE_3__["select"])("#footer .left")
     .append("span")
     .text(browser.i18n.getMessage("settings"))
     .on("click", function () {

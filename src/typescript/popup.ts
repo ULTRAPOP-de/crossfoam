@@ -1,29 +1,29 @@
 import { getScrapes } from "@crossfoam/services";
 import { logoSpinner } from "@crossfoam/ui-helpers";
 import { formatDate, formatDuration } from "@crossfoam/utils";
-import * as d3 from "d3";
+import { select, selectAll } from "d3";
 
 let scrapes = [];
 
 const updateList = () => {
-  d3.selectAll("#scrape-list li").remove();
+  selectAll("#scrape-list li").remove();
 
   if (scrapes.length > 0) {
 
-    d3.select("#scrape-title").text(browser.i18n.getMessage("popupScrapeTitle") + ":")
+    select("#scrape-title").text(browser.i18n.getMessage("popupScrapeTitle") + ":")
       .on("mouseover", () => {
-          d3.select("#overlay")
+          select("#overlay")
             .style("display", "none");
         });
 
-    const scrapeItems = d3.select("#scrape-list")
+    const scrapeItems = select("#scrape-list")
       .selectAll("li").data(scrapes).enter().append("li")
         .classed("scrape", true)
         .on("mouseover", (d, i, nodes) => {
           cancelID = i;
 
-          const bbox = d3.select(nodes[i]).node().getBoundingClientRect();
-          d3.select("#overlay")
+          const bbox = select(nodes[i]).node().getBoundingClientRect();
+          select("#overlay")
             .style("display", "table")
             .style("top", (bbox.top + 1) + "px")
             .style("width", bbox.width + "px")
@@ -68,7 +68,7 @@ const updateList = () => {
       });
 
   } else {
-    d3.select("#scrape-title").text("");
+    select("#scrape-title").text("");
   }
 };
 
@@ -90,7 +90,7 @@ const loadUpdate = () => {
       if (!spinnerDestroyed) {
         spinnerDestroyed = true;
         destroySpinner();
-        d3.select("#scrape-loader").remove();
+        select("#scrape-loader").remove();
       }
     });
 };
@@ -99,10 +99,10 @@ const loadUpdate = () => {
 
 let cancelID = 0;
 
-d3.select("body").append("div")
+select("body").append("div")
   .attr("id", "overlay")
   .on("mouseout", () => {
-    d3.select("#overlay")
+    select("#overlay")
       .style("display", "none");
   })
   .on("click", () => {
@@ -117,7 +117,7 @@ d3.select("body").append("div")
       if (response.type === "update") {
         loadUpdate();
 
-        d3.select("#overlay")
+        select("#overlay")
           .style("top", 0)
           .style("height", 0)
           .style("display", "none");
@@ -137,10 +137,10 @@ d3.select("body").append("div")
 
 /*----- Link to Vis -----*/
 
-d3.select("#action--text span")
+select("#action--text span")
   .text(browser.i18n.getMessage("popupExploreLink"));
 
-d3.select("#action a")
+select("#action a")
   .on("click", () => {
     browser.tabs.create({
       url: "/html/vis.html",
@@ -151,16 +151,16 @@ d3.select("#action a")
     });
   })
   .on("mouseover", () => {
-    d3.select("#overlay")
+    select("#overlay")
       .style("display", "none");
   });
 
 /*----- Footer -----*/
 
-d3.select("#footer .right")
+select("#footer .right")
   .text(browser.runtime.getManifest().version);
 
-d3.select("#footer .left")
+select("#footer .left")
   .append("span")
     .text(browser.i18n.getMessage("settings"))
     .on("click", () => {

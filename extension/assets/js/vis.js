@@ -43772,14 +43772,14 @@ var setupNav = function () {
         ["options", "settings", "options"],
     ];
     navData.forEach(function (data) {
-        d3__WEBPACK_IMPORTED_MODULE_1__["select"]("#icon-" + data[0])
+        Object(d3__WEBPACK_IMPORTED_MODULE_1__["select"])("#icon-" + data[0])
             .attr("href", browser.runtime.getURL("html/" + data[2] + ".html"));
-        d3__WEBPACK_IMPORTED_MODULE_1__["select"]("#label-" + data[0])
+        Object(d3__WEBPACK_IMPORTED_MODULE_1__["select"])("#label-" + data[0])
             .text(browser.i18n.getMessage(data[1]));
     });
 };
 var setupVersion = function () {
-    d3__WEBPACK_IMPORTED_MODULE_1__["select"]("#version")
+    Object(d3__WEBPACK_IMPORTED_MODULE_1__["select"])("#version")
         .text("v" + browser.runtime.getManifest().version);
 };
 var setupFooter = function () {
@@ -43955,9 +43955,9 @@ var updateView = function () {
                         cache.vis = new _crossfoam_vis__WEBPACK_IMPORTED_MODULE_4__["ClusterVis"](stateManager);
                         break;
                 }
-                d3__WEBPACK_IMPORTED_MODULE_5__["select"]("#visContainer").attr("class", stateManager.urlState.view);
+                Object(d3__WEBPACK_IMPORTED_MODULE_5__["select"])("#visContainer").attr("class", stateManager.urlState.view);
                 cache.vis.build(cache.networks[stateManager.urlState.nUuid], cache.scrapes[cache.scrapeKeys[stateManager.urlState.nUuid]]);
-                d3__WEBPACK_IMPORTED_MODULE_5__["selectAll"]("#spinnerOverlay").remove();
+                Object(d3__WEBPACK_IMPORTED_MODULE_5__["selectAll"])("#spinnerOverlay").remove();
             });
         }
     }
@@ -43965,8 +43965,8 @@ var updateView = function () {
 };
 var stateManager = new _nav__WEBPACK_IMPORTED_MODULE_6__["StateManager"](updateView);
 var selectionView = function () {
-    d3__WEBPACK_IMPORTED_MODULE_5__["selectAll"]("#page *").remove();
-    var container = d3__WEBPACK_IMPORTED_MODULE_5__["select"]("#page").append("div").attr("id", "scrape-container");
+    Object(d3__WEBPACK_IMPORTED_MODULE_5__["selectAll"])("#page *").remove();
+    var container = Object(d3__WEBPACK_IMPORTED_MODULE_5__["select"])("#page").append("div").attr("id", "scrape-container");
     container.append("h1")
         .html("" + browser.i18n.getMessage("selectionTitle"));
     // TODO: No scrapes, yet
@@ -44013,7 +44013,7 @@ var selectionView = function () {
                 .classed("scrapeImage", true)
                 .append("img")
                 .on("error", function (d, i, a) {
-                d3__WEBPACK_IMPORTED_MODULE_5__["select"](a[i])
+                Object(d3__WEBPACK_IMPORTED_MODULE_5__["select"])(a[i])
                     .attr("src", "https://abs.twimg.com/sticky/default_profile_images/default_profile_normal.png");
             })
                 .attr("src", cache.userImages[scrape.screenName]);
@@ -44137,13 +44137,13 @@ var selectionView = function () {
         .html(browser.i18n.getMessage("selectionOutro"));
 };
 var setupBackButton = function () {
-    d3__WEBPACK_IMPORTED_MODULE_5__["select"]("#page").append("a")
+    Object(d3__WEBPACK_IMPORTED_MODULE_5__["select"])("#page").append("a")
         .attr("id", "backButton")
         .html("&larr;&nbsp;" + browser.i18n.getMessage("backToOverview"))
         .attr("href", "vis.html");
 };
 var updateBackButton = function () {
-    var backButton = d3__WEBPACK_IMPORTED_MODULE_5__["select"]("#backButton");
+    var backButton = Object(d3__WEBPACK_IMPORTED_MODULE_5__["select"])("#backButton");
     if (!backButton.empty()) {
         if ("subView" in stateManager.urlState && stateManager.urlState.subView !== "level0") {
             backButton
@@ -44163,9 +44163,9 @@ var updateBackButton = function () {
 };
 var setupExport = function () {
     var scrape = cache.scrapes[cache.scrapeKeys[stateManager.urlState.nUuid]];
-    d3__WEBPACK_IMPORTED_MODULE_5__["selectAll"]("#page *").remove();
+    Object(d3__WEBPACK_IMPORTED_MODULE_5__["selectAll"])("#page *").remove();
     setupBackButton();
-    var exportContainer = d3__WEBPACK_IMPORTED_MODULE_5__["select"]("#page").append("div")
+    var exportContainer = Object(d3__WEBPACK_IMPORTED_MODULE_5__["select"])("#page").append("div")
         .attr("id", "exportContainer");
     exportContainer.append("h1")
         .html("<span>" + scrape.service + "</span>: " + scrape.screenName + " (" + Object(_crossfoam_utils__WEBPACK_IMPORTED_MODULE_3__["formatDate"])(new Date(scrape.date), true) + ")");
@@ -44201,17 +44201,17 @@ var setupExport = function () {
     li.append("hr");
 };
 var setupVis = function () {
-    d3__WEBPACK_IMPORTED_MODULE_5__["selectAll"]("#page *").remove();
-    var visContainer = d3__WEBPACK_IMPORTED_MODULE_5__["select"]("#page").append("div")
+    Object(d3__WEBPACK_IMPORTED_MODULE_5__["selectAll"])("#page *").remove();
+    var visContainer = Object(d3__WEBPACK_IMPORTED_MODULE_5__["select"])("#page").append("div")
         .attr("id", "visContainer");
-    d3__WEBPACK_IMPORTED_MODULE_5__["select"]("#page").append("div")
+    Object(d3__WEBPACK_IMPORTED_MODULE_5__["select"])("#page").append("div")
         .attr("id", "spinnerOverlay")
         .append("img")
         .attr("src", "../assets/images/logo-animation.gif");
-    var visNav = d3__WEBPACK_IMPORTED_MODULE_5__["select"]("#page").append("div")
+    var visNav = Object(d3__WEBPACK_IMPORTED_MODULE_5__["select"])("#page").append("div")
         .attr("id", "visNav")
         .html("<ul>\n    <li class=\"" + ((stateManager.urlState.view === "overview") ? "active" : "") + "\">\n      <a href=\"vis.html?view=overview&nUuid=" + stateManager.urlState.nUuid + "\">\n        <span class=\"icon\">\n        <img src=\"../assets/images/navbar--icon-vis-overview.png\"         srcset=\"../assets/images/navbar--icon-vis-overview.png 1x,         ../assets/images/navbar--icon-vis-overview@2x.png 2x\" >\n        </span>\n        <span>" + browser.i18n.getMessage("visMenuOverview") + "</span>\n      </a>\n    </li>\n    <li class=\"" + ((stateManager.urlState.view === "network") ? "active" : "") + "\">\n      <a href=\"vis.html?view=network&nUuid=" + stateManager.urlState.nUuid + "\">\n        <span class=\"icon\">\n        <img src=\"../assets/images/navbar--icon-vis-network.png\"         srcset=\"../assets/images/navbar--icon-vis-network.png 1x,         ../assets/images/navbar--icon-vis-network@2x.png 2x\" >\n        </span>\n        <span>" + browser.i18n.getMessage("visMenuNetwork") + "</span>\n      </a>\n    </li>\n    <li class=\"" + ((stateManager.urlState.view === "cluster") ? "active" : "") + "\">\n      <a href=\"vis.html?view=cluster&nUuid=" + stateManager.urlState.nUuid + "\">\n        <span class=\"icon\">\n        <img src=\"../assets/images/navbar--icon-vis-cluster.png\"         srcset=\"../assets/images/navbar--icon-vis-cluster.png 1x,         ../assets/images/navbar--icon-vis-cluster@2x.png 2x\" >\n        </span>\n        <span>" + browser.i18n.getMessage("visMenuCluster") + "</span>\n      </a>\n    </li>\n    <li class=\"" + ((stateManager.urlState.view === "list") ? "active" : "") + "\">\n      <a href=\"vis.html?view=list&nUuid=" + stateManager.urlState.nUuid + "\">\n        <span class=\"icon\">\n        <img src=\"../assets/images/navbar--icon-vis-list.png\"         srcset=\"../assets/images/navbar--icon-vis-list.png 1x,         ../assets/images/navbar--icon-vis-list@2x.png 2x\" >\n        </span>\n        <span>" + browser.i18n.getMessage("visMenuList") + "</span>\n      </a>\n    </li>\n    </ul>");
-    var visHelp = d3__WEBPACK_IMPORTED_MODULE_5__["select"]("#page").append("div")
+    var visHelp = Object(d3__WEBPACK_IMPORTED_MODULE_5__["select"])("#page").append("div")
         .attr("id", "visHelp")
         .html("<span><span class=\"icon\">\n    <img src=\"../assets/images/navbar--icon-chatbot.png\"     srcset=\"../assets/images/navbar--icon-chatbot.png 1x,     ../assets/images/navbar--icon-chatbot@2x.png 2x\" >\n    </span>\n    <span>" + browser.i18n.getMessage("navHelp") + "</span></span>");
     setupBackButton();

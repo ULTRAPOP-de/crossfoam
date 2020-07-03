@@ -1,5 +1,5 @@
 import { setHTML } from "@crossfoam/ui-helpers";
-import * as d3 from "d3";
+import { select } from "d3";
 import { history } from "d3-history";
 
 /*---------- NAVIGATION ----------*/
@@ -12,16 +12,16 @@ const setupNav = () => {
   ];
 
   navData.forEach((data) => {
-    d3.select("#icon-" + data[0])
+    select("#icon-" + data[0])
       .attr("href", browser.runtime.getURL("html/" + data[2] + ".html"));
 
-    d3.select("#label-" + data[0])
+    select("#label-" + data[0])
       .text(browser.i18n.getMessage(data[1]));
   });
 };
 
 const setupVersion = () => {
-  d3.select("#version")
+  select("#version")
     .text("v" + browser.runtime.getManifest().version);
 };
 
