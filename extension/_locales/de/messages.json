@@ -18,7 +18,7 @@
     "message": "Wir wählen unsere Freunde, unsere Quellen und unsere Diskussionen nicht zufällig aus. Statt dessen, ist es sehr viel wahrscheinlicher, dass wir Informationen konsumieren, welche unsere eigenen Meinungen, Geschmäcker und Interessen wiederspiegeln."
   },
   "installParagraph2":{
-    "message": "Während Blasen in unserem Leben allgegenwärtig sind, nehmen diese im Digitalen eine spezielle Rolle ein. Unsere Entscheidungen, die Kuration durch Algorithmen und wirtschaftliche Anreize transformieren unsere Online Communities in sogeannte Echokammern. Kammern in denen alle sich verstehen und jeder die selben Meinungen hat."
+    "message": "Während Blasen in unserem Leben allgegenwärtig sind, nehmen diese im Digitalen eine spezielle Rolle ein. Unsere Entscheidungen, die Kuration durch Algorithmen und wirtschaftliche Anreize transformieren unsere Online Communities in sogenannte Echokammern. Kammern in denen alle sich verstehen und jeder die selben Meinungen hat."
   },
   "installParagraph3":{
     "message": "Andere Gemeinschaften, mit anderen Hintergründen, anderen Ideen und anderen Meinungen existieren, wir werden aber aktiv von diesen abgeschottet. Das Resultat sind Wiederholung und Ähnlichkeit auf der einen Seite sowie Mißverständnisse und Abgrenzung auf der anderen."
@@ -565,7 +565,7 @@
     "message": "Um auch große Netzwerke visualisieren zu können, nutzen wir WebGL, um dies zu ermöglichen nutzen wir die Bibliothek REGL."
   },
   "legalCopy6": {
-    "message": "Zum Download der Netzwerkdaten von Twitter, wird die Bibliothek Codebird genutzt."
+    "message": "Zum Download der Netzwerkdaten von Twitter, wird die Bibliothek Twitter-Lite genutzt."
   },
   "legalCopy7": {
     "message": "Zur Erkennung von Clustern in Netzwerken, was auch als Community-Erkennung bezeichnet wird, werden drei verschiedene Module genutzt:"

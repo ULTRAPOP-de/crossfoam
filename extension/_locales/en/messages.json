@@ -564,7 +564,7 @@
     "message": "In order to also visualise larger networks, we need to make use of WebGL, the library REGL is helping us do so."
   },
   "legalCopy6": {
-    "message": "To communicate with Twitter and download network data, we use the library Codebird."
+    "message": "To communicate with Twitter and download network data, we use the library Twitter-Lite."
   },
   "legalCopy7": {
     "message": "For detecting clusters / communities in the networks, we are using three different modules:"

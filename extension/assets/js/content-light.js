@@ -29977,18 +29977,20 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _crossfoam_ui_helpers__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_crossfoam_ui_helpers__WEBPACK_IMPORTED_MODULE_0__);
 
 (function () {
-    var browserMessage = function (request, sender, sendResponse) {
-        switch (request.type) {
-            case "modal":
-                return Object(_crossfoam_ui_helpers__WEBPACK_IMPORTED_MODULE_0__["modal"])(request.modal);
-                break;
-            default:
-                console.log(request);
-                break;
-        }
-        return true;
-    };
-    browser.runtime.onMessage.addListener(browserMessage);
+    if (browser) {
+        var browserMessage = function (request, sender, sendResponse) {
+            switch (request.type) {
+                case "modal":
+                    return Object(_crossfoam_ui_helpers__WEBPACK_IMPORTED_MODULE_0__["modal"])(request.modal);
+                    break;
+                default:
+                    console.log(request);
+                    break;
+            }
+            return true;
+        };
+        browser.runtime.onMessage.addListener(browserMessage);
+    }
     return true;
 })();
 
