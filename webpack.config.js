@@ -13,7 +13,7 @@ fs.readdirSync("./src/typescript").forEach((file) => {
 });
 
 module.exports = {
-  mode: 'development',
+  mode: 'production',
   entry,
   output: {
     // This copies each source entry into the extension dist folder named
@@ -23,7 +23,7 @@ module.exports = {
   },
 
   // Enable sourcemaps for debugging webpack's output.
-  devtool: "source-map",
+  // devtool: "source-map",
 
   resolve: {
     // Add '.ts' and '.tsx' as resolvable extensions.
@@ -45,7 +45,7 @@ module.exports = {
       { test: /\.ts$/, loader: "awesome-typescript-loader" },
 
       // All output '.js' files will have any sourcemaps re-processed by 'source-map-loader'.
-      { enforce: "pre", test: /\.js$/, loader: "source-map-loader" },
+      // { enforce: "pre", test: /\.js$/, loader: "source-map-loader" },
 
       {
         test: /\.js$/,
