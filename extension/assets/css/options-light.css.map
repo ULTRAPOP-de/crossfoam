@@ -1,9 +1,0 @@
-{
-	"version": 3,
-	"file": "options-light.css",
-	"sources": [
-		"../../../src/scss/options-light.scss"
-	],
-	"names": [],
-	"mappings": ""
-}
